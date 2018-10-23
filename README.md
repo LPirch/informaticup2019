@@ -21,10 +21,9 @@ pip install -r pip_requirements.txt
 
 # get data set
 mkdir data
-cd data
-wget -O train.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Training_Images.zip"
-wget -O test.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Test_Images.zip"
-unzip train.zip
-unzip test.zip
-rm train.zip test.zip
+wget -O data/train.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Training_Images.zip"
+wget -O data/test.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Test_Images.zip"
+unzip data/train.zip
+unzip data/test.zip
+rm data/train.zip data/test.zip
 ```
