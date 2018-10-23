@@ -19,4 +19,12 @@ virtualenv .
 source bin/activate
 pip install -r pip_requirements.txt
 
+# get data set
+mkdir data
+cd data
+wget -O train.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Training_Images.zip"
+wget -O test.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Test_Images.zip"
+unzip train.zip
+unzip test.zip
+rm train.zip test.zip
 ```
