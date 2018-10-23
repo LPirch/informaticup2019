@@ -13,7 +13,7 @@ IMG_SHAPE = (64, 64)
 URL = "https://phinau.de/trasi"
 ENCODING_TYPE = "multipart/form-data"
 PREDS_PICKLE = "./data/gtsrb.pickle"
-DATA_DIR = "./data/gtsrb"
+DATA_DIR = "./data"
 
 def load_api_key(loc="./api_key"):
 	with open(loc, 'r') as f:
@@ -79,4 +79,4 @@ if __name__ == "__main__":
 	apply_on_images(DATA_DIR, convert_img, fun_kwargs={"target_ext": ".png"}, filter_ext=".ppm")
 	apply_on_images(DATA_DIR, resize_image, fun_args=[IMG_SHAPE], filter_ext=".png")
 	apply_on_images(DATA_DIR, check_shape, filter_ext=".png")
-	apply_on_images(DATA_DIR, fetch_oracle_response, fun_kwargs={"delay": 1}, filter_ext=".png")
+	#apply_on_images(DATA_DIR, fetch_oracle_response, fun_kwargs={"delay": 1}, filter_ext=".png")
