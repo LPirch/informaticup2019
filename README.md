@@ -26,4 +26,9 @@ wget -O test.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Test_Images.zi
 unzip train.zip -d data
 unzip test.zip -d data
 rm train.zip test.zip
+
+# build image
+sudo docker build -t informaticup/someTag .
+# start container and mount a host directory into the container
+sudo docker run -it -v /path/to/some/host/dir:/informaticup/results informaticup/someTag /bin/bash
 ```
