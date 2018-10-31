@@ -29,6 +29,6 @@ rm train.zip test.zip
 
 # build image
 sudo docker build -t informaticup/someTag .
-# start container and mount a host directory into the container
-sudo docker run -it -v /path/to/some/host/dir:/informaticup/results informaticup/someTag /bin/bash
+# start container and bind a TCP port to host
+sudo docker run -d -p 80:80/tcp someTag
 ```
