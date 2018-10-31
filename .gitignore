@@ -11,3 +11,7 @@ lib
 
 # data
 data
+
+# python stuff
+__pycache__
+*.pyc
