@@ -12,10 +12,10 @@ API_KEY = None
 IMG_SHAPE = (64, 64)
 URL = "https://phinau.de/trasi"
 ENCODING_TYPE = "multipart/form-data"
-PREDS_PICKLE = "./data/gtsrb.pickle"
-DATA_DIR = "./data"
+PREDS_PICKLE = "../data/gtsrb.pickle"
+DATA_DIR = "../data"
 
-def load_api_key(loc="./api_key"):
+def load_api_key(loc="../api_key"):
 	with open(loc, 'r') as f:
 		key = f.read().strip()
 	return key
