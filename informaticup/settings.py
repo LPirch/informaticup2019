@@ -54,7 +54,11 @@ ROOT_URLCONF = 'informaticup.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['preprocess/templates'],
+        'DIRS': [
+            'mainview/templates',
+            'preprocess/templates',
+            'train/templates',
+            'evaluate/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
