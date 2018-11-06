@@ -111,6 +111,10 @@ def main():
 				if key not in class_map:
 					class_map[key] = len(class_map)
 
+		with open("model/classmap.pickle", "wb") as f:
+			config = {"load_name": FLAGS.load_name, "save_name": FLAGS.save_name, "class_map": class_map}
+			pickle.dump(config, f)
+
 		# Create a vector using the remote's model
 		# classification
 		def get_class(img_path):
