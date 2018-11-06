@@ -28,12 +28,12 @@ tf.flags.DEFINE_string("save_name", "my_model", "Where to save the model.")
 tf.flags.DEFINE_string("train_folder", "data", "Folder containing training data.")
 
 tf.flags.DEFINE_boolean("stealing", True, "Steal remote model")
-tf.flags.DEFINE_boolean("steal_onehot", True, "")
+tf.flags.DEFINE_boolean("steal_onehot", False, "")
 
 tf.flags.DEFINE_integer("img_size", 64, "Image size")
 tf.flags.DEFINE_integer("n_classes", 43, "Amount of classes")
 
-tf.flags.DEFINE_string("optimizer", "adam", "Optimizer")
+tf.flags.DEFINE_string("optimizer", "sgd", "Optimizer")
 tf.flags.DEFINE_integer("batch_size", 32, "Batch size")
 tf.flags.DEFINE_integer("epochs", 1, "Epochs")
 tf.flags.DEFINE_float("decay", 1e-6, "Decay")
