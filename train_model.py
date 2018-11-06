@@ -144,60 +144,63 @@ def main():
 		def get_class(img_path):
 			return np.eye(FLAGS.n_classes)[int(img_path.split('/')[-2])]
 
-	with tf.Session() as sess:
-		K.set_session(sess)
+	sess = tf.Session()
+	K.set_session(sess)
 
-		# All models are saved without the final softmax layer,
-		# because it adds no information and hides the logits
-		model_wo_sm = load_model(model_path)
-		model = Sequential()
-		model.add(model_wo_sm)
-		model.add(Dense(FLAGS.n_classes, activation='softmax'))
+	# All models are saved without the final softmax layer,
+	# because it adds no information and hides the logits
+	model_wo_sm = load_model(model_path)
+	model = Sequential()
+	model.add(model_wo_sm)
+	model.add(Dense(FLAGS.n_classes, activation='softmax'))
 
-		imgs, labels = [], []
+	imgs, labels = [], []
 
-		# Extract training data
-		with zipfile.ZipFile("data/GTSRB_Final_Training_Images.zip") as z:
-			files = [name for name in z.namelist() if name.endswith(".ppm")]
-			random.shuffle(files)
-			for i, name in enumerate(files):
-				if i % (len(files) // 10) == 0:
-					print(i)
+	# Extract training data
+	with zipfile.ZipFile("data/GTSRB_Final_Training_Images.zip") as z:
+		files = [name for name in z.namelist() if name.endswith(".ppm")][:10]
+		random.shuffle(files)
+		for i, name in enumerate(files):
+			if i % (len(files) // 10) == 0:
+				print(i)
 
-				with z.open(name) as f:
-					img = io.imread(BytesIO(f.read()))
-					img = preprocess_img(img)
+			with z.open(name) as f:
+				img = io.imread(BytesIO(f.read()))
+				img = preprocess_img(img)
 
-					imgs.append(img)
-					labels.append(get_class(name))
+				imgs.append(img)
+				labels.append(get_class(name))
 
-		# Convert to numpy arrays
-		X = np.array(imgs, dtype='float32')
-		Y = np.array(labels)
+	# Convert to numpy arrays
+	X = np.array(imgs, dtype='float32')
+	Y = np.array(labels)
 
-		# Define optimizer for training
-		if FLAGS.optimizer == "adam":
-			op = Adam(lr=FLAGS.learning_rate, decay=FLAGS.decay)
-		elif FLAGS.optimizer == "sgd":
-			op = SGD(lr=FLAGS.learning_rate, decay=FLAGS.decay, momentum=FLAGS.momentum, nesterov=True)
-		else:
-			raise
+	# Define optimizer for training
+	if FLAGS.optimizer == "adam":
+		op = Adam(lr=FLAGS.learning_rate, decay=FLAGS.decay)
+	elif FLAGS.optimizer == "sgd":
+		op = SGD(lr=FLAGS.learning_rate, decay=FLAGS.decay, momentum=FLAGS.momentum, nesterov=True)
+	else:
+		raise
 
-		model.compile(loss=FLAGS.loss,
-			optimizer=op,
-			metrics=['accuracy'])
+	model.compile(loss=FLAGS.loss,
+		optimizer=op,
+		metrics=['accuracy'])
 
-		model.fit(X, Y,
-			batch_size=FLAGS.batch_size,
-			epochs=FLAGS.epochs,
-			validation_split=FLAGS.validation_split,
-			callbacks=[
-				LearningRateScheduler(lr_schedule),
-				ModelCheckpoint("model/trained/" + FLAGS.save_name + ".h5", save_best_only=True),
-				TensorBoard()
-			]
-		)
+	model.fit(X, Y,
+		batch_size=FLAGS.batch_size,
+		epochs=FLAGS.epochs,
+		validation_split=FLAGS.validation_split,
+		callbacks=[
+			LearningRateScheduler(lr_schedule),
+			ModelCheckpoint("model/trained/" + FLAGS.save_name + ".h5", save_best_only=True),
+			TensorBoard()
+		]
+	)
 
+	model.save("model/trained/last-" + FLAGS.save_name + ".h5")
+	K.clear_session()
+	sess.close()
 
 if __name__ == "__main__":
 	main()
