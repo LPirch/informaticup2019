@@ -158,7 +158,7 @@ def main():
 
 	# Extract training data
 	with zipfile.ZipFile("data/GTSRB_Final_Training_Images.zip") as z:
-		files = [name for name in z.namelist() if name.endswith(".ppm")][:10]
+		files = [name for name in z.namelist() if name.endswith(".ppm")]
 		random.shuffle(files)
 		for i, name in enumerate(files):
 			if i % (len(files) // 10) == 0:
