@@ -18,6 +18,8 @@ import zipfile
 from PIL import Image
 from utils import Timer
 
+K.set_image_data_format('channels_first')
+
 FLAGS = tf.flags.FLAGS
 
 tf.flags.DEFINE_float("learning_rate", 0.01, "Initial learning rate.")
@@ -32,7 +34,7 @@ tf.flags.DEFINE_integer("img_size", 64, "Image size")
 tf.flags.DEFINE_integer("n_classes", 43, "Amount of classes")
 
 tf.flags.DEFINE_string("optimizer", "adam", "Optimizer")
-tf.flags.DEFINE_integer("batch_size", 128, "Batch size")
+tf.flags.DEFINE_integer("batch_size", 32, "Batch size")
 tf.flags.DEFINE_integer("epochs", 1, "Epochs")
 tf.flags.DEFINE_float("decay", 1e-6, "Decay")
 tf.flags.DEFINE_float("momentum", 1e-6, "Momentum")
@@ -44,25 +46,25 @@ def lr_schedule(epoch):
 
 
 def preprocess_img(img):
-    # Histogram normalization in v channel
-    hsv = color.rgb2hsv(img)
-    hsv[:, :, 2] = exposure.equalize_hist(hsv[:, :, 2])
-    img = color.hsv2rgb(hsv)
+	# Histogram normalization in v channel
+	hsv = color.rgb2hsv(img)
+	hsv[:, :, 2] = exposure.equalize_hist(hsv[:, :, 2])
+	img = color.hsv2rgb(hsv)
 
-    # central square crop
-    min_side = min(img.shape[:-1])
-    centre = img.shape[0] // 2, img.shape[1] // 2
-    img = img[centre[0] - min_side // 2:centre[0] + min_side // 2,
-              centre[1] - min_side // 2:centre[1] + min_side // 2,
-              :]
+	# central square crop
+	min_side = min(img.shape[:-1])
+	centre = img.shape[0] // 2, img.shape[1] // 2
+	img = img[centre[0] - min_side // 2:centre[0] + min_side // 2,
+			  centre[1] - min_side // 2:centre[1] + min_side // 2,
+			  :]
 
-    # rescale to standard size
-    img = transform.resize(img, (FLAGS.img_size, FLAGS.img_size))
+	# rescale to standard size
+	img = transform.resize(img, (FLAGS.img_size, FLAGS.img_size))
 
-    # roll color axis to axis 0
-    #img = np.rollaxis(img, -1)
+	# roll color axis to axis 0
+	img = np.rollaxis(img, -1)
 
-    return img
+	return img
 
 
 def main():
