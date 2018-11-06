@@ -103,8 +103,9 @@ def main():
 
 		# The labels are saved as strings which we need
 		# to map to integer values for training
+		# We need to sort the items to make the mapping stable
 		class_map = {}
-		for filename, classification in gtsrb.items():
+		for filename, classification in sorted(gtsrb.items()):
 			for c in classification:
 				key = c["class"]
 				if key not in class_map:
