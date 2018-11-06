@@ -188,7 +188,7 @@ def main():
 			validation_split=FLAGS.validation_split,
 			callbacks=[
 				LearningRateScheduler(lr_schedule),
-				ModelCheckpoint("model/trained/" + FLAGS.load_name + ".h5", save_best_only=True),
+				ModelCheckpoint("model/trained/" + FLAGS.save_name + ".h5", save_best_only=True),
 				TensorBoard()
 			]
 		)
