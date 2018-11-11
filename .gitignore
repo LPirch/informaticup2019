@@ -15,3 +15,6 @@ data
 # python stuff
 __pycache__
 *.pyc
+
+# ignore bootstrap css files
+*min*
