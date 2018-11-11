@@ -1,0 +1,43 @@
+{% extends "welcome.html" %}
+{% block content %}
+<div class="vertical-flex-outer fill-width spacer-top">
+  <div class="row center-flex fill-width">
+    <div class="card text-white bg-primary m-3">
+      <a class="btn-nav fill-height" href="/preprocess">
+        <div class="card-body vertical-flex">
+          <h3 class="card-title card-bold">Preprocessing</h3>
+          <i class="fas fa-cogs"></i>
+          <h4 class="card-text">Collect your data and customize your attack options</h4>
+        </div>
+      </a>
+    </div>
+    <div class="card btn-nav text-white bg-primary m-3">
+      <a class="btn-nav fill-height" href="/train">
+        <div class="card-body vertical-flex">
+          <h3 class="card-title card-bold">Training</h3>
+          <i class="fas fa-brain"></i>
+          <h4 class="card-text">Train your shadow model and oberve the progress</h4>
+        </div>
+      </a>
+    </div>
+    <div class="card btn-nav text-white bg-primary m-3">
+      <a class="btn-nav fill-height" href="/attack">
+        <div class="card-body vertical-flex">
+          <h3 class="card-title card-bold">Attack</h3>
+          <i class="fas fa-bolt"></i>
+          <h4 class="card-text">Perform the attack and choose your options</h4>
+        </div>
+      </a>
+    </div>
+    <div class="card btn-nav text-white bg-primary m-3">
+      <a class="btn-nav fill-height" href="/evaluation">
+        <div class="card-body vertical-flex">
+          <h3 class="card-title card-bold">Evaluation</h3>
+          <i class="fas fa-check-double"></i>
+          <h4 class="card-text">Review your results and the attack summary</br></h4>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
