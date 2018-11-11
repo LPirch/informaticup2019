@@ -17,5 +17,4 @@ __pycache__
 *.pyc
 
 # ignore bootstrap css files
-*bootstrap*
-*bootswatch*
+*min*
