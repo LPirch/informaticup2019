@@ -1,0 +1,29 @@
+.spacer {
+    min-height: 3em;
+}
+
+.nav-link {
+    border-radius: 0.25em !important;
+}
+
+.fa-trash-alt:hover, .fa-redo-alt:hover {
+    color: #b4b4b4 !important;
+}
+
+.btn-primary:hover {
+    background-image: none !important;
+    background-color: #347cbb;
+}
+
+.table-active:hover {
+    background-color: #444 !important;
+}
+
+.btn-sm {
+    margin: 0.25em !important;
+}
+
+.table th {
+    margin-top: 0 !important;
+    border-top-width: 0 !important;
+}
