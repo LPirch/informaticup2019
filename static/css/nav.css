@@ -7,15 +7,31 @@
     padding-top: 1em;
 }
 
-.title-flex i {
+.title-flex, .nav-link {
     margin-left: 0.5em;
     margin-right: 0.5em;
-    margin-top: 0.25em;
-    margin-bottom: 0em;
+}
+
+.logo {
+    padding-top: 0.4em !important;
+}
+
+.top-nav {
+    margin-bottom: 0 !important;
+}
+
+.sub-nav {
+    font-size: 0.8em;
+    padding-left: 4em !important;
+}
+
+.sub-nav > i {
+    font-size: 1.5em;
+    padding-left: 4em !important;
 }
 
 .nav-item > a {
-    font-size: 3em;
+    font-size: 1.5em;
 }
 
 .btn-nav:hover {
@@ -50,4 +66,8 @@ a {
 
 .nav-item {
     padding: 0.25em !important;
+}
+
+.nav-pills>li.active>a, .nav-pills>li.active>a:focus, .nav-pills>li.active>a:hover {
+    background-color: #375a7f !important;
 }
