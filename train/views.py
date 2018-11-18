@@ -3,7 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from django import forms
 from time import strftime, ctime
 from datetime import datetime
-from os import walk, remove
+from os import walk, remove, makedirs
 from os.path import getctime, exists
 
 MODEL_SAVE_PATH = ".cache/models/"
@@ -47,6 +47,11 @@ def handle_uploaded_file(request):
     return HttpResponse(400)
 
 def store_uploaded_file(file):
+    # create cache directory if not exists
+    if not exists(MODEL_SAVE_PATH):
+        makedirs(MODEL_SAVE_PATH)
+    
+    # save file (chunk-wise for handling large files as well)
     with open(MODEL_SAVE_PATH+file.name, 'wb') as f:
         for chunk in file.chunks():
             f.write(chunk)
