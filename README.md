@@ -37,8 +37,8 @@ unzip static/css/fontawesome.zip -d static/css && \
 mv static/css/fontawesome-free-5.5.0-web static/css/fontawesome
 
 # fetch JS libs
-wget -O static/css/bootstrap.min.js https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js  && \
-wget -O static/js/bootstrap-confirmation.min.js https://cdnjs.cloudflare.com/ajax/libs/bootstrap-confirmation/1.0.7/bootstrap-confirmation.min.js  && \
+wget -O static/js/bootstrap.min.js https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js  && \
+wget -O static/js/bootstrap-confirmation.min.js https://cdn.jsdelivr.net/npm/bootstrap-confirmation2/dist/bootstrap-confirmation.min.js  && \
 wget -O static/js/jquery.min.js https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js  && \
 wget -O static/js/popper.min.js https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js
 
