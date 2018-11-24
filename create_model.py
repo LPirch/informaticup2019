@@ -10,7 +10,7 @@ import tensorflow as tf
 import os
 import sys
 
-K.set_image_data_format('channels_first')
+K.set_image_data_format('channels_last')
 
 FLAGS = tf.flags.FLAGS
 
@@ -27,7 +27,7 @@ def cnn_model_wo_softmax():
 	model = Sequential()
 
 	model.add(Conv2D(32, (3, 3), padding='same',
-		input_shape=(3, img_size, img_size),
+		input_shape=(img_size, img_size, 3),
 		activation='relu'))
 	model.add(Conv2D(32, (3, 3), activation='relu'))
 	model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -48,6 +48,8 @@ def cnn_model_wo_softmax():
 	model.add(Flatten())
 	model.add(Dense(512, activation='relu'))
 	model.add(Dropout(0.5))
+	model.add(Dense(n_classes))
+	model.add(Activation('softmax'))
 
 	return model
 

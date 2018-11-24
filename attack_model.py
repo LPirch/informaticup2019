@@ -25,7 +25,7 @@ class GTSRBModel:
 
 		print(model.summary())
 		# pop softmax layer
-		model.layers.pop()
+		'''
 		if not model.layers:
 			model.outputs = []
 			model.inbound_nodes = []
@@ -36,9 +36,10 @@ class GTSRBModel:
 		model.compile(loss="categorical_crossentropy",
 			optimizer=SGD(lr=0.01, decay=1e-6, momentum=1e-6, nesterov=True),
 			metrics=['accuracy'])
-		self.model = model
+		'''
+		model.pop()
 		print(model.summary())
-		input()
+		self.model = model;
 	
 	def predict(self, data):
 		return self.model(data)
@@ -73,6 +74,8 @@ class GTSRB:
 
 			return output
 		imgs, labels = [], []
+
+		return
 
 		# Extract training data
 		with zipfile.ZipFile("data/GTSRB_Final_Training_Images.zip") as z:
@@ -173,7 +176,7 @@ def main():
 	sess = tf.Session()
 	K.set_session(sess)
 
-	model = load_model("model/trained/last-lukas_model.h5", compile=False)
+	model = load_model("model/trained/last-no_sm.h5", compile=False)
 	model = GTSRBModel(model, 43, session=sess)
 	attack = CarliniL2(sess, model, batch_size=10, max_iterations=1000, confidence=0)
 

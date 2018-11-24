@@ -18,7 +18,7 @@ import zipfile
 from PIL import Image
 from utils import Timer
 
-K.set_image_data_format('channels_first')
+K.set_image_data_format('channels_last')
 
 FLAGS = tf.flags.FLAGS
 
@@ -61,8 +61,9 @@ def preprocess_img(img):
 	# rescale to standard size
 	img = transform.resize(img, (FLAGS.img_size, FLAGS.img_size))
 
+	## We're using channels_last; we no longer need this
 	# roll color axis to axis 0
-	img = np.rollaxis(img, -1)
+	# img = np.rollaxis(img, -1)
 
 	return img
 
@@ -98,7 +99,7 @@ def main():
 
 		# This file contains the data which was labeled by
 		# the remote model
-		with open("gtsrb.pickle", "rb") as f:
+		with open("data/gtsrb.pickle", "rb") as f:
 			gtsrb = pickle.load(f)
 
 		# The labels are saved as strings which we need
@@ -149,10 +150,7 @@ def main():
 
 	# All models are saved without the final softmax layer,
 	# because it adds no information and hides the logits
-	model_wo_sm = load_model(model_path)
-	model = Sequential()
-	model.add(model_wo_sm)
-	model.add(Dense(FLAGS.n_classes, activation='softmax'))
+	model = load_model(model_path)
 
 	imgs, labels = [], []
 
@@ -162,7 +160,7 @@ def main():
 		random.shuffle(files)
 		for i, name in enumerate(files):
 			if i % (len(files) // 10) == 0:
-				print(i)
+				print(i, "of ", len(files))
 
 			with z.open(name) as f:
 				img = io.imread(BytesIO(f.read()))
