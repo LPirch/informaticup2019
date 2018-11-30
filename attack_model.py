@@ -8,11 +8,15 @@ import zipfile
 import time
 import pickle
 import random
+from PIL import Image
 import numpy as np
 from io import BytesIO
 from skimage import io
 from train_model import preprocess_img
 import tensorflow as tf
+from fgsm import FGSM
+from os.path import exists
+from os import makedirs
 
 from nn_robust_attacks.l2_attack import CarliniL2
 
@@ -23,21 +27,6 @@ class GTSRBModel:
 		self.image_size = 64
 		self.num_labels = n_labels
 
-		print(model.summary())
-		# pop softmax layer
-		'''
-		if not model.layers:
-			model.outputs = []
-			model.inbound_nodes = []
-			model.outbound_nodes = []
-		else:
-			model.layers[-1].outbound_nodes = []
-			model.outputs = [model.layers[-1].output]
-		model.compile(loss="categorical_crossentropy",
-			optimizer=SGD(lr=0.01, decay=1e-6, momentum=1e-6, nesterov=True),
-			metrics=['accuracy'])
-		'''
-		model.pop()
 		print(model.summary())
 		self.model = model;
 	
@@ -79,7 +68,7 @@ class GTSRB:
 
 		# Extract training data
 		with zipfile.ZipFile("data/GTSRB_Final_Training_Images.zip") as z:
-			files = [name for name in z.namelist() if name.endswith(".ppm")]
+			files = [name for name in z.namelist() if name.endswith(".png")]
 			random.shuffle(files)
 			for i, name in enumerate(files):
 				if i % (len(files) // 10) == 0:
@@ -156,7 +145,7 @@ def main():
 	imgs = []
 	labels = []
 	with zipfile.ZipFile("data/GTSRB_Final_Test_Images.zip") as z:
-		files = [name for name in z.namelist() if name.endswith(".ppm")]
+		files = [name for name in z.namelist() if name.endswith(".png")]
 		random.shuffle(files)
 		files = files[:10]
 		for i, name in enumerate(files):
@@ -176,9 +165,10 @@ def main():
 	sess = tf.Session()
 	K.set_session(sess)
 
-	model = load_model("model/trained/last-no_sm.h5", compile=False)
+	model = load_model("model/trained/last-lukas_model.h5", compile=False)
 	model = GTSRBModel(model, 43, session=sess)
-	attack = CarliniL2(sess, model, batch_size=10, max_iterations=1000, confidence=0)
+	#attack = CarliniL2(sess, model, batch_size=10, max_iterations=1000, confidence=0)
+	attack = FGSM(sess, model)
 
 	inputs, targets = generate_data(data, samples=1, targeted=True, start=0, inception=False)
 
@@ -188,15 +178,31 @@ def main():
 
 	print("Took",timeend-timestart,"seconds to run",len(inputs),"samples.")
 
+	inputs = np.rint(inputs * 255).astype('uint8')
+	adv = np.rint(adv * 255).astype('uint8')
+
+	if not exists("tmp/out"):
+		makedirs("tmp/out")
 	for i in range(len(adv)):
 		print("Valid:")
-		plt.imshow(np.rollaxis(np.rollaxis(inputs[i], -1), -1))
-		plt.show()
+		#plt.imshow(inputs[i])
+		#plt.show()
+		img = Image.fromarray(inputs[i], 'RGB')
+		img.save("tmp/out/original.png")
 		print("Adversarial:")
-		plt.imshow(np.rollaxis(np.rollaxis(adv[i], -1), -1))
-		plt.show()
+		#plt.imshow(adv[i])
+		#plt.show()
+		img = Image.fromarray(adv[i], 'RGB')
+		img.save("tmp/out/adv"+str(i)+".png")
 		
-		print("Classification:", model.model.predict(adv[i:i+1]))
+		pred_input = model.model.predict(inputs[i:i+1])[0]
+		pred_input_i = np.argmax(pred_input)
+		pred_adv = model.model.predict(adv[i:i+1])[0]
+		pred_adv_i = np.argmax(pred_adv)
+		print(i, ">>", label_map[pred_input_i])
+		print("Classification (original/target):", pred_input_i, "/", pred_adv_i)
+		print("confidences: ", pred_input[pred_input_i], "/", pred_input[pred_adv_i], ",", 
+					pred_adv[pred_input_i], "/", pred_adv[pred_adv_i])
 
 		print("Total distortion:", np.sum((adv[i]-inputs[i])**2)**.5)
 
