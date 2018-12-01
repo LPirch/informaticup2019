@@ -22,25 +22,6 @@ K.set_image_data_format('channels_last')
 
 FLAGS = tf.flags.FLAGS
 
-tf.flags.DEFINE_float("learning_rate", 0.01, "Initial learning rate.")
-tf.flags.DEFINE_string("load_name", "my_model", "Model to load.")
-tf.flags.DEFINE_string("save_name", "my_model", "Where to save the model.")
-tf.flags.DEFINE_string("train_folder", "data", "Folder containing training data.")
-
-tf.flags.DEFINE_boolean("stealing", True, "Steal remote model")
-tf.flags.DEFINE_boolean("steal_onehot", False, "")
-
-tf.flags.DEFINE_integer("img_size", 64, "Image size")
-tf.flags.DEFINE_integer("n_classes", 43, "Amount of classes")
-
-tf.flags.DEFINE_string("optimizer", "sgd", "Optimizer")
-tf.flags.DEFINE_integer("batch_size", 32, "Batch size")
-tf.flags.DEFINE_integer("epochs", 1, "Epochs")
-tf.flags.DEFINE_float("decay", 1e-6, "Decay")
-tf.flags.DEFINE_float("momentum", 1e-6, "Momentum")
-tf.flags.DEFINE_string("loss", "categorical_crossentropy", "Loss function")
-tf.flags.DEFINE_float("validation_split", 0.2, "Validation split")
-
 def lr_schedule(epoch):
 	return FLAGS.learning_rate * (0.1 ** int(epoch / 10))
 
@@ -59,13 +40,13 @@ def preprocess_img(img):
 	#		  :]
 
 	# rescale to standard size
-	#img = transform.resize(img, (FLAGS.img_size, FLAGS.img_size))
+	img = transform.resize(img, (FLAGS.img_size, FLAGS.img_size))
 
 	## We're using channels_last; we no longer need this
 	# roll color axis to axis 0
 	# img = np.rollaxis(img, -1)
 
-	return img / 255
+	return img
 
 
 def main():
@@ -119,7 +100,7 @@ def main():
 		# Create a vector using the remote's model
 		# classification
 		def get_class(img_path):
-			filepath = "./data/" + img_path[:-3] + "png"
+			filepath = "./data/" + img_path[:-3] + FLAGS.extension
 
 			if FLAGS.steal_onehot:
 				top_classification = gtsrb[filepath][0]
@@ -201,4 +182,26 @@ def main():
 	sess.close()
 
 if __name__ == "__main__":
+	tf.flags.DEFINE_float("learning_rate", 0.01, "Initial learning rate.")
+	tf.flags.DEFINE_string("load_name", "my_model", "Model to load.")
+	tf.flags.DEFINE_string("save_name", "my_model", "Where to save the model.")
+	tf.flags.DEFINE_string("train_folder", "data", "Folder containing training data.")
+
+	tf.flags.DEFINE_boolean("stealing", True, "Steal remote model")
+	tf.flags.DEFINE_boolean("steal_onehot", False, "")
+
+	tf.flags.DEFINE_integer("img_size", 64, "Image size")
+	tf.flags.DEFINE_integer("n_classes", 43, "Amount of classes")
+
+	tf.flags.DEFINE_string("optimizer", "sgd", "Optimizer")
+	tf.flags.DEFINE_integer("batch_size", 32, "Batch size")
+	tf.flags.DEFINE_integer("epochs", 1, "Epochs")
+	tf.flags.DEFINE_float("decay", 1e-6, "Decay")
+	tf.flags.DEFINE_float("momentum", 1e-6, "Momentum")
+	tf.flags.DEFINE_string("loss", "categorical_crossentropy", "Loss function")
+	tf.flags.DEFINE_float("validation_split", 0.2, "Validation split")
+
+	tf.flags.DEFINE_string("extension", "png", "Image extension")
+
+
 	main()
