@@ -22,6 +22,7 @@ from skimage import io
 
 from train_model import preprocess_img
 from nn_robust_attacks.l2_attack import CarliniL2
+from nn_robust_attacks.l0_attack import CarliniL0
 from fgsm import FGSM
 from utils import Timer
 
@@ -38,43 +39,6 @@ class GTSRBModel:
 	
 	def predict(self, data):
 		return self.model(data)
-
-class GTSRB:
-	def __init__(self, imgs, labels):
-		self.test_data = imgs
-		self.test_labels = labels
-
-def generate_data(data, samples, targeted=True, start=0, inception=False):
-	"""
-	Generate the input data to the attack algorithm.
-
-	data: the images to attack
-	samples: number of samples to use
-	targeted: if true, construct targeted attacks, otherwise untargeted attacks
-	start: offset into data to use
-	inception: if targeted and inception, randomly sample 100 targets intead of 1000
-	"""
-	inputs = []
-	targets = []
-	for i in range(samples):
-		data_label = np.argmax(data.test_labels[start+i])
-
-		if targeted:
-			seq = range(FLAGS.debug_target_range)
-
-			for j in seq:
-				if (j == data_label):
-					continue
-				inputs.append(data.test_data[start+i])
-				targets.append(np.eye(FLAGS.n_classes)[j])
-		else:
-			inputs.append(data.test_data[start+i])
-			targets.append(data_label)
-
-	inputs = np.array(inputs)
-	targets = np.array(targets)
-
-	return inputs, targets
 
 def main():
 	with open("data/gtsrb.pickle", "rb") as f:
@@ -93,36 +57,17 @@ def main():
 				class_map[key] = class_id
 				label_map[class_id] = key
 
-	# Define onehot_label method, which is used to map
-	# an image path to an [n_classes]-dimensional vector.
-	# Each vector element represents the likeliness of
-	# the respective class
+	if FLAGS.generate_random:
+		img = np.random.rand(FLAGS.img_size, FLAGS.img_size, 3)
+	else:
+		with Image.open(FLAGS.image) as img:
+			img = np.asarray(img, dtype="float32")
 
-	def onehot_label(img_path):
-		filepath = "./data/" + img_path[:-3] + FLAGS.pickle_extension
+			# TODO: Use method from train_model.py
+			img.resize((FLAGS.img_size, FLAGS.img_size, 3))
+			img = img / 255
 
-		top_classification = gtsrb[filepath][0]
-		conf = top_classification["confidence"]
-		label = top_classification["class"]
-
-		return np.eye(FLAGS.n_classes)[class_map[label]]
-
-	# load images and labels
-	imgs, labels = [], []
-	with zipfile.ZipFile("data/GTSRB_Final_Test_Images.zip") as z:
-		files = [name for name in z.namelist() if name.endswith("." + FLAGS.zip_extension)]
-		random.shuffle(files)
-		files = files[:1]
-		for i, name in enumerate(files):
-			with z.open(name) as f:
-				img = io.imread(BytesIO(f.read()))
-				img = preprocess_img(img)
-
-				imgs.append(img)
-				labels.append(onehot_label(name))
-
-	imgs = np.array(imgs)
-	labels = np.array(labels)
+	print("Target: ", FLAGS.target, label_map[FLAGS.target])
 
 	# setup session
 	sess = tf.Session()
@@ -133,20 +78,25 @@ def main():
 	model = GTSRBModel(model, FLAGS.img_size, FLAGS.n_classes, session=sess)
 
 	# setup the attack
-	attack = CarliniL2(sess,
-		model,
-		batch_size=FLAGS.batch_size,
-		binary_search_steps=FLAGS.binary_search_steps,
-		max_iterations=FLAGS.max_iterations,
-		confidence=FLAGS.confidence,
-		boxmin=0,
-		boxmax=1
-	)
-	#attack = FGSM(sess, model)
+	if FLAGS.attack == "cwl2":
+		attack = CarliniL2(sess,
+			model,
+			batch_size=FLAGS.batch_size,
+			binary_search_steps=FLAGS.binary_search_steps,
+			max_iterations=FLAGS.max_iterations,
+			confidence=FLAGS.confidence,
+			boxmin=FLAGS.boxmin,
+			boxmax=FLAGS.boxmax
+		)
+	elif FLAGS.attack == "cwl0":
+		attack = CarliniL0(sess, model, max_iterations=FLAGS.max_iterations)
+	elif FLAGS.attack == "fgsm":
+		attack = FGSM(sess, model, n_iterations=FLAGS.max_iterations)
+	else:
+		raise RuntimeError("Unknown attack: " + FLAGS.attack)
 
-	# generate data for the attack
-	data = GTSRB(imgs, labels)
-	inputs, targets = generate_data(data, samples=1, targeted=True, start=0, inception=False)
+	inputs = np.array([img])
+	targets = np.array([np.eye(FLAGS.n_classes)[FLAGS.target]])
 
 	# attack images
 	with Timer("Attack (n_images=" + str(len(inputs)) + ")"):
@@ -161,7 +111,7 @@ def main():
 	for i in range(len(adv)):
 		# Original image
 		img = Image.fromarray(inputs[i], 'RGB')
-		img.save("tmp/out/original.png")
+		img.save("tmp/out/" + FLAGS.attack + "original.png")
 
 		# Predict original images
 		pred_input = model.model.predict(inputs[i:i+1])[0]
@@ -177,7 +127,7 @@ def main():
 
 		# Adversarial images
 		img = Image.fromarray(adv[i], 'RGB')
-		img.save("tmp/out/adv"+str(i)+".png")
+		img.save("tmp/out/" + FLAGS.attack + "adv"+str(i)+".png")
 		
 		print(label_map[pred_input_i], "->", label_map[pred_adv_i])
 		print("Classification (original/target):", pred_input_i, "/", pred_adv_i)
@@ -187,9 +137,11 @@ def main():
 		print("Total distortion:", np.sum((adv[i]-inputs[i])**2)**.5)
 
 if __name__ == '__main__':
-	tf.flags.DEFINE_string("zip_extension", "ppm", "Extension of loaded images in zip")
-	tf.flags.DEFINE_string("pickle_extension", "png", "Extension of loaded images in pickle")
 	tf.flags.DEFINE_string("model", "last-lukas_model", "Trained model")
+
+	tf.flags.DEFINE_integer("target", 0, "Target label")
+	tf.flags.DEFINE_string("image", "", "Path to attacked image")
+	tf.flags.DEFINE_boolean("generate_random", False, "Use random (noisy) image as source")
 
 	tf.flags.DEFINE_integer("img_size", 64, "Image size")
 	tf.flags.DEFINE_integer("n_classes", 43, "Amount of classes")
@@ -198,7 +150,11 @@ if __name__ == '__main__':
 	tf.flags.DEFINE_integer("binary_search_steps", 10, "")
 	tf.flags.DEFINE_integer("max_iterations", 10000, "")
 	tf.flags.DEFINE_integer("confidence", 20, "")
+	tf.flags.DEFINE_float("boxmin", 0, "")
+	tf.flags.DEFINE_float("boxmax", 1, "")
 
 	tf.flags.DEFINE_integer("debug_target_range", 43, "")
+
+	tf.flags.DEFINE_string("attack", "cwl2", "Type of attack")
 
 	main()
