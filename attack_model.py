@@ -13,6 +13,7 @@ import zipfile
 import time
 import pickle
 import random
+import sys
 
 from os import makedirs
 from os.path import exists
@@ -61,7 +62,9 @@ def main():
 		img = np.random.rand(FLAGS.img_size, FLAGS.img_size, 3)
 	else:
 		with Image.open(FLAGS.image) as img:
-			img = np.asarray(img, dtype="float32")
+			img = np.asarray(img, dtype="uint8")
+			img = img[:,:,:3]
+			img = img.copy()
 
 			# TODO: Use method from train_model.py
 			img.resize((FLAGS.img_size, FLAGS.img_size, 3))
@@ -105,13 +108,17 @@ def main():
 	inputs = np.rint(inputs * 255).astype('uint8')
 	adv = np.rint(adv * 255).astype('uint8')
 
-	if not exists("tmp/out"):
-		makedirs("tmp/out")
+	outdir = "tmp/" + str(FLAGS.confidence) + "/"
+
+	if not exists(outdir):
+		makedirs(outdir)
 
 	for i in range(len(adv)):
+		filepath = outdir + FLAGS.attack + "_" + FLAGS.image[:-3] + "_"
+
 		# Original image
 		img = Image.fromarray(inputs[i], 'RGB')
-		img.save("tmp/out/" + FLAGS.attack + "original.png")
+		img.save(outdir + FLAGS.attack + "_" + FLAGS.image + "original.png")
 
 		# Predict original images
 		pred_input = model.model.predict(inputs[i:i+1])[0]
@@ -121,20 +128,23 @@ def main():
 		pred_adv = model.model.predict(adv[i:i+1])[0]
 		pred_adv_i = np.argmax(pred_adv)
 
-		if (pred_input_i == pred_adv_i):
+		if (pred_adv_i != FLAGS.target):
 			print("No adv: ", label_map[pred_input_i], label_map[pred_adv_i])
 			continue
 
 		# Adversarial images
 		img = Image.fromarray(adv[i], 'RGB')
-		img.save("tmp/out/" + FLAGS.attack + "adv"+str(i)+".png")
-		
+		img.save(filepath + str(pred_adv_i) + "adv.png")
+
 		print(label_map[pred_input_i], "->", label_map[pred_adv_i])
 		print("Classification (original/target):", pred_input_i, "/", pred_adv_i)
 		print("confidences: ", pred_input[pred_input_i], "/", pred_input[pred_adv_i], ",", 
 					pred_adv[pred_input_i], "/", pred_adv[pred_adv_i])
 
 		print("Total distortion:", np.sum((adv[i]-inputs[i])**2)**.5)
+
+		with open(filepath + str(pred_adv_i) + ".conf", "w") as f:
+			f.write("python3 " + " ".join(sys.argv))
 
 if __name__ == '__main__':
 	tf.flags.DEFINE_string("model", "last-lukas_model", "Trained model")
