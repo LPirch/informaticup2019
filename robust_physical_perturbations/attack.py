@@ -32,7 +32,7 @@ import sys
 from PIL import Image
 
 class Physical:
-    def __init__(self, sess, model, mask_path, n_iterations):
+    def __init__(self, sess, model, mask_path, max_iterations=2000):
         with Image.open(mask_path) as mask:
             mask = np.asarray(mask, dtype="uint8")
             mask = mask[:,:,:3]
@@ -45,11 +45,11 @@ class Physical:
         self.sess = sess
         self.model = model
         self.mask = mask
-        self.n_iterations = n_iterations
+        self.max_iterations = max_iterations
         self.printability_optimization = False
 
         op, placeholders, varops = setup_attack_graph(sess, model, model.image_size, model.image_size, model.num_channels, nb_classes=model.num_labels,
-            regloss="l2", printability_optimization=self.printability_optimization, printability_tuples=False, clipping=True,
+            regloss="l1", printability_optimization=self.printability_optimization, printability_tuples=False, clipping=True,
             noise_clip_min=-20.0, noise_clip_max=20.0, noisy_input_clip_min=0, noisy_input_clip_max=1,
             attack_lambda=0.001, optimization_rate=0.25, adam_beta1=0.9, adam_beta2=0.999, adam_epsilon=0.0001)
 
@@ -60,73 +60,70 @@ class Physical:
         self.regloss = True
 
     def attack(self, inputs, targets):
-        sess = self.sess
-        op= self.op
-        pholders = self.pholders
-        varops= self.varops
-        model = varops['adv_pred']
+        assert len(inputs) == 1
+        assert len(targets) == 1
 
+        tf_model = self.model.model
+
+        # TODO: Find out why:
         # This call needs to be included, otherwise the
         # Adam-optimizer fails
-        # TODO: Find out why
-        src_class = np.argmax(self.model.model.predict(inputs[0:1])[0])
+        src_class = np.argmax(tf_model.predict(inputs[0:1])[0])
+        
 
-        feed_dict = {pholders['image_in']: inputs,
-                     pholders['attack_target']: targets,
-                     pholders['noise_mask']: self.mask}
+        feed_dict = {self.pholders['image_in']: inputs,
+                     self.pholders['attack_target']: targets,
+                     self.pholders['noise_mask']: self.mask}
 
-        clean_model_loss = model_loss(pholders['attack_target'], 
-                                      varops['adv_pred'], mean=True)
+        clean_model_loss = model_loss(self.pholders['attack_target'], 
+                                      self.varops['adv_pred'], mean=True)
 
         if self.printability_optimization:
             printability_tuples = "30values.txt"
-            feed_dict[pholders['printable_colors']] = get_print_triplets(printability_tuples, self.model.image_size)
+            feed_dict[self.pholders['printable_colors']] = get_print_triplets(printability_tuples, self.model.image_size)
 
         def softmax(x):
             """Compute softmax values for each sets of scores in x."""
             e_x = np.exp(x - np.max(x))
             return e_x / e_x.sum(axis=0) # only difference
 
-        pred = softmax(self.model.model.predict(inputs[0:1])[0])
+        best_images = np.zeros(inputs.shape)
+        prediction = [0] * len(best_images)
 
-        first = True
-        i = 0
-        while first or not (np.argmax(pred) == np.argmax(targets) and np.max(pred) > 0.9):
-            first = False
-            i+=1
-
-            if i > 2000:
+        for iteration in range(self.max_iterations):
+            if self.max_iterations > 0 and iteration >= self.max_iterations:
                 break
 
-            _,  train_loss, mod_loss, noisy_in, noisy_classes = sess.run( \
-                (op, \
-                varops['adv_loss'], \
-                varops['loss'], \
-                varops['noisy_inputs'], \
-                varops['adv_pred']) \
+            _,  train_loss, mod_loss, noisy_in, noisy_classes = self.sess.run( \
+                (self.op, \
+                self.varops['adv_loss'], \
+                self.varops['loss'], \
+                self.varops['noisy_inputs'], \
+                self.varops['adv_pred']) \
                 , feed_dict=feed_dict)
 
+            for i, img in enumerate(noisy_in):
+                target_label = np.argmax(targets[i])
+                noisy_classification = noisy_classes[i][target_label]
+                if prediction[i] < noisy_classification:
+                    prediction[i] = noisy_classification
+                    best_images[i] = noisy_in[i]
+
             if self.regloss != "none":
-                reg_loss = sess.run(varops['reg_loss'], feed_dict=feed_dict)
+                reg_loss = self.sess.run(self.varops['reg_loss'], feed_dict=feed_dict)
             else:
                 reg_loss = 0
 
-            clean_loss, clean_classes = sess.run((clean_model_loss, model), feed_dict={
-                    pholders['image_in']: inputs,
-                    pholders['attack_target']: targets,
-                    pholders['noise_mask']: np.zeros([self.model.image_size, self.model.image_size, self.model.num_channels])
-                })
+            if iteration % 20 == 0:
+                pred = softmax(tf_model.predict(noisy_in[0:1])[0])
+                print(np.argmax(pred), np.max(pred))
+                sys.stdout.flush()
 
-            print("adversarial loss %.5f reg loss %.5f model loss %.5f model loss on clean img: %.5f"%(train_loss, reg_loss, mod_loss, clean_loss))
-            print(np.argmax(self.model.model.predict(inputs[0:1])[0]), "vs", np.argmax(noisy_classes[0]))
-            print(np.argmax(pred), np.max(pred))
-            sys.stdout.flush()
-    
-            pred = softmax(self.model.model.predict(noisy_in[0:1])[0])
+        for pred in tf_model.predict(best_images):
+            softmax_pred = softmax(pred)
+            print(np.argmax(softmax_pred), np.max(softmax_pred))
 
-        print(np.argmax(pred), np.max(pred))
-
-        return noisy_in
+        return best_images
 
 def l1_norm(tensor):
     '''

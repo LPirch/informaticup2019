@@ -98,7 +98,7 @@ def main():
 	elif FLAGS.attack == "fgsm":
 		attack = FGSM(sess, model, n_iterations=FLAGS.max_iterations)
 	elif FLAGS.attack == "physical":
-		attack = Physical(sess, model, FLAGS.mask_image, n_iterations=FLAGS.max_iterations)
+		attack = Physical(sess, model, FLAGS.mask_image, max_iterations=FLAGS.max_iterations)
 
 		FLAGS.image = "generatedimage.png"
 		FLAGS.confidence = "physical"
@@ -149,6 +149,18 @@ def main():
 		img = Image.fromarray(adv[i], 'RGB')
 		img.save(filepath + str(pred_adv_i) + "adv.png")
 
+		if not exists(filepath + str(pred_adv_i) + "adv.png"):
+			print("Saving file failed... retrying")
+			img = Image.fromarray(adv[i], 'RGB')
+			img.save(filepath + str(pred_adv_i) + "adv.png")
+
+		if not exists(filepath + str(pred_adv_i) + "adv.png"):
+			print("Saving file failed again")
+			print("Saving to pickle:")
+			print(filepath + str(pred_adv_i) + "adv.png")
+			with open(filepath + str(pred_adv_i) + "adv.pickle", "wb") as f:
+				pickle.dump(f)
+
 		print(label_map[pred_input_i], "->", label_map[pred_adv_i])
 		print("Classification (original/target):", pred_input_i, "/", pred_adv_i)
 		print("confidences: ", pred_input[pred_input_i], "/", pred_input[pred_adv_i], ",", 
@@ -164,7 +176,7 @@ if __name__ == '__main__':
 
 	tf.flags.DEFINE_integer("target", 0, "Target label")
 	tf.flags.DEFINE_string("image", "", "Path to attacked image")
-	tf.flags.DEFINE_string("mask_image", "mask_l1rectangles-more_64.png", "Mask for image")
+	tf.flags.DEFINE_string("mask_image", "masks/mask0.png", "Mask for image")
 	tf.flags.DEFINE_boolean("generate_random", False, "Use random (noisy) image as source")
 
 	tf.flags.DEFINE_integer("img_size", 64, "Image size")
@@ -172,7 +184,7 @@ if __name__ == '__main__':
 
 	tf.flags.DEFINE_integer("batch_size", 1, "")
 	tf.flags.DEFINE_integer("binary_search_steps", 10, "")
-	tf.flags.DEFINE_integer("max_iterations", 200, "")
+	tf.flags.DEFINE_integer("max_iterations", 3000, "")
 	tf.flags.DEFINE_integer("confidence", 20, "")
 	tf.flags.DEFINE_float("boxmin", 0, "")
 	tf.flags.DEFINE_float("boxmax", 1, "")
