@@ -27,6 +27,8 @@ from nn_robust_attacks.l0_attack import CarliniL0
 from fgsm import FGSM
 from utils import Timer
 
+from robust_physical_perturbations.attack import Physical
+
 FLAGS = tf.flags.FLAGS
 
 class GTSRBModel:
@@ -67,7 +69,7 @@ def main():
 			img = img.copy()
 
 			# TODO: Use method from train_model.py
-			img.resize((FLAGS.img_size, FLAGS.img_size, 3))
+			assert img.shape == (FLAGS.img_size, FLAGS.img_size, 3)
 			img = img / 255
 
 	print("Target: ", FLAGS.target, label_map[FLAGS.target])
@@ -95,6 +97,11 @@ def main():
 		attack = CarliniL0(sess, model, max_iterations=FLAGS.max_iterations)
 	elif FLAGS.attack == "fgsm":
 		attack = FGSM(sess, model, n_iterations=FLAGS.max_iterations)
+	elif FLAGS.attack == "physical":
+		attack = Physical(sess, model, FLAGS.mask_image, n_iterations=FLAGS.max_iterations)
+
+		FLAGS.image = "generatedimage.png"
+		FLAGS.confidence = "physical"
 	else:
 		raise RuntimeError("Unknown attack: " + FLAGS.attack)
 
@@ -115,6 +122,7 @@ def main():
 
 	for i in range(len(adv)):
 		filepath = outdir + FLAGS.attack + "_" + FLAGS.image[:-3] + "_"
+		print(filepath)
 
 		# Original image
 		img = Image.fromarray(inputs[i], 'RGB')
@@ -128,9 +136,14 @@ def main():
 		pred_adv = model.model.predict(adv[i:i+1])[0]
 		pred_adv_i = np.argmax(pred_adv)
 
-		if (pred_adv_i != FLAGS.target):
-			print("No adv: ", label_map[pred_input_i], label_map[pred_adv_i])
-			continue
+		if FLAGS.attack == "physical":
+			if pred_adv_i == pred_input_i:
+				print("Source: {}, Adv: {}", label_map[pred_input_i], label_map[pred_adv_i])
+				continue
+		else:
+			if (pred_adv_i != FLAGS.target):
+				print("Source: {}, Target: {}, Adv: {}", label_map[pred_input_i], label_map[FLAGS.target], label_map[pred_adv_i])
+				continue
 
 		# Adversarial images
 		img = Image.fromarray(adv[i], 'RGB')
@@ -151,6 +164,7 @@ if __name__ == '__main__':
 
 	tf.flags.DEFINE_integer("target", 0, "Target label")
 	tf.flags.DEFINE_string("image", "", "Path to attacked image")
+	tf.flags.DEFINE_string("mask_image", "mask_l1rectangles-more_64.png", "Mask for image")
 	tf.flags.DEFINE_boolean("generate_random", False, "Use random (noisy) image as source")
 
 	tf.flags.DEFINE_integer("img_size", 64, "Image size")
@@ -158,7 +172,7 @@ if __name__ == '__main__':
 
 	tf.flags.DEFINE_integer("batch_size", 1, "")
 	tf.flags.DEFINE_integer("binary_search_steps", 10, "")
-	tf.flags.DEFINE_integer("max_iterations", 10000, "")
+	tf.flags.DEFINE_integer("max_iterations", 200, "")
 	tf.flags.DEFINE_integer("confidence", 20, "")
 	tf.flags.DEFINE_float("boxmin", 0, "")
 	tf.flags.DEFINE_float("boxmax", 1, "")
