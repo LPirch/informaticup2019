@@ -9,6 +9,8 @@ from skimage import color, exposure, transform, io
 
 import tensorflow as tf
 
+from gtsrb import GTSRB
+
 import pickle
 import numpy as np
 import random
@@ -24,29 +26,6 @@ FLAGS = tf.flags.FLAGS
 
 def lr_schedule(epoch):
 	return FLAGS.learning_rate * (0.1 ** int(epoch / 10))
-
-
-def preprocess_img(img):
-	# Histogram normalization in v channel
-	#hsv = color.rgb2hsv(img)
-	#hsv[:, :, 2] = exposure.equalize_hist(hsv[:, :, 2])
-	#img = color.hsv2rgb(hsv)
-
-	# central square crop
-	#min_side = min(img.shape[:-1])
-	#centre = img.shape[0] // 2, img.shape[1] // 2
-	#img = img[centre[0] - min_side // 2:centre[0] + min_side // 2,
-	#		  centre[1] - min_side // 2:centre[1] + min_side // 2,
-	#		  :]
-
-	# rescale to standard size
-	img = transform.resize(img, (FLAGS.img_size, FLAGS.img_size))
-
-	## We're using channels_last; we no longer need this
-	# roll color axis to axis 0
-	# img = np.rollaxis(img, -1)
-
-	return img
 
 
 def main():
@@ -73,7 +52,6 @@ def main():
 
 	# if FLAGS.stealing is false, we construct the vector
 	# using the image's filename
-
 	if FLAGS.stealing:
 		# Train the model on data which was classified by
 		# a remote model (i.e. steal the remote model)
@@ -132,27 +110,8 @@ def main():
 	# All models are saved without the final softmax layer,
 	# because it adds no information and hides the logits
 	model = load_model(model_path)
-
-	imgs, labels = [], []
-
-	# Extract training data
-	with zipfile.ZipFile("data/GTSRB_Final_Training_Images.zip") as z:
-		files = [name for name in z.namelist() if name.endswith(".ppm")]
-		random.shuffle(files)
-		for i, name in enumerate(files):
-			if i % (len(files) // 10) == 0:
-				print(i, "of ", len(files))
-
-			with z.open(name) as f:
-				img = io.imread(BytesIO(f.read()))
-				img = preprocess_img(img)
-
-				imgs.append(img)
-				labels.append(get_class(name))
-
-	# Convert to numpy arrays
-	X = np.array(imgs, dtype='float32')
-	Y = np.array(labels)
+	gtsrb = GTSRB('data', FLAGS.random_seed)
+	X, Y = gtsrb.get_training_data(load_augmented=FLAGS.load_augmented, hot_encoded=True)
 
 	# Define optimizer for training
 	if FLAGS.optimizer == "adam":
@@ -189,19 +148,22 @@ if __name__ == "__main__":
 
 	tf.flags.DEFINE_boolean("stealing", True, "Steal remote model")
 	tf.flags.DEFINE_boolean("steal_onehot", False, "")
+	tf.flags.DEFINE_boolean("load_augmented", True, "")
 
 	tf.flags.DEFINE_integer("img_size", 64, "Image size")
 	tf.flags.DEFINE_integer("n_classes", 43, "Amount of classes")
 
 	tf.flags.DEFINE_string("optimizer", "sgd", "Optimizer")
-	tf.flags.DEFINE_integer("batch_size", 32, "Batch size")
+	tf.flags.DEFINE_integer("batch_size", 64, "Batch size")
 	tf.flags.DEFINE_integer("epochs", 1, "Epochs")
 	tf.flags.DEFINE_float("decay", 1e-6, "Decay")
-	tf.flags.DEFINE_float("momentum", 1e-6, "Momentum")
+	tf.flags.DEFINE_float("momentum", 0.9, "Momentum")
 	tf.flags.DEFINE_string("loss", "categorical_crossentropy", "Loss function")
 	tf.flags.DEFINE_float("validation_split", 0.2, "Validation split")
 
 	tf.flags.DEFINE_string("extension", "png", "Image extension")
+
+	tf.flags.DEFINE_integer("random_seed", 42, "seed for random numbers")
 
 
 	main()
