@@ -1,66 +1,58 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 import os
 import json
 import time
 import pickle
+import zipfile
 import requests
 from PIL import Image
+from io import BytesIO
+from skimage import io
 
 # the api key is obviously not put into the repo
 API_KEY = None
-IMG_SHAPE = (64, 64)
+DATA_DIR = "../data"
+LOG_DIR = "../logs"
 URL = "https://phinau.de/trasi"
 ENCODING_TYPE = "multipart/form-data"
-PREDS_PICKLE = "../data/gtsrb.pickle"
-DATA_DIR = "../data"
+PREDS_PICKLE = DATA_DIR +"/gtsrb.pickle")
+IMG_SHAPE = (64, 64)
 
 def load_api_key(loc="../api_key"):
 	with open(loc, 'r') as f:
 		key = f.read().strip()
 	return key
 
-def apply_on_images(directory, fun, fun_args=[], fun_kwargs={}, filter_ext=None):
+
+def remote_evaluation(directory, target_ext=".png"):
 	for root, _, files in os.walk(directory):
-		for file in files:
-			# optionally filter files by substring
-			if not filter_ext or file.endswith(filter_ext):
-				file = os.path.join(root, file)
-				fun(file, *fun_args, **fun_kwargs)
+		files = [name for name in files if name.endswith(".zip")]
+		for filename in files:
+			with zipfile.ZipFile(os.path.join(root, filename)) as z:
+				namelist = [name for name in z.namelist() if name.endswith(target_ext)]
+				for img_name in namelist:
+					with z.open(img_name) as img_file:
+						fetch_oracle_response(img_name, img_file, delay=1)
 
-def resize_image(filename, target_shape):
-	with Image.open(filename) as img:
-		img = img.resize(target_shape)
-		img.save(filename)
 
-def convert_img(filename, target_ext=".png"):
-	with Image.open(filename) as img:
-		core_name = ".".join(filename.split(".")[:-1])
-		img.save(core_name + target_ext)
-		os.remove(filename)
-
-def check_shape(filename):
-	with Image.open(filename) as img:
-		assert IMG_SHAPE == img.size
-
-def fetch_oracle_response(filename, delay=None):
+def fetch_oracle_response(img_name, img, delay=None):
 	preds = {}
 	if os.path.exists(PREDS_PICKLE):
 		with open(PREDS_PICKLE, 'rb') as pkl:
 			preds = pickle.load(pkl)
-	if filename in preds:
-		print("skipping "+filename)
+	if img_name in preds:
+		print("skipping ", img_name)
 	else:
-		print("fetching "+filename)
-		with open(filename, 'rb') as img:
-			r = requests.post(URL, data={'key': API_KEY}, files={'image': img})
-
+		print("fetching ", img_name)
+		r = requests.post(URL, data={'key': API_KEY}, files={'image': img})
+		
 		if r.status_code != 200:
 			log_http_error(r.status_code, r.text)
 
 		json_data = json.loads(r.text)
 
-		preds[filename] = json_data
+		preds[img_name] = json_data
 		with open(PREDS_PICKLE, 'wb') as pkl:
 			pickle.dump(preds, pkl)
 		
@@ -69,14 +61,9 @@ def fetch_oracle_response(filename, delay=None):
 
 
 def log_http_error(status, text):
-	with open("./logs/http_"+str(status)+".log", "a") as log:
+	with open(LOG_DIR+"/http_"+str(status)+".log", "a") as log:
 		log.write(text+"\n")
 	
 if __name__ == "__main__":
 	API_KEY = load_api_key()
-	
-	# convert ppm files to png and resize them to requested shape
-	apply_on_images(DATA_DIR, convert_img, fun_kwargs={"target_ext": ".png"}, filter_ext=".ppm")
-	apply_on_images(DATA_DIR, resize_image, fun_args=[IMG_SHAPE], filter_ext=".png")
-	apply_on_images(DATA_DIR, check_shape, filter_ext=".png")
-	#apply_on_images(DATA_DIR, fetch_oracle_response, fun_kwargs={"delay": 1}, filter_ext=".png")
+	remote_evaluation(DATA_DIR)

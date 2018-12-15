@@ -6,8 +6,9 @@ bin
 include 
 lib
 
-# vscode 
+# IDE config directories
 .vscode
+.idea
 
 # data
 data
