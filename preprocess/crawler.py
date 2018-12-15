@@ -16,8 +16,9 @@ DATA_DIR = "../data"
 LOG_DIR = "../logs"
 URL = "https://phinau.de/trasi"
 ENCODING_TYPE = "multipart/form-data"
-PREDS_PICKLE = DATA_DIR +"/gtsrb.pickle")
+PREDS_PICKLE = DATA_DIR +"/gtsrb.pickle"
 IMG_SHAPE = (64, 64)
+
 
 def load_api_key(loc="../api_key"):
 	with open(loc, 'r') as f:
