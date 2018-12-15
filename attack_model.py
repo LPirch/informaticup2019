@@ -20,6 +20,9 @@ from gtsrb import GTSRB
 from cleverhans.attacks import FastGradientMethod, CarliniWagnerL2, LBFGS, SPSA, ProjectedGradientDescent, SaliencyMapMethod
 from cleverhans.utils import set_log_level
 
+# TODO: re-add physical attack
+#from robust_physical_perturbations.attack import Physical
+
 FLAGS = tf.flags.FLAGS
 
 
@@ -111,6 +114,8 @@ def main():
 		'spsa': SPSA,
 		'pgd': ProjectedGradientDescent,
 		'jsma': SaliencyMapMethod
+#		'physical': Physical
+#		attack = Physical(sess, model, FLAGS.mask_image, max_iterations=FLAGS.max_iterations)
 	}
 
 	attack_params = {
@@ -171,6 +176,7 @@ def main():
 
 	for i in range(len(adv)):
 		filepath = outdir + FLAGS.attack + "_" + FLAGS.image[:-3] + "_"
+		print(filepath)
 
 		# Original image
 		img = Image.fromarray(inputs_img[i], 'RGB')
@@ -189,6 +195,18 @@ def main():
 		img = Image.fromarray(adv_img[i], 'RGB')
 		img.save(filepath + str(pred_adv_i) + "adv.png")
 
+		if not exists(filepath + str(pred_adv_i) + "adv.png"):
+			print("Saving file failed... retrying")
+			img = Image.fromarray(adv[i], 'RGB')
+			img.save(filepath + str(pred_adv_i) + "adv.png")
+
+		if not exists(filepath + str(pred_adv_i) + "adv.png"):
+			print("Saving file failed again")
+			print("Saving to pickle:")
+			print(filepath + str(pred_adv_i) + "adv.png")
+			with open(filepath + str(pred_adv_i) + "adv.pickle", "wb") as f:
+				pickle.dump(f)
+
 		print(label_map[pred_input_i], "->", label_map[pred_adv_i])
 		print("Classification (original/target):", pred_input_i, "/", pred_adv_i)
 		print("confidences: ", orig_y[pred_input_i], "/", orig_y[pred_adv_i], ",",
@@ -205,6 +223,7 @@ if __name__ == '__main__':
 
 	tf.flags.DEFINE_integer("target", 0, "Target label")
 	tf.flags.DEFINE_string("image", "", "Path to attacked image")
+	tf.flags.DEFINE_string("mask_image", "masks/mask0.png", "Mask for image")
 	tf.flags.DEFINE_boolean("generate_random", False, "Use random (noisy) image as source")
 
 	tf.flags.DEFINE_integer("img_size", 64, "Image size")
