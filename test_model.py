@@ -18,32 +18,7 @@ import random
 
 from train_model import preprocess_img
 
-'''
-# Load test dataset
-X_test = []
-y_test = []
-i = 0
-
-with open("data/GT-final_test.csv") as csvfile:
-	reading = csv.DictReader(csvfile, delimiter=";")
-	with zipfile.ZipFile("data/GTSRB_Final_Test_Images.zip") as z:
-		for i, row in enumerate(reading):
-			if i % 1000 == 0:
-				print(i)
-
-			if i > 4:
-				break
-
-			filename, class_id = row['Filename'], row['ClassId']
-
-			with z.open("GTSRB/Final_Test/Images/" + filename) as f:
-				X_test.append(preprocess_img(io.imread(BytesIO(f.read()))))
-				y_test.append(class_id)
-X_test = np.array(X_test)
-y_test = np.array(y_test)
-'''
-
-with open("gtsrb.pickle", "rb") as f:
+with open("data/gtsrb.pickle", "rb") as f:
 	gtsrb = pickle.load(f)
 
 class_map = {}
