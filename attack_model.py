@@ -25,20 +25,6 @@ from cleverhans.utils import set_log_level
 
 FLAGS = tf.flags.FLAGS
 
-
-class GTSRBModel:
-	def __init__(self, model, img_size, n_classes, session=None):
-		self.num_channels = 3
-		self.image_size = img_size
-		self.num_labels = n_classes
-
-		model.pop()
-		self.model = model
-	
-	def predict(self, data):
-		return self.model(data)
-
-
 def model_logits(sess, x, predictions, samples, feed=None):
 	"""
 	Helper function that computes the current class logits
