@@ -161,6 +161,9 @@ class GTSRB():
 		"""Preprocess a given image: scaling to [0, 1], central square cropping and resizing."""
 		img = np.asarray(img, dtype="float32") / 255
 
+		img = img[:,:,:self.n_channels]
+		assert img.shape == (self.img_size, self.img_size, self.n_channels), img.shape
+
 		# central square crop
 		min_side = min(img.shape[:-1])
 		centre = img.shape[0] // 2, img.shape[1] // 2

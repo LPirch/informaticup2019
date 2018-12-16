@@ -21,7 +21,7 @@ from cleverhans.attacks import FastGradientMethod, CarliniWagnerL2, LBFGS, SPSA,
 from cleverhans.utils import set_log_level
 
 # TODO: re-add physical attack
-#from robust_physical_perturbations.attack import Physical
+from robust_physical_perturbations.attack import Physical, softmax
 
 FLAGS = tf.flags.FLAGS
 
@@ -99,9 +99,8 @@ def main():
 		'lbfgs': LBFGS,
 		'spsa': SPSA,
 		'pgd': ProjectedGradientDescent,
-		'jsma': SaliencyMapMethod
-#		'physical': Physical
-#		attack = Physical(sess, model, FLAGS.mask_image, max_iterations=FLAGS.max_iterations)
+		'jsma': SaliencyMapMethod,
+		'physical': Physical
 	}
 
 	attack_params = {
@@ -140,10 +139,16 @@ def main():
 			'gamma': 0.1,
 			'clip_min': FLAGS.boxmin,
 			'clip_max': FLAGS.boxmax
+		},
+		'physical': {
+			'y_target': adv_targets,
+			'mask_path': FLAGS.mask_image,
+			'max_iterations': FLAGS.max_iterations
 		}
 	}
 
 	# setup the attack
+	# TODO: port physical to cleverhans interface
 	attack = attacks[FLAGS.attack](model, sess=sess)
 	attack_kwargs = attack_params[FLAGS.attack]
 
@@ -155,7 +160,10 @@ def main():
 	inputs_img = np.rint(adv_inputs * 255).astype('uint8')
 	adv_img = np.rint(adv * 255).astype('uint8')
 
-	outdir = "tmp/" + str(FLAGS.confidence) + "/"
+	if FLAGS.attack == "cwl2":
+		outdir = "tmp/" + str(FLAGS.confidence) + "/"
+	else:
+		outdir = "tmp/" + str(FLAGS.attack) + "/"
 
 	if not exists(outdir):
 		makedirs(outdir)
@@ -195,8 +203,12 @@ def main():
 
 		print(label_map[pred_input_i], "->", label_map[pred_adv_i])
 		print("Classification (original/target):", pred_input_i, "/", pred_adv_i)
-		print("confidences: ", orig_y[pred_input_i], "/", orig_y[pred_adv_i], ",",
-								adv_y[pred_input_i], "/", adv_y[pred_adv_i])
+
+		orig_softmax_y = softmax(orig_y)
+		adv_softmax_y = softmax(adv_y)
+
+		print("confidences: ", orig_softmax_y[pred_input_i], "/", orig_softmax_y[pred_adv_i], ",",
+								adv_softmax_y[pred_input_i], "/", adv_softmax_y[pred_adv_i])
 
 		print("Total distortion:", np.sum((adv[i]-adv_inputs[i])**2)**.5)
 

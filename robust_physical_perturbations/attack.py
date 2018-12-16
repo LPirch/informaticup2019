@@ -31,24 +31,24 @@ from tensorflow.contrib.graph_editor import connect
 import sys
 from PIL import Image
 
-class Physical:
-    def __init__(self, sess, model, mask_path, max_iterations=2000):
-        with Image.open(mask_path) as mask:
-            mask = np.asarray(mask, dtype="uint8")
-            mask = mask[:,:,:3]
-            mask = mask.copy()
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum(axis=0) # only difference
 
-            # TODO: Use method from train_model.py
-            assert mask.shape == (model.image_size, model.image_size, 3), mask.shape
-            mask = mask / 255
+class Physical:
+    def __init__(self, wrapper_model, sess, image_size=64, num_channels=3, num_labels=43):
+        model = wrapper_model.model
 
         self.sess = sess
         self.model = model
-        self.mask = mask
-        self.max_iterations = max_iterations
         self.printability_optimization = False
 
-        op, placeholders, varops = setup_attack_graph(sess, model, model.image_size, model.image_size, model.num_channels, nb_classes=model.num_labels,
+        self.image_size = image_size
+        self.num_channels = num_channels
+        self.num_labels = num_labels
+
+        op, placeholders, varops = setup_attack_graph(sess, model, image_size, image_size, num_channels, nb_classes=num_labels,
             regloss="l1", printability_optimization=self.printability_optimization, printability_tuples=False, clipping=True,
             noise_clip_min=-20.0, noise_clip_max=20.0, noisy_input_clip_min=0, noisy_input_clip_max=1,
             attack_lambda=0.001, optimization_rate=0.25, adam_beta1=0.9, adam_beta2=0.999, adam_epsilon=0.0001)
@@ -59,39 +59,43 @@ class Physical:
 
         self.regloss = True
 
-    def attack(self, inputs, targets):
+    def generate_np(self, inputs, y_target, mask_path, max_iterations=2000):
         assert len(inputs) == 1
-        assert len(targets) == 1
+        assert len(y_target) == 1
 
-        tf_model = self.model.model
+        with Image.open(mask_path) as mask:
+            mask = np.asarray(mask, dtype="uint8")
+            mask = mask[:,:,:self.num_channels]
+            mask = mask.copy()
+
+            # TODO: Use method from train_model.py
+            assert mask.shape == (self.image_size, self.image_size, 3), mask.shape
+            mask = mask / 255
 
         # TODO: Find out why:
         # This call needs to be included, otherwise the
         # Adam-optimizer fails
-        src_class = np.argmax(tf_model.predict(inputs[0:1])[0])
-        
+        src_class = np.argmax(self.model.predict(inputs[0:1])[0])
+
+        a = self.model.predict(inputs[0:1])
+        print("POST:", a, np.max(a), np.argmax(a))
 
         feed_dict = {self.pholders['image_in']: inputs,
-                     self.pholders['attack_target']: targets,
-                     self.pholders['noise_mask']: self.mask}
+                     self.pholders['attack_target']: y_target,
+                     self.pholders['noise_mask']: mask}
 
         clean_model_loss = model_loss(self.pholders['attack_target'], 
                                       self.varops['adv_pred'], mean=True)
 
         if self.printability_optimization:
             printability_tuples = "30values.txt"
-            feed_dict[self.pholders['printable_colors']] = get_print_triplets(printability_tuples, self.model.image_size)
-
-        def softmax(x):
-            """Compute softmax values for each sets of scores in x."""
-            e_x = np.exp(x - np.max(x))
-            return e_x / e_x.sum(axis=0) # only difference
+            feed_dict[self.pholders['printable_colors']] = get_print_triplets(printability_tuples, self.image_size)
 
         best_images = np.zeros(inputs.shape)
         prediction = [0] * len(best_images)
 
-        for iteration in range(self.max_iterations):
-            if self.max_iterations > 0 and iteration >= self.max_iterations:
+        for iteration in range(max_iterations):
+            if max_iterations > 0 and iteration >= max_iterations:
                 break
 
             _,  train_loss, mod_loss, noisy_in, noisy_classes = self.sess.run( \
@@ -102,8 +106,11 @@ class Physical:
                 self.varops['adv_pred']) \
                 , feed_dict=feed_dict)
 
+            b = self.model.predict(noisy_in[0:1])
+            print(np.argmax(b), np.max(b))
+
             for i, img in enumerate(noisy_in):
-                target_label = np.argmax(targets[i])
+                target_label = np.argmax(y_target[i])
                 noisy_classification = noisy_classes[i][target_label]
                 if prediction[i] < noisy_classification:
                     prediction[i] = noisy_classification
@@ -115,11 +122,11 @@ class Physical:
                 reg_loss = 0
 
             if iteration % 20 == 0:
-                pred = softmax(tf_model.predict(noisy_in[0:1])[0])
+                pred = softmax(self.model.predict(noisy_in[0:1])[0])
                 print(np.argmax(pred), np.max(pred))
                 sys.stdout.flush()
 
-        for pred in tf_model.predict(best_images):
+        for pred in self.model.predict(best_images):
             softmax_pred = softmax(pred)
             print(np.argmax(softmax_pred), np.max(softmax_pred))
 
@@ -198,7 +205,7 @@ def model_loss(y, model, mean=True):
         out = tf.reduce_mean(out)
     return out
 
-def setup_attack_graph(sess, keras_model, input_rows, input_cols, nb_channels, nb_classes=43,
+def setup_attack_graph(sess, model, input_rows, input_cols, nb_channels, nb_classes=43,
     regloss="l2", printability_optimization=True, printability_tuples=False, clipping=True,
     noise_clip_min=-20.0, noise_clip_max=20.0, noisy_input_clip_min=-0.5, noisy_input_clip_max=0.5,
     attack_lambda=0.001, optimization_rate=0.25, adam_beta1=0.9, adam_beta2=0.999, adam_epsilon=0.0001):
@@ -277,7 +284,7 @@ def setup_attack_graph(sess, keras_model, input_rows, input_cols, nb_channels, n
  
     # instantiate the model
     # adv_pred is the output of the model for an image (or images) with noise
-    varops['adv_pred'] = keras_model.model(varops['noisy_inputs'])
+    varops['adv_pred'] = model(varops['noisy_inputs'])
     #model = YadavModel(train=False, custom_input=varops['noisy_inputs'])
 
      # Regularization term to control size of perturbation
