@@ -121,30 +121,30 @@ def main():
 	attack_params = {
 		'cwl2': {
 			'y_target': adv_targets,
-			'max_iterations': FLAGS.max_iterations or 10000,
-			'binary_search_steps': FLAGS.binary_search_steps or 10,
+			'max_iterations': FLAGS.max_iterations,
+			'binary_search_steps': FLAGS.binary_search_steps,
 			'learning_rate': 0.01,
 			'batch_size': 1,
 			'initial_const': 10,
-			'confidence': FLAGS.confidence or 0,
-			'clip_min': FLAGS.boxmin or 0,
-			'clip_max': FLAGS.boxmax or 1
+			'confidence': FLAGS.confidence,
+			'clip_min': FLAGS.boxmin,
+			'clip_max': FLAGS.boxmax
 		},
 		'fgsm': {
 			'y_target': adv_targets,
 			'eps': 0.3,
 			'ord': np.inf,
-			'clip_min': FLAGS.boxmin or 0,
-			'clip_max': FLAGS.boxmax or 1
+			'clip_min': FLAGS.boxmin,
+			'clip_max': FLAGS.boxmax
 		},
 		'lbfgs': {
 			'y_target': adv_targets,
-			'max_iterations': FLAGS.max_iterations or 10000,
-			'binary_search_steps': FLAGS.binary_search_steps or 10,
+			'max_iterations': FLAGS.max_iterations,
+			'binary_search_steps': FLAGS.binary_search_steps,
 			'batch_size': 1,
 			'initial_const': 1e-2,
-			'clip_min': FLAGS.boxmin or 0,
-			'clip_max': FLAGS.boxmax or 1
+			'clip_min': FLAGS.boxmin,
+			'clip_max': FLAGS.boxmax
 		},
 		'spsa': {},
 		'pgd': {},
@@ -152,8 +152,8 @@ def main():
 			'y_target': adv_targets,
 			'theta': 1,
 			'gamma': 0.1,
-			'clip_min': FLAGS.boxmin or 0,
-			'clip_max': FLAGS.boxmax or 1
+			'clip_min': FLAGS.boxmin,
+			'clip_max': FLAGS.boxmax
 		}
 	}
 
