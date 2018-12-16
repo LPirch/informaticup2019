@@ -8,6 +8,7 @@ import tensorflow as tf
 
 from io import BytesIO
 from skimage import io
+from PIL import Image
 
 import sys
 import zipfile
@@ -15,8 +16,15 @@ import csv
 import numpy as np
 import pickle
 import random
+import os.path
 
-from train_model import preprocess_img
+from gtsrb import GTSRB
+
+FLAGS = tf.flags.FLAGS
+
+tf.flags.DEFINE_string("model", "gtsrb_model", "Trained model")
+tf.flags.DEFINE_string("image", "", "Classified image")
+tf.flags.DEFINE_integer("random_seed", 42, "")
 
 with open("data/gtsrb.pickle", "rb") as f:
 	gtsrb = pickle.load(f)
@@ -31,6 +39,7 @@ for filename, classification in sorted(gtsrb.items()):
 			class_map[key] = class_id
 			label_map[class_id] = key
 
+'''
 def get_class(img_path):
 	filepath = "./data/" + img_path[:-3] + "png"
 	label = gtsrb[filepath][0]["class"]
@@ -55,12 +64,22 @@ with zipfile.ZipFile("data/GTSRB_Final_Training_Images.zip") as z:
 
 imgs = np.array(imgs)
 labels = np.array(labels)
+'''
 
-model = load_model("model/trained/last-my_model.h5")
+assert os.path.isfile(FLAGS.image)
+
+dataset = GTSRB('data', FLAGS.random_seed)
+with Image.open(FLAGS.image) as img:
+	img = dataset.preprocess(img)
+
+model = load_model("model/trained/" + FLAGS.model + ".h5")
 
 # predict and evaluate
-predictions = model.predict(imgs)
+predictions = model.predict(np.array([img]))
 
+print(np.max(predictions), np.argmax(predictions))
+
+'''
 cnt = 0
 for img, (label, pred) in zip(imgs, zip(labels, predictions)):
 	if label == np.argmax(pred):
@@ -72,3 +91,4 @@ for img, (label, pred) in zip(imgs, zip(labels, predictions)):
 print(cnt)
 print(len(labels))
 print(cnt/len(labels))
+'''
