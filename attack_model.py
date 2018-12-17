@@ -23,6 +23,8 @@ from cleverhans.utils import set_log_level
 # TODO: re-add physical attack
 from robust_physical_perturbations.attack import Physical, softmax
 
+from nn_robust_attacks.l2_attack_robust import CarliniL2Robust
+
 FLAGS = tf.flags.FLAGS
 
 def model_logits(sess, x, predictions, samples, feed=None):
@@ -85,8 +87,8 @@ def main():
 	x = tf.placeholder(tf.float32, shape=(None, dataset.img_size, dataset.img_size, dataset.n_channels))
 
 	# load model
-	model = load_model("model/trained/" + FLAGS.model + ".h5", compile=False)
-	model = KerasModelWrapper(model)
+	tf_model = load_model("model/trained/" + FLAGS.model + ".h5", compile=False)
+	model = KerasModelWrapper(tf_model)
 
 	# symbolic model predictions
 	logits = model.get_logits(x)
@@ -147,6 +149,7 @@ def main():
 		}
 	}
 
+	'''
 	# setup the attack
 	# TODO: port physical to cleverhans interface
 	attack = attacks[FLAGS.attack](model, sess=sess)
@@ -155,13 +158,19 @@ def main():
 	# attack images
 	with Timer("Attack (n_images=" + str(len(adv_inputs)) + ")"):
 		adv = attack.generate_np(adv_inputs, **attack_kwargs)
+	'''
+
+	tf_model.pop()
+
+	attack = CarliniL2Robust(sess, tf_model, 64, 3, 43)
+	attack.attack(adv_inputs, adv_targets)
 
 	# prepare img data for writing to file
 	inputs_img = np.rint(adv_inputs * 255).astype('uint8')
 	adv_img = np.rint(adv * 255).astype('uint8')
 
 	if FLAGS.attack == "cwl2":
-		outdir = "tmp/" + str(FLAGS.confidence) + "/"
+		outdir = "tmp/robust-" + str(FLAGS.confidence) + "/"
 	else:
 		outdir = "tmp/" + str(FLAGS.attack) + "/"
 
