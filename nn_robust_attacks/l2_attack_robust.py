@@ -9,6 +9,8 @@ import sys
 import tensorflow as tf
 import numpy as np
 
+from PIL import Image
+
 BINARY_SEARCH_STEPS = 9  # number of times to adjust the constant with binary search
 MAX_ITERATIONS = 10000   # number of iterations to perform gradient descent
 ABORT_EARLY = True       # if we stop improving, abort gradient descent early
@@ -31,7 +33,7 @@ class CarliniL2Robust:
                  binary_search_steps = BINARY_SEARCH_STEPS, max_iterations = MAX_ITERATIONS,
                  abort_early = ABORT_EARLY, 
                  initial_const = INITIAL_CONST,
-                 boxmin = -0.5, boxmax = 0.5):
+                 boxmin = 0, boxmax = 1):
         """
         The L_2 optimized attack. 
 
@@ -93,23 +95,19 @@ class CarliniL2Robust:
         self.boxplus = (boxmin + boxmax) / 2.
         self.newimg = tf.tanh(modifier + self.timg) * self.boxmul + self.boxplus
 
-        print(self.newimg)
+        self.ll_img = tf.contrib.image.transform(self.newimg, transformations[0])
+        self.l_img = tf.contrib.image.transform(self.newimg, transformations[1])
+        self.c_img = tf.contrib.image.transform(self.newimg, transformations[2])
+        self.r_img = tf.contrib.image.transform(self.newimg, transformations[3])
+        self.rr_img = tf.contrib.image.transform(self.newimg, transformations[4])
 
-        ll_img = tf.contrib.image.transform(self.newimg, transformations[0])
-        l_img = tf.contrib.image.transform(self.newimg, transformations[1])
-        c_img = tf.contrib.image.transform(self.newimg, transformations[2])
-        r_img = tf.contrib.image.transform(self.newimg, transformations[3])
-        rr_img = tf.contrib.image.transform(self.newimg, transformations[4])
+        self.output_ll = model(self.ll_img)
+        self.output_l = model(self.l_img)
+        self.output_c = model(self.c_img)
+        self.output_r = model(self.r_img)
+        self.output_rr = model(self.rr_img)
 
-        print(ll_img)
-
-        output_ll = model(ll_img)
-        output_l = model(l_img)
-        output_c = model(c_img)
-        output_r = model(r_img)
-        output_rr = model(rr_img)
-
-        self.output = output_c
+        self.output = self.output_c
 
         # prediction BEFORE-SOFTMAX of the model
         self.model = model
@@ -118,20 +116,20 @@ class CarliniL2Robust:
         self.l2dist = tf.reduce_sum(tf.square(self.newimg-(tf.tanh(self.timg) * self.boxmul + self.boxplus)),[1,2,3])
         
         # compute the probability of the label class versus the maximum other
-        real_ll = tf.reduce_sum((self.tlab)*output_ll,1)
-        other_ll = tf.reduce_max((1-self.tlab)*output_ll - (self.tlab*10000),1)
+        real_ll = tf.reduce_sum((self.tlab)*self.output_ll,1)
+        other_ll = tf.reduce_max((1-self.tlab)*self.output_ll - (self.tlab*10000),1)
 
-        real_l = tf.reduce_sum((self.tlab)*output_l,1)
-        other_l = tf.reduce_max((1-self.tlab)*output_l - (self.tlab*10000),1)
+        real_l = tf.reduce_sum((self.tlab)*self.output_l,1)
+        other_l = tf.reduce_max((1-self.tlab)*self.output_l - (self.tlab*10000),1)
 
-        real_c = tf.reduce_sum((self.tlab)*output_c,1)
-        other_c = tf.reduce_max((1-self.tlab)*output_c - (self.tlab*10000),1)
+        real_c = tf.reduce_sum((self.tlab)*self.output_c,1)
+        other_c = tf.reduce_max((1-self.tlab)*self.output_c - (self.tlab*10000),1)
 
-        real_r = tf.reduce_sum((self.tlab)*output_r,1)
-        other_r = tf.reduce_max((1-self.tlab)*output_r - (self.tlab*10000),1)
+        real_r = tf.reduce_sum((self.tlab)*self.output_r,1)
+        other_r = tf.reduce_max((1-self.tlab)*self.output_r - (self.tlab*10000),1)
 
-        real_rr = tf.reduce_sum((self.tlab)*output_rr,1)
-        other_rr = tf.reduce_max((1-self.tlab)*output_rr - (self.tlab*10000),1)
+        real_rr = tf.reduce_sum((self.tlab)*self.output_rr,1)
+        other_rr = tf.reduce_max((1-self.tlab)*self.output_rr - (self.tlab*10000),1)
 
         # TODO: this could also be max
         real = tf.reduce_mean(tf.concat([real_ll, real_l, real_c, real_r, real_rr], axis=0))
@@ -252,9 +250,38 @@ class CarliniL2Robust:
                             raise Exception("The output of model.predict should return the pre-softmax layer. It looks like you are returning the probability vector (post-softmax). If you are sure you want to do that, set attack.I_KNOW_WHAT_I_AM_DOING_AND_WANT_TO_OVERRIDE_THE_PRESOFTMAX_CHECK = True")
                 
                 # print out the losses every 10%
-                if iteration%(self.MAX_ITERATIONS//10) == 0:
-                    print(iteration,self.sess.run((self.loss,self.loss1,self.loss2)))
+                #if iteration%(self.MAX_ITERATIONS//10) == 0:
+                if iteration % 100 == 0:
+                    _, ll_img, l_img, c_img, r_img, rr_img, o_ll, o_l, o_c, o_r, o_rr = self.sess.run([self.train,
+                        self.ll_img, self.l_img, self.c_img, self.r_img, self.rr_img,
+                        self.output_ll, self.output_l, self.output_c, self.output_r, self.output_rr])
 
+                    img = Image.fromarray(np.rint(ll_img[0] * 255).astype('uint8'), 'RGB')
+                    img.save("lol/{}_{}ll_img.png".format(outer_step, iteration))
+                    img = Image.fromarray(np.rint(l_img[0] * 255).astype('uint8'), 'RGB')
+                    img.save("lol/{}_{}l_img.png".format(outer_step, iteration))
+                    img = Image.fromarray(np.rint(c_img[0] * 255).astype('uint8'), 'RGB')
+                    img.save("lol/{}_{}c_img.png".format(outer_step, iteration))
+                    img = Image.fromarray(np.rint(r_img[0] * 255).astype('uint8'), 'RGB')
+                    img.save("lol/{}_{}r_img.png".format(outer_step, iteration))
+                    img = Image.fromarray(np.rint(rr_img[0] * 255).astype('uint8'), 'RGB')
+                    img.save("lol/{}_{}rr_img.png".format(outer_step, iteration))
+                    img = Image.fromarray(np.rint(nimg[0] * 255).astype('uint8'), 'RGB')
+                    img.save("lol/{}_{}img.png".format(outer_step, iteration))
+
+                    o_ll = softmax(o_ll[0])
+                    o_l = softmax(o_l[0])
+                    o_c = softmax(o_c[0])
+                    o_r = softmax(o_r[0])
+                    o_rr = softmax(o_rr[0])
+
+                    print(np.argmax(o_ll), np.max(o_ll))
+                    print(np.argmax(o_l), np.max(o_l))
+                    print(np.argmax(o_c), np.max(o_c))
+                    print(np.argmax(o_r), np.max(o_r))
+                    print(np.argmax(o_rr), np.max(o_rr))
+                    print("="*10)
+                    
                 # check if we should abort search if we're getting nowhere.
                 if self.ABORT_EARLY and iteration%(self.MAX_ITERATIONS//10) == 0:
                     if l > prev*.9999:
