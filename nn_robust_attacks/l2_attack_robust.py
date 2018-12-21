@@ -20,12 +20,50 @@ CONFIDENCE = 20           # how strong the adversarial example should be
 INITIAL_CONST = 1e-1     # the initial constant c to pick as a first guess
 
 transformations = [
-	[1, 0, 0, 0, 1, 0, -0.0015, 0],
-	[1, 0, 0, 0, 1, 0, -0.001, 0],
-	[1, 0, 0, 0, 1, 0, 0, 0],
-	[1, 0, 0, 0, 1, 0, 0.001, 0],
-	[1, 0, 0, 0, 1, 0, 0.0015, 0],
+    lambda x, y: [[0, 0], [x, y/6], [0, y], [x, y-y/6]],
+    lambda x, y: [[0, 0], [x, y/10], [0, y], [x, y-y/10]],
+    lambda x, y: [[0, 0], [x, 0], [0, y], [x, y]],
+    lambda x, y: [[0, y/10], [x, 0], [0, y-y/10], [x, y]],
+    lambda x, y: [[0, y/6], [x, 0], [0, y-y/6], [x, y]]
 ]
+
+# Source: https://github.com/kindoblue/homography-tensorflow/
+def ax(p, q):
+    return [ p[0], p[1], 1, 0, 0, 0, -p[0] * q[0], -p[1] * q[0] ]
+    
+def ay(p, q):
+    return [ 0, 0, 0, p[0], p[1], 1, -p[0] * q[1], -p[1] * q[1] ]
+
+def homography(x1s, x2s):
+    p = []
+    
+    # we build matrix A by using only 4 point correspondence. The linear
+    # system is solved with the least square method, so here 
+    # we could even pass more correspondence 
+    p.append(ax(x1s[0], x2s[0]))
+    p.append(ay(x1s[0], x2s[0]))
+
+    p.append(ax(x1s[1], x2s[1]))
+    p.append(ay(x1s[1], x2s[1]))   
+    
+    p.append(ax(x1s[2], x2s[2]))
+    p.append(ay(x1s[2], x2s[2]))
+   
+    p.append(ax(x1s[3], x2s[3]))
+    p.append(ay(x1s[3], x2s[3]))
+    
+    # A is 8x8
+    A = tf.stack(p, axis=0)  
+    
+    m = [[x2s[0][0], x2s[0][1], x2s[1][0], x2s[1][1], x2s[2][0], x2s[2][1], x2s[3][0], x2s[3][1]]]
+
+    # P is 8x1
+    P = tf.transpose(tf.stack(m, axis=0))  
+      
+    # here we solve the linear system
+    # we transpose the result for convenience
+    return tf.transpose(tf.matrix_solve_ls(A, P, fast=True))
+
 
 class CarliniL2Robust:
     def __init__(self, sess, model, image_size, num_channels, num_labels, batch_size=1, confidence = CONFIDENCE,
@@ -99,7 +137,14 @@ class CarliniL2Robust:
         self.outputs = []
 
         for transformation in transformations:
-            img = tf.contrib.image.transform(self.newimg, transformation)
+            # get a random destination box
+            src = tf.constant([[0, 0], [image_size, 0], [0, image_size], [image_size, image_size]], dtype=tf.float32)
+            dst = tf.constant(transformation(image_size, image_size), dtype=tf.float32)
+
+            # calculate homography
+            h = homography(src, dst)
+            img = tf.contrib.image.transform(self.newimg, h, interpolation="BILINEAR")
+
             self.images.append(img)
             self.outputs.append(model(img))
 
