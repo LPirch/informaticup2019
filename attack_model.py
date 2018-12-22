@@ -102,7 +102,8 @@ def main():
 		'spsa': SPSA,
 		'pgd': ProjectedGradientDescent,
 		'jsma': SaliencyMapMethod,
-		'physical': Physical
+		'physical': Physical,
+		'robust_cwl2': CarliniL2Robust
 	}
 
 	attack_params = {
@@ -146,10 +147,12 @@ def main():
 			'y_target': adv_targets,
 			'mask_path': FLAGS.mask_image,
 			'max_iterations': FLAGS.max_iterations
+		},
+		'robust_cwl2': {
+			'y_target': adv_targets
 		}
 	}
 
-	'''
 	# setup the attack
 	# TODO: port physical to cleverhans interface
 	attack = attacks[FLAGS.attack](model, sess=sess)
@@ -158,18 +161,31 @@ def main():
 	# attack images
 	with Timer("Attack (n_images=" + str(len(adv_inputs)) + ")"):
 		adv = attack.generate_np(adv_inputs, **attack_kwargs)
-	'''
 
-	tf_model.pop()
+	if FLAGS.attack == "robust_cwl2":
+		adv, o_advs = adv
+		adv = np.array(adv)
 
-	attack = CarliniL2Robust(sess, tf_model, 64, 3, 43)
-	attack.attack(adv_inputs, adv_targets)
+		try:
+			if not exists("robust-perturbations"):
+				makedirs("robust-perturbations")
+		except:
+			print("Could not create folder 'robust-perturbations'")
+
+		for o_id, img in enumerate(o_advs):
+			try:
+				img = Image.fromarray(np.rint(img[0] * 255).astype('uint8'), 'RGB')
+				img.save("robust-perturbations/{}_img.png".format(o_id))
+			except:
+				print("Could not save img", o_id)
 
 	# prepare img data for writing to file
 	inputs_img = np.rint(adv_inputs * 255).astype('uint8')
 	adv_img = np.rint(adv * 255).astype('uint8')
 
 	if FLAGS.attack == "cwl2":
+		outdir = "tmp/" + str(FLAGS.confidence) + "/"
+	elif FLAGS.attack == "robust_cwl2":
 		outdir = "tmp/robust-" + str(FLAGS.confidence) + "/"
 	else:
 		outdir = "tmp/" + str(FLAGS.attack) + "/"

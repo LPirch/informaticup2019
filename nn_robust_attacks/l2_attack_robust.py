@@ -66,8 +66,8 @@ def homography(x1s, x2s):
 
 
 class CarliniL2Robust:
-    def __init__(self, sess, model, image_size, num_channels, num_labels, batch_size=1, confidence = CONFIDENCE,
-                 targeted = TARGETED, learning_rate = LEARNING_RATE,
+    def __init__(self, ch_model, sess, image_size=64, num_channels=3, num_labels=43, batch_size=1,
+                 confidence = CONFIDENCE, targeted = TARGETED, learning_rate = LEARNING_RATE,
                  binary_search_steps = BINARY_SEARCH_STEPS, max_iterations = MAX_ITERATIONS,
                  abort_early = ABORT_EARLY, 
                  initial_const = INITIAL_CONST,
@@ -136,6 +136,9 @@ class CarliniL2Robust:
         self.images = []
         self.outputs = []
 
+        model = ch_model.model
+        model.pop()
+
         for transformation in transformations:
             # get a random destination box
             src = tf.constant([[0, 0], [image_size, 0], [0, image_size], [image_size, image_size]], dtype=tf.float32)
@@ -192,7 +195,7 @@ class CarliniL2Robust:
         
         self.init = tf.variables_initializer(var_list=[modifier]+new_vars)
 
-    def attack(self, imgs, targets):
+    def generate_np(self, imgs, y_target):
         """
         Perform the L_2 attack on the given images for the given targets.
 
@@ -203,7 +206,7 @@ class CarliniL2Robust:
         print('go up to',len(imgs))
         for i in range(0,len(imgs),self.batch_size):
             print('tick',i)
-            r.extend(self.attack_batch(imgs[i:i+self.batch_size], targets[i:i+self.batch_size]))
+            r.extend(self.attack_batch(imgs[i:i+self.batch_size], y_target[i:i+self.batch_size]))
         return np.array(r)
 
     def attack_batch(self, imgs, labs):
@@ -237,6 +240,7 @@ class CarliniL2Robust:
         o_bestl2 = [1e10]*batch_size
         o_bestscore = [-1]*batch_size
         o_bestattack = [np.zeros(imgs[0].shape)]*batch_size
+        o_bestimages = None
         
         def softmax(x):
             """Compute softmax values for each sets of scores in x."""
@@ -270,9 +274,9 @@ class CarliniL2Robust:
             prev = np.inf
             for iteration in range(self.MAX_ITERATIONS):
                 # perform the attack 
-                _, l, l2s, scores, nimg = self.sess.run([self.train, self.loss, 
+                _, l, l2s, scores, nimg, o_imgs = self.sess.run([self.train, self.loss, 
                                                          self.l2dist, self.output, 
-                                                         self.newimg])
+                                                         self.newimg, self.images])
 
                 if np.all(scores>=-.0001) and np.all(scores <= 1.0001):
                     if np.allclose(np.sum(scores,axis=1), 1.0, atol=1e-3):
@@ -283,12 +287,7 @@ class CarliniL2Robust:
                 #if iteration%(self.MAX_ITERATIONS//10) == 0:
                 if iteration % 100 == 0:
                     print(iteration, self.sess.run((self.loss,self.loss1,self.loss2)))
-                    o_imgs = self.sess.run(self.images)
                     outputs = self.sess.run(self.outputs)
-
-                    for o_id, img in enumerate(o_imgs):
-                        img = Image.fromarray(np.rint(img[0] * 255).astype('uint8'), 'RGB')
-                        img.save("lol/{}_{}_{}_img.png".format(outer_step, iteration, o_id))
 
                     for o in outputs:
                         o = softmax(o[0])
@@ -310,6 +309,7 @@ class CarliniL2Robust:
                         o_bestl2[e] = l2
                         o_bestscore[e] = np.argmax(sc)
                         o_bestattack[e] = ii
+                        o_bestimages = o_imgs
 
             # adjust the constant as needed
             for e in range(batch_size):
@@ -329,4 +329,5 @@ class CarliniL2Robust:
 
         # return the best solution found
         o_bestl2 = np.array(o_bestl2)
-        return o_bestattack
+
+        return o_bestattack, o_bestimages
