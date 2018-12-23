@@ -1,3 +1,13 @@
 .attack-options {
 	display: none;
 }
+
+.container textarea {
+	width: 100%;
+	background-color: #000;
+	border: 1px solid #000;
+	color: #00ff00;
+	padding: 8px;
+	font-family: courier new;
+	min-height: 400px; 
+}

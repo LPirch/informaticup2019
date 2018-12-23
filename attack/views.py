@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 import os
 import os.path
@@ -7,6 +7,29 @@ import subprocess
 import random
 
 PROCESSES_DIR = ".process/"
+
+def get_token_from_pid(pid):
+    pid = str(int(pid))
+
+    if not os.path.exists(PROCESSES_DIR + pid):
+        raise RuntimeError("No process with pid found")
+
+    try:
+        with open(PROCESSES_DIR + pid, "r") as f:
+            token = f.read()
+    except:
+        raise RuntimeError("Could not read from process pid-file")
+
+    return token
+
+def is_pid_running(pid):        
+    """ Check For the existence of a unix pid. """
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
 
 def index(request):
     context = {
@@ -23,7 +46,7 @@ def overview(request):
     for p in filter(lambda x: x.isdigit(), os.listdir(PROCESSES_DIR)):
         processes.append({
             "id": p,
-            "running": os.path.exists("/proc/" + p)
+            "running": is_pid_running(int(p))
         })
 
     context = {
@@ -33,13 +56,12 @@ def overview(request):
     return render(request, 'attack/overview.html', context)
 
 def details(request):
-    try:
-        pid = str(int(request.GET["pid"]))
-    except:
-        return HttpResponse("Invaild argument")
+    pid = str(int(request.GET["pid"]))
+    token = get_token_from_pid(pid)
 
     context = {
-        "pid" : pid
+        "pid" : pid,
+        "img_path": "/static/img/" + token + "/"
     }
 
     if not os.path.exists(PROCESSES_DIR + pid):
@@ -57,9 +79,10 @@ def handle_start_attack(request):
 def start_cwl2(request):
     try:
         attack = "cwl2"
-        bss = int(request.POST["binary_search_steps"])
-        confidence = int(request.POST["confidence"])
-        max_iterations = int(request.POST["max_iterations"])
+        bss = str(int(request.POST["binary_search_steps"]))
+        confidence = str(int(request.POST["confidence"]))
+        max_iterations = str(int(request.POST["max_iterations"]))
+        target = str(int(request.POST["target"]))
     except:
         return HttpResponse("Invalid argument")
 
@@ -67,16 +90,7 @@ def start_cwl2(request):
         os.makedirs(PROCESSES_DIR)
 
     token = str(random.random())
-
-    try:
-        with open(PROCESSES_DIR + token + ".out", "wb") as f:
-            p = subprocess.Popen(['python3', 'list_classes.py'], stdout=f, bufsize=1)
-    except:
-        return HttpResponse("Error on Popen")
-
-    pid = str(p.pid)
-
-    process_dir = PROCESSES_DIR + pid + "/"
+    process_dir = PROCESSES_DIR + token + "/"
 
     try:
         os.mkdir(process_dir)
@@ -84,34 +98,49 @@ def start_cwl2(request):
         return HttpResponse("Error on mkdir")
 
     try:
-        with open(process_dir + "token", "w") as f:
+        with open(process_dir + "stdout", "wb") as f:
+            p = subprocess.Popen(["python3", "attack_model.py",
+                "--attack", "cwl2",
+                "--model", "gtsrb_model",
+                "--model_folder", "model/trained/",
+                "--outdir", "static/img/" + token + "/",
+                "--binary_search_steps", bss,
+                "--confidence", confidence,
+                "--max_iterations", max_iterations,
+                "--target", target,
+                "--image", "gi.png"], stdout=f, stderr=f, bufsize=1, universal_newlines=True)
+
+    except Exception as e:
+        print(type(e))
+        print(str(e))
+        return HttpResponse("Error on Popen")
+
+    pid = str(p.pid)
+
+    try:
+        with open(PROCESSES_DIR + pid, "w") as f:
             f.write(token)
     except:
-        return HttpResponse("Error on create tokenfile")
+        return HttpResponse("Error on create pid")
 
     return redirect('/attack/details.html?pid=' + pid)
 
 def handle_proc_info(request):
-    try:
-        pid = str(int(request.GET["pid"]))
-    except:
-        return HttpResponse("Invaild argument")
-
-    if not os.path.exists(PROCESSES_DIR + pid) or not os.path.exists("/proc/" + pid):
-        return HttpResponse("No process with pid found")
-
-    process_dir = PROCESSES_DIR + pid + "/"
+    token = get_token_from_pid(request.GET["pid"])
+    process_dir = PROCESSES_DIR + token + "/"
 
     try:
-        with open(process_dir + "token", "r") as f:
-            token = f.read()
-    except:
-        return HttpResponse("Could not read from process pid-file")
-
-    try:
-        with open(PROCESSES_DIR + token + ".out", "r") as g:
+        with open(process_dir + "stdout", "r") as g:
             out = g.read()
     except:
         return HttpResponse("Could not read process output (" + PROCESSES_DIR + token + ".out)")
 
     return HttpResponse(out)
+
+def handle_list_images(request):
+    token = get_token_from_pid(request.GET["pid"])
+    process_dir = "static/img/" + token + "/"
+
+    images = list(filter(lambda x: x.endswith(".png"), os.listdir(process_dir)))
+
+    return JsonResponse({"images": images})

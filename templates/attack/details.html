@@ -28,6 +28,74 @@
 
 {% block content %}
 
-<iframe src="attack/proc_info?pid={{ pid }}"></iframe>
+<div class="container">
+	<textarea id="console" readonly></textarea>
+	<div id="images"></div>
+</div>
+
+<script>
+	(function() {
+		var iteration = 0;
+
+		function fetch() {
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					document.getElementById("console").innerHTML = xhttp.responseText;
+				}
+			};
+			xhttp.open("GET", "attack/proc_info?pid={{ pid }}", true);
+			xhttp.send();
+
+			iteration++;
+
+			// refresh up to 5 minutes
+			if (iteration < 60 * 5) {
+				setTimeout(fetch, 1000);
+			}
+		}
+
+		fetch();
+	})();
+</script>
+
+<script>
+	(function() {
+		var iteration = 0;
+		var images = [];
+
+		function fetch() {
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+					var recv_images = JSON.parse(xhttp.responseText)["images"];
+					var new_images = []
+
+					for (var i = 0; i < recv_images.length; i++) {
+						if (!images.includes(recv_images[i])) {
+							new_images.push(recv_images[i]);
+							images.push(recv_images[i]);
+						}
+					}
+
+					for (var i = 0; i < new_images.length; i++) {
+						var img = document.createElement("img");
+						img.src = "{{ img_path }}" + new_images[i];
+						document.getElementById("images").appendChild(img);
+					}
+				}
+			};
+			xhttp.open("GET", "attack/list_images?pid={{ pid }}", true);
+			xhttp.send();
+
+			// refresh up to 25 minutes
+			if (iteration < 60 * 5) {
+				setTimeout(fetch, 5000);
+			}
+		}
+
+		fetch();
+	})();
+</script>
 
 {% endblock %}
