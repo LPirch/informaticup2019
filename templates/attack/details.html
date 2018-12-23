@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additional_css %}
+	<link rel="stylesheet" href="{% static 'css/attack.css' %}">
+{% endblock %}
+
+{% block additional_js %}
+	<script src="{% static 'js/attack.js' %}"></script>
+{% endblock %}
+
+{% block tab-nav %}
+<div class="navbar navbar-expand-lg bg-secondary display-4 sub-nav">
+	<i class="fas fa-angle-double-right"></i>
+	<ul class="nav nav-pills" role="tablist">
+		<li class="nav-item">
+			<a class="nav-link" href="index.html">Overview</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="attack.html">Attack</a>
+		</li>
+		<li class="nav-item active">
+			<a class="nav-link">Details ({{pid}})</a>
+		</li>
+	</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<iframe src="attack/proc_info?pid={{ pid }}"></iframe>
+
+{% endblock %}
