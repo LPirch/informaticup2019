@@ -6,7 +6,14 @@ import os.path
 import subprocess
 import random
 
-PROCESSES_DIR = ".process/"
+PROCESSES_DIR = ".process"
+IMG_TMP_DIR = os.path.join("static", "img")
+
+def init_directories():
+    if not os.path.exists(PROCESSES_DIR):
+        os.makedirs(PROCESSES_DIR)
+    if not os.path.exists(IMG_TMP_DIR):
+        os.makedirs(IMG_TMP_DIR)
 
 def get_token_from_pid(pid):
     pid = str(int(pid))
@@ -41,6 +48,7 @@ def attack(request):
     return render(request, 'attack/attack.html')
 
 def overview(request):
+    init_directories()
     processes  = []
 
     for p in filter(lambda x: x.isdigit(), os.listdir(PROCESSES_DIR)):
@@ -61,7 +69,7 @@ def details(request):
 
     context = {
         "pid" : pid,
-        "img_path": "/static/img/" + token + "/"
+        "img_path": os.path.join(IMG_TMP_DIR, token)
     }
 
     if not os.path.exists(PROCESSES_DIR + pid):
@@ -103,7 +111,7 @@ def start_cwl2(request):
                 "--attack", "cwl2",
                 "--model", "gtsrb_model",
                 "--model_folder", "model/trained/",
-                "--outdir", "static/img/" + token + "/",
+                "--outdir", os.path.join(IMG_TMP_DIR, token),
                 "--binary_search_steps", bss,
                 "--confidence", confidence,
                 "--max_iterations", max_iterations,
@@ -138,8 +146,9 @@ def handle_proc_info(request):
     return HttpResponse(out)
 
 def handle_list_images(request):
+    init_directories()
     token = get_token_from_pid(request.GET["pid"])
-    process_dir = "static/img/" + token + "/"
+    process_dir = os.path.join(IMG_TMP_DIR, token)
 
     images = list(filter(lambda x: x.endswith(".png"), os.listdir(process_dir)))
 
