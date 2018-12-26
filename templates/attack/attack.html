@@ -31,6 +31,7 @@
 							<option value="jsma">Jacobian-based Saliency Map Attack (JSMA)</option>
 					</select>
 			</div>
+
 			<div class="form-group col-md-6">
 				<label for="target">Target label</label>
 				<select id="target" name="target" class="form-control">
@@ -71,6 +72,14 @@
 					<option value="34">Unebene Fahrbahn</option>
 					<option value="35">Links vorbei</option>
 				</select>
+			</div>
+		</div>
+
+		<div class="form-group form-group-lg">
+			<div class="input-group input-file" name="filechooser">
+				<input name="imagefile" type="file" class='input-ghost'/>
+				<button class="btn btn-choose btn-secondary" type="button">Choose</button>
+				<input type="text" class="form-control input-lg input-selected-file" placeholder='Choose a file...' required/>
 			</div>
 		</div>
 
