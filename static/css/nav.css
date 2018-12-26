@@ -71,3 +71,7 @@ a {
 .nav-pills>li.active>a, .nav-pills>li.active>a:focus, .nav-pills>li.active>a:hover {
     background-color: #375a7f !important;
 }
+
+a.disabled { 
+    pointer-events: none; 
+}

@@ -63,7 +63,7 @@ $(document).ready(function(){
  */
 function reload_models() {
     $.ajax({
-        'url': "/train/reloadmodel",
+        'url': "/train/models/reloadmodel",
         'type':"GET",
         'success': function(data, status, xhr){
 
@@ -124,7 +124,7 @@ function reload_models() {
  */
 function delete_model(file) {
     $.ajax({
-        url: "/train/deletemodel",
+        url: "/train/models/deletemodel",
         type: "GET",
         data: {'filename': file},
         success: function(result) {
@@ -140,7 +140,7 @@ function delete_model(file) {
  */
 function select_model(file) {
     $.ajax({
-        url: "/train/selectmodel",
+        url: "/train/models/selectmodel",
         type: "GET",
         data: {'filename': file},
         success: function(result) {

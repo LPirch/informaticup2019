@@ -9,9 +9,8 @@ import keras.backend as K
 
 MODEL_SAVE_PATH = ".cache/models/"
 
-def index(request):
+def overview(request):
     selected_model = request.session.get('selected_model')
-    print(">>", selected_model)
     context = { 
         "train" : {"active_class": "active"},
         "selected_model": "None"
@@ -20,8 +19,23 @@ def index(request):
         model_info = get_model_summary(selected_model)
         context['layers'] = model_info
         context['selected_model'] = selected_model
-     
-    return render(request, 'train/index.html', context)
+    
+    return render(request, 'train/overview.html', context)
+
+def models(request):
+    selected_model = request.session.get('selected_model')
+    context = { 
+        "train" : {"active_class": "active"},
+        "selected_model": "None"
+    }
+    
+    return render(request, 'train/models.html')
+
+def training(request):
+    return render(request, 'train/training.html')
+
+def tensorboard(request):    
+    return render(request, 'train/tensorboard.html')
 
 def handle_model_reload(request):
     selected_model = request.session.get('selected_model')
@@ -45,7 +59,7 @@ def handle_uploaded_file(request):
         if not request.FILES:
             # should be prevented by JS, but reload page as double-check
             context = { "train" : {"active_class": "active"} }
-            return redirect('/train', context)
+            return redirect('/train/models.html', context)
         filename = request.FILES['filechooser'].name
         if os.path.exists(MODEL_SAVE_PATH+filename):
             return HttpResponse(400)
@@ -54,7 +68,7 @@ def handle_uploaded_file(request):
         
         # reload model table after file upload
         context = { "train" : {"active_class": "active"} }
-        return redirect('/train', context)
+        return redirect('/train/models.html', context)
     return HttpResponse(400)
 
 def store_uploaded_file(file):
@@ -97,5 +111,3 @@ def get_model_summary(modelname):
         })
     
     return layer_info
-
-# TODO: change selected model on overview -> maybe switch to separate urls?
