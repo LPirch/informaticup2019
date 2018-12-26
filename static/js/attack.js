@@ -1,13 +1,17 @@
-$$$ = function(a) { return document.getElementById(a); }
+(function() {
+	var select = document.getElementById("attack-selector");
+	var options = Array.prototype.slice.call(document.querySelectorAll(".attack-options"));
 
-function attackChanged(option) {
-	options = $$$("attack-options").children;
-
-	for (var i = 0; i < options.length; i++) {
-		if (options[i].id.startsWith(option.value)) {
-			options[i].style.display = "block";
-		} else {
-			options[i].style.display = "none";
+	var change = function(e) {
+		for (var i = 0; i < options.length; i++) {
+			if (options[i].id.startsWith(select.value)) {
+				options[i].style.display = "block";
+			} else {
+				options[i].style.display = "none";
+			}
 		}
 	}
-}
+
+	select.addEventListener("change", change);
+	change();
+})();
