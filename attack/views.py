@@ -17,12 +17,13 @@ def init_directories():
 
 def get_token_from_pid(pid):
     pid = str(int(pid))
+    pid_dir = os.path.join(PROCESSES_DIR, pid)
 
-    if not os.path.exists(PROCESSES_DIR + pid):
+    if not os.path.exists(pid_dir):
         raise RuntimeError("No process with pid found")
 
     try:
-        with open(PROCESSES_DIR + pid, "r") as f:
+        with open(pid_dir, "r") as f:
             token = f.read()
     except:
         raise RuntimeError("Could not read from process pid-file")
@@ -72,7 +73,7 @@ def details(request):
         "img_path": os.path.join(IMG_TMP_DIR, token)
     }
 
-    if not os.path.exists(PROCESSES_DIR + pid):
+    if not os.path.exists(os.path.join(PROCESSES_DIR, pid)):
         return HttpResponse("No process with pid")
 
     return render(request, 'attack/details.html', context)
@@ -98,7 +99,7 @@ def start_cwl2(request):
         os.makedirs(PROCESSES_DIR)
 
     token = str(random.random())
-    process_dir = PROCESSES_DIR + token + "/"
+    process_dir = os.path.join(PROCESSES_DIR, token)
 
     try:
         os.mkdir(process_dir)
@@ -106,7 +107,7 @@ def start_cwl2(request):
         return HttpResponse("Error on mkdir")
 
     try:
-        with open(process_dir + "stdout", "wb") as f:
+        with open(os.path.join(process_dir, "stdout"), "wb") as f:
             p = subprocess.Popen(["python3", "attack_model.py",
                 "--attack", "cwl2",
                 "--model", "gtsrb_model",
@@ -126,7 +127,7 @@ def start_cwl2(request):
     pid = str(p.pid)
 
     try:
-        with open(PROCESSES_DIR + pid, "w") as f:
+        with open(os.path.join(PROCESSES_DIR, pid), "w") as f:
             f.write(token)
     except:
         return HttpResponse("Error on create pid")
@@ -135,10 +136,10 @@ def start_cwl2(request):
 
 def handle_proc_info(request):
     token = get_token_from_pid(request.GET["pid"])
-    process_dir = PROCESSES_DIR + token + "/"
+    process_dir = os.path.join(PROCESSES_DIR, token)
 
     try:
-        with open(process_dir + "stdout", "r") as g:
+        with open(os.path.join(process_dir, "stdout"), "r") as g:
             out = g.read()
     except:
         return HttpResponse("Could not read process output (" + PROCESSES_DIR + token + ".out)")
@@ -146,10 +147,12 @@ def handle_proc_info(request):
     return HttpResponse(out)
 
 def handle_list_images(request):
-    init_directories()
     token = get_token_from_pid(request.GET["pid"])
     process_dir = os.path.join(IMG_TMP_DIR, token)
 
-    images = list(filter(lambda x: x.endswith(".png"), os.listdir(process_dir)))
+    try:
+        images = list(filter(lambda x: x.endswith(".png"), os.listdir(process_dir)))
+    except:
+        return JsonResponse({"images": []})
 
     return JsonResponse({"images": images})

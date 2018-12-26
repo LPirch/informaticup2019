@@ -76,7 +76,7 @@
 
 					for (var i = 0; i < new_images.length; i++) {
 						var img = document.createElement("img");
-						img.src = "{{ img_path }}" + new_images[i];
+						img.src = "/{{ img_path }}/" + new_images[i];
 						document.getElementById("images").appendChild(img);
 					}
 				}
