@@ -33,7 +33,21 @@
 {% block content %}
 <div id="my-tab-content" class="container tab-content content">
   <div role="tabpanel" class="tab-pane active" id="overview">
-    <h2> nothing here yet</h2>
+    <h3>Selected Model: {{ selected_model }} </h3>
+    <table class="table">
+      <tr>
+        <th>Type</th>
+        <th>Input Shape</th>
+        <th>Output Shape</th>
+      </tr>
+      {% for layer in layers %}
+      <tr>
+        <td>{{ layer.name }}</td>
+        <td>{{ layer.input_shape }}</td>
+        <td>{{ layer.output_shape }}</td>
+      </tr>
+      {% endfor %}
+    </table>
   </div>
   <div role="tabpanel" class="tab-pane" id="models">
     <div class="container invisible text-center" id="empty-table-info">

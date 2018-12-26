@@ -1,15 +1,26 @@
+import os
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django import forms
 from time import strftime, ctime
 from datetime import datetime
-from os import walk, remove, makedirs
-from os.path import getctime, exists
+from keras.models import load_model
+import keras.backend as K
 
 MODEL_SAVE_PATH = ".cache/models/"
 
 def index(request):
-    context = { "train" : {"active_class": "active"} }
+    selected_model = request.session.get('selected_model')
+    print(">>", selected_model)
+    context = { 
+        "train" : {"active_class": "active"},
+        "selected_model": "None"
+    }
+    if selected_model:
+        model_info = get_model_summary(selected_model)
+        context['layers'] = model_info
+        context['selected_model'] = selected_model
+     
     return render(request, 'train/index.html', context)
 
 def handle_model_reload(request):
@@ -19,9 +30,9 @@ def handle_model_reload(request):
 
 def get_models_info(selected_model = ''):
     files = []
-    for _, _, filenames in walk(MODEL_SAVE_PATH):
+    for _, _, filenames in os.walk(MODEL_SAVE_PATH):
         for f in filenames:
-            last_modified = datetime.fromtimestamp(getctime(MODEL_SAVE_PATH+f)).strftime('%Y-%d-%m')
+            last_modified = datetime.fromtimestamp(os.path.getctime(MODEL_SAVE_PATH+f)).strftime('%Y-%d-%m')
             files.append({
                 'name': f, 
                 'modified': last_modified,
@@ -36,7 +47,7 @@ def handle_uploaded_file(request):
             context = { "train" : {"active_class": "active"} }
             return redirect('/train', context)
         filename = request.FILES['filechooser'].name
-        if exists(MODEL_SAVE_PATH+filename):
+        if os.path.exists(MODEL_SAVE_PATH+filename):
             return HttpResponse(400)
         else:
             store_uploaded_file(request.FILES['filechooser'])
@@ -48,8 +59,8 @@ def handle_uploaded_file(request):
 
 def store_uploaded_file(file):
     # create cache directory if not exists
-    if not exists(MODEL_SAVE_PATH):
-        makedirs(MODEL_SAVE_PATH)
+    if not os.path.exists(MODEL_SAVE_PATH):
+        os.makedirs(MODEL_SAVE_PATH)
     
     # save file (chunk-wise for handling large files as well)
     with open(MODEL_SAVE_PATH+file.name, 'wb') as f:
@@ -60,15 +71,31 @@ def handle_delete_model(request):
     if request.method == 'GET':
         filename = request.GET.get('filename', '')
         delete_model(filename)
+        if filename == request.session.get('selected_model'):
+            request.session['selected_model'] = None
     return HttpResponse()
 
 def delete_model(filename):
-    if exists(MODEL_SAVE_PATH+filename):
-        remove(MODEL_SAVE_PATH+filename)
+    if os.path.exists(MODEL_SAVE_PATH+filename):
+        os.remove(MODEL_SAVE_PATH+filename)
 
 def handle_select_model(request):
     if request.method == 'GET':
         filename = request.GET.get('filename', '')
         request.session['selected_model'] = filename
     return HttpResponse()
-        
+
+def get_model_summary(modelname):
+    model = load_model(os.path.join('model', 'trained', modelname))
+    K.clear_session()
+    layer_info = []
+    for layer in model.layers:
+        layer_info.append({
+            'name': layer.name,
+            'input_shape': layer.input_shape,
+            'output_shape': layer.output_shape
+        })
+    
+    return layer_info
+
+# TODO: change selected model on overview -> maybe switch to separate urls?
