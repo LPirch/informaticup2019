@@ -7,7 +7,7 @@ from datetime import datetime
 from keras.models import load_model
 import keras.backend as K
 
-MODEL_SAVE_PATH = ".cache/models/"
+MODEL_SAVE_PATH = os.path.join('data', 'models')
 
 def overview(request):
     selected_model = request.session.get('selected_model')
@@ -61,7 +61,7 @@ def handle_uploaded_file(request):
             context = { "train" : {"active_class": "active"} }
             return redirect('/train/models.html', context)
         filename = request.FILES['filechooser'].name
-        if os.path.exists(MODEL_SAVE_PATH+filename):
+        if os.path.exists(os.path.join(MODEL_SAVE_PATH, filename)):
             return HttpResponse(400)
         else:
             store_uploaded_file(request.FILES['filechooser'])
@@ -77,7 +77,7 @@ def store_uploaded_file(file):
         os.makedirs(MODEL_SAVE_PATH)
     
     # save file (chunk-wise for handling large files as well)
-    with open(MODEL_SAVE_PATH+file.name, 'wb') as f:
+    with open(os.path.join(MODEL_SAVE_PATH, file.name), 'wb') as f:
         for chunk in file.chunks():
             f.write(chunk)
 
@@ -90,8 +90,9 @@ def handle_delete_model(request):
     return HttpResponse()
 
 def delete_model(filename):
-    if os.path.exists(MODEL_SAVE_PATH+filename):
-        os.remove(MODEL_SAVE_PATH+filename)
+    filepath = os.path.join(MODEL_SAVE_PATH, filename)
+    if os.path.exists(filepath):
+        os.remove(filepath)
 
 def handle_select_model(request):
     if request.method == 'GET':
