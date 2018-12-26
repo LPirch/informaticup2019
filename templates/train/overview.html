@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additional_css %}
+	<link rel="stylesheet" href="{% static 'css/train.css' %}">
+{% endblock %}
+
+{% block tab-nav %}
+<div class="navbar navbar-expand-lg bg-secondary display-4 sub-nav">
+	<i class="fas fa-angle-double-right"></i>
+	<ul class="nav nav-pills" role="tablist">
+		<li class="nav-item active">
+			<a class="nav-link" href="overview.html">Overview</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="models.html">Models</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="training.html">Training</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="tensorboard.html">Tensorboard</a>
+        </li>
+	</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="my-tab-content" class="container tab-content content">
+	<h3>Selected Model: {{ selected_model }} </h3>
+	<div class="sub-content">
+		<h4>Architecture</h4>
+		<div class="table-wrapper-scroll-y">
+			<table class="table table-sm table-striped">
+				<thead>
+					<th>Type</th>
+					<th>Input Shape</th>
+					<th>Output Shape</th>
+				</thead>
+				<tbody>
+					{% for layer in layers %}
+					<tr>
+						<td>{{ layer.name }}</td>
+						<td>{{ layer.input_shape }}</td>
+						<td>{{ layer.output_shape }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+
+{% endblock %}
