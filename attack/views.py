@@ -5,17 +5,16 @@ from django.core.files.base import ContentFile
 
 import os
 import os.path
-import subprocess
 import random
+
+from .cwl2 import CWL2AttackHandling
 
 PROCESSES_DIR = ".process"
 IMG_TMP_DIR = os.path.join("static", "img")
 
-def init_directories():
-    if not os.path.exists(PROCESSES_DIR):
-        os.makedirs(PROCESSES_DIR)
-    if not os.path.exists(IMG_TMP_DIR):
-        os.makedirs(IMG_TMP_DIR)
+attacks = {
+    "cwl2": CWL2AttackHandling
+}
 
 def get_token_from_pid(pid):
     pid = str(int(pid))
@@ -32,7 +31,7 @@ def get_token_from_pid(pid):
 
     return token
 
-def is_pid_running(pid):        
+def is_pid_running(pid):
     """ Check For the existence of a unix pid. """
     try:
         os.kill(pid, 0)
@@ -42,16 +41,12 @@ def is_pid_running(pid):
         return True
 
 def index(request):
-    context = {
-        "attack" : {"active_class": "active"}
-    }
-    return render(request, 'attack/overview.html', context)
+    return render(request, 'attack/overview.html')
 
 def attack(request):
     return render(request, 'attack/attack.html')
 
 def overview(request):
-    init_directories()
     processes  = []
 
     for p in filter(lambda x: x.isdigit(), os.listdir(PROCESSES_DIR)):
@@ -82,20 +77,16 @@ def details(request):
 
 def handle_start_attack(request):
     if request.method == "POST":
-        if request.POST["attack"] == "cwl2":
-            return start_cwl2(request)
+        attack = request.POST["attack"]
+
+        if attack in attacks:
+            return start_attack(request, attacks[attack])
 
     return HttpResponse("Attack not found")
 
-def start_cwl2(request):
+def start_attack(request, attack):
     try:
-        attack = "cwl2"
-        bss = str(int(request.POST["binary_search_steps"]))
-        confidence = str(int(request.POST["confidence"]))
-        max_iterations = str(int(request.POST["max_iterations"]))
-        target = str(int(request.POST["target"]))
-
-        image = request.FILES["imagefile"]
+        args = attack.handle_arguments(request)
     except:
         return HttpResponse("Invalid argument")
 
@@ -111,22 +102,13 @@ def start_cwl2(request):
         return HttpResponse("Error on mkdir")
 
     outdir = os.path.join(IMG_TMP_DIR, token)
-    src_img_path = os.path.join(outdir, "original.png")
-    src_img_path = default_storage.save(src_img_path, ContentFile(image.read()))
+
+    if args["image"]:
+        src_img_path = os.path.join(outdir, "original.png")
+        args["src_img_path"] = default_storage.save(src_img_path, ContentFile(args["image"].read()))
 
     try:
-        with open(os.path.join(process_dir, "stdout"), "wb") as f:
-            p = subprocess.Popen(["python3", "attack_model.py",
-                "--attack", "cwl2",
-                "--model", "gtsrb_model",
-                "--model_folder", "model/trained/",
-                "--outdir", outdir,
-                "--binary_search_steps", bss,
-                "--confidence", confidence,
-                "--max_iterations", max_iterations,
-                "--target", target,
-                "--image", src_img_path], stdout=f, stderr=f, bufsize=1, universal_newlines=True)
-
+        p = attack.start(outdir=outdir, process_dir=process_dir, **args)
     except Exception as e:
         print(type(e))
         print(str(e))
