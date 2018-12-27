@@ -7,6 +7,8 @@ from datetime import datetime
 from keras.models import load_model
 import keras.backend as K
 
+from train.train import train_rebuild
+
 MODEL_SAVE_PATH = os.path.join('data', 'models')
 
 def overview(request):
@@ -46,7 +48,8 @@ def get_models_info(selected_model = ''):
     files = []
     for _, _, filenames in os.walk(MODEL_SAVE_PATH):
         for f in filenames:
-            last_modified = datetime.fromtimestamp(os.path.getctime(MODEL_SAVE_PATH+f)).strftime('%Y-%d-%m')
+            filepath = os.path.join(MODEL_SAVE_PATH, f)
+            last_modified = datetime.fromtimestamp(os.path.getctime(filepath)).strftime('%Y-%d-%m')
             files.append({
                 'name': f, 
                 'modified': last_modified,
@@ -112,3 +115,35 @@ def get_model_summary(modelname):
         })
     
     return layer_info
+
+def handle_start_training(request):
+    if request.method == "POST":
+        if request.POST["training"] == "rebuild":
+            return start_rebuild(request)
+
+    return HttpResponse("Attack not found")
+
+def start_rebuild(request):
+    try:
+        training = train_rebuild
+        train_dict = {
+            'modelname': str(request.POST["modelname"]),
+            'epochs': int(request.POST["epochs"]),
+            'batch_size': int(request.POST["batch_size"]),
+            'learning_rate': float(request.POST["lr"]),
+            'optimizer': str(request.POST["optimizer"]),
+            'dataset': str(request.POST["dataset"]),
+            'validation_split': float(request.POST["valsplit"]),
+            'max_per_class': int(request.POST["maxperclass"]),
+            'load_augmented': bool(request.POST["augmentation"]),
+            'enable_tensorboard': bool(request.POST["tensorboard"])
+        }
+
+        #TODO actually start training
+    except Exception as e:
+        return HttpResponse("Invalid argument")
+    
+    context = {
+        'training_running': True
+    }
+    return render(request, 'train/training.html', context)

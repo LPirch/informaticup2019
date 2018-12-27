@@ -11,8 +11,10 @@ urlpatterns = [
     path('training.html', views.training),
     path('tensorboard.html', views.tensorboard),
 
-    url('models/reloadmodel', views.handle_model_reload),
-    url('models/deletemodel', views.handle_delete_model),
-    url('models/selectmodel', views.handle_select_model),
-    url('models/uploadfile', views.handle_uploaded_file)
+    url('reloadmodel', views.handle_model_reload),
+    url('deletemodel', views.handle_delete_model),
+    url('selectmodel', views.handle_select_model),
+    url('uploadfile', views.handle_uploaded_file),
+
+    url('start_training', views.handle_start_training)
 ]

@@ -5,6 +5,10 @@
 	<link rel="stylesheet" href="{% static 'css/train.css' %}">
 {% endblock %}
 
+{% block additional_js %}
+<script src="{% static 'js/train/training.js' %}"></script>
+{% endblock %}
+
 {% block tab-nav %}
 <div class="navbar navbar-expand-lg bg-secondary display-4 sub-nav">
 	<i class="fas fa-angle-double-right"></i>
@@ -14,21 +18,106 @@
 		</li>
 		<li class="nav-item">
 			<a class="nav-link" href="models.html">Models</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="training.html">Training</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="tensorboard.html">Tensorboard</a>
-        </li>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link active" href="training.html">Training</a>
+		</li>
+		<li class="nav-item">
+			<a class="nav-link" href="tensorboard.html">Tensorboard</a>
+		</li>
 	</ul>
 </div>
 {% endblock %}
 
 {% block content %}
 
+{% if training_running %}
 <div class="container">
-	<h2>hello from training</h2>
+	<h2>Training in progress...</h2>
 </div>
+{% else %}
+<div class="container">
+	<form method="POST" action="/train/start_training" enctype="multipart/form-data" id="upload-form">
+		{% csrf_token %}
+		<div class="form-row">
+			<div class="form-group col-md-6">
+					<label for="training">Training Method</label>
+					<select id="training" name="training" class="form-control" onchange="trainingChanged(this)">
+							<option value="none">Select a training method...</option>
+							<option value="rebuild">Rebuilding</option>
+							<option value="substitute">Substitute Model</option>
+					</select>
+			</div>
+		</div>
+		<div id="training-options">
+			<div id="rebuild-options" class="form-group form-group-lg training-options">
+				<div class="form-row">
+					<div class="form-group col-md-12">
+						<label for="modelname">Model Name</label>
+						<input id="modelname" type="text" class="form-control" name="modelname" placeholder="my_model">
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-md-4">
+						<label for="epochs">Epochs</label>
+						<input id="epochs" type="number" class="form-control" name="epochs" placeholder="epochs" value="30">
+					</div>
+					<div class="form-group col-md-4">
+						<label for="bsize">Batch Size</label>
+						<input id="bsize" type="number" class="form-control" name="batch_size" placeholder="Batch Size" value="64">
+					</div>
+					<div class="form-group col-md-4">
+						<label for="lr">Learning Rate</label>
+						<input id="lr" type="number" class="form-control" name="lr" placeholder="0.01" value="0.01">
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-md-4">
+						<label for="optimizer">Optimizer</label>
+						<select class="form-control" id="optimizer"  name="optimizer">
+							<option value="sgd">Stochastic Gradient Descent</option>
+							<option value="adam">Adam Optimizer</option>
+						</select>
+					</div>
+					<div class="form-group col-md-4">
+						<label for="dataset">Dataset</label>
+						<select class="form-control" id="dataset"  name="dataset">
+							<option value="gtsrb">German Traffic Sign Recognition Benchmark</option>
+						</select>
+					</div>
+					<div class="form-group col-md-4">
+						<label for="valsplit">Validation Split</label>
+						<input id="valsplit" type="number" class="form-control" name="valsplit" placeholder="0.2" value="0.2">
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-md-4">
+						<label for="maxperclass">Max. Number of Images per Class</label>
+						<input id="maxperclass" type="number" class="form-control" name="maxperclass" placeholder="1000" value="1000">
+					</div>
+					<div class="form-group col-md-4">
+						<label for="augmentation">Dataset Augmentation</label>
+						<select class="form-control" id="augmentation" name="augmentation">
+							<option value="False">disabled</option>
+							<option value="True">enabled</option>
+						</select>
+					</div>
+					<div class="form-group col-md-4">
+						<label for="tensorboard">Tensorboard</label>
+						<select class="form-control" id="tensorboard" name="tensorboard">
+							<option value="False">disabled</option>
+							<option value="True">enabled</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div id="substitute-options" class="form-group form-group-lg training-options">
+			</div>
+		</div>
+
+		<button type="submit" class="btn btn-primary">Submit</button>
+	</form>
+</div>
+{% endif %}
 
 {% endblock %}
