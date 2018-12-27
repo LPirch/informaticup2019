@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additional_css %}
+	<link rel="stylesheet" href="{% static 'css/attack.css' %}">
+{% endblock %}
+
+{% block tab-nav %}
+<div class="navbar navbar-expand-lg bg-secondary display-4 sub-nav">
+	<i class="fas fa-angle-double-right"></i>
+	<ul class="nav nav-pills" role="tablist">
+		<li class="nav-item">
+			<a class="nav-link" href="index.html">Overview</a>
+		</li>
+		<li class="nav-item active">
+			<a class="nav-link" href="attack.html">Attack</a>
+		</li>
+	</ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+	<form method="POST" action="/attack/start_attack" enctype="multipart/form-data" id="upload-form">
+		{% csrf_token %}
+		<div class="form-row">
+			<div class="form-group col-md-6">
+					<label for="attack-selector">Attack</label>
+					<select id="attack-selector" name="attack" class="form-control">
+							<option value="cwl2">Carlini & Wagner L2 (CWL2)</option>
+							<option value="jsma">Jacobian-based Saliency Map Attack (JSMA)</option>
+					</select>
+			</div>
+
+			<div class="form-group col-md-6">
+				<label for="target">Target label</label>
+				<select id="target" name="target" class="form-control">
+					<option value="0">Verbot für Kraftfahrzeuge mit einer zulässigen Gesamtmasse von 3,5t</option>
+					<option value="1">Zulässige Höchstgeschwindigkeit (100)</option>
+					<option value="2">Zulässige Höchstgeschwindigkeit (80)</option>
+					<option value="3">Überholverbot für Kraftfahrzeuge mit einer zulässigen Gesamtmasse über 3,5t</option>
+					<option value="4">Überholverbot für Kraftfahrzeuge aller Art</option>
+					<option value="5">Zulässige Höchstgeschwindigkeit (30)</option>
+					<option value="6">Zulässige Höchstgeschwindigkeit (50)</option>
+					<option value="7">Zulässige Höchstgeschwindigkeit (70)</option>
+					<option value="8">Zulässige Höchstgeschwindigkeit (20)</option>
+					<option value="9">Rechts vorbei</option>
+					<option value="10">Gefahrenstelle</option>
+					<option value="11">Verbot der Einfahrt</option>
+					<option value="12">Ausschließlich rechts</option>
+					<option value="13">Doppelkurve (zunächst links)</option>
+					<option value="14">Baustelle</option>
+					<option value="15">Einmalige Vorfahrt</option>
+					<option value="16">Wildwechsel</option>
+					<option value="17">Kreisverkehr</option>
+					<option value="18">Fußgänger</option>
+					<option value="19">Kurve (rechts)</option>
+					<option value="20">Vorfahrt</option>
+					<option value="21">Ende aller Streckenverbote</option>
+					<option value="22">Verbot für Fahrzeuge aller Art</option>
+					<option value="23">Ausschließlich geradeaus</option>
+					<option value="24">Ende der Geschwindigkeitsbegrenzung (80)</option>
+					<option value="25">Zulässige Höchstgeschwindigkeit (120)</option>
+					<option value="26">Zulässige Höchstgeschwindigkeit (60)</option>
+					<option value="27">Kurve (links)</option>
+					<option value="28">Schleudergefahr bei Nässe oder Schmutz</option>
+					<option value="29">Vorfahrt gewähren</option>
+					<option value="30">Ende des Überholverbotes für Kraftfahrzeuge mit einer zulässigen Gesamtmasse über 3,5t</option>
+					<option value="31">Stoppschild</option>
+					<option value="32">Ende des Überholverbotes für Kraftfahrzeuge aller Art</option>
+					<option value="33">Fahrradfahrer</option>
+					<option value="34">Unebene Fahrbahn</option>
+					<option value="35">Links vorbei</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="form-group form-group-lg">
+			<div class="input-group input-file" name="filechooser">
+				<input name="imagefile" type="file" class='input-ghost'/>
+				<button class="btn btn-choose btn-secondary" type="button">Choose</button>
+				<input type="text" class="form-control input-lg input-selected-file" placeholder='Choose a file...' required/>
+			</div>
+		</div>
+
+		<div>
+			<div id="cwl2-options" class="form-group form-group-lg attack-options">
+				<div class="form-row">
+					<div class="form-group col-md-4">
+						<label for="max_iterations">Max iterations</label>
+						<input id="max_iterations" type="number" class="form-control" name="max_iterations" placeholder="Max iterations" value="1000">
+					</div>
+					<div class="form-group col-md-4">
+						<label for="bss">Binary search steps</label>
+						<input id="bss" type="number" class="form-control" name="binary_search_steps" placeholder="Binary search steps" value="5">
+					</div>
+					<div class="form-group col-md-4">
+						<label for="confidence">Confidence</label>
+						<input id="confidence" type="number" class="form-control" name="confidence" placeholder="Confidence" value="0">
+					</div>
+				</div>
+			</div>
+			<div id="jsma-options" class="form-group form-group-lg attack-options">
+			</div>
+		</div>
+
+		<button type="submit" class="btn btn-primary">Submit</button>
+	</form>
+</div>
+
+{% endblock %}
+
+{% block after_body_scripts %}
+	<script src="{% static 'js/attack.js' %}"></script>
+{% endblock %}
