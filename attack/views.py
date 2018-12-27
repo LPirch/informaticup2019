@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 import os
 import os.path
@@ -92,6 +94,8 @@ def start_cwl2(request):
         confidence = str(int(request.POST["confidence"]))
         max_iterations = str(int(request.POST["max_iterations"]))
         target = str(int(request.POST["target"]))
+
+        image = request.FILES["imagefile"]
     except:
         return HttpResponse("Invalid argument")
 
@@ -106,18 +110,22 @@ def start_cwl2(request):
     except:
         return HttpResponse("Error on mkdir")
 
+    outdir = os.path.join(IMG_TMP_DIR, token)
+    src_img_path = os.path.join(outdir, "original.png")
+    src_img_path = default_storage.save(src_img_path, ContentFile(image.read()))
+
     try:
         with open(os.path.join(process_dir, "stdout"), "wb") as f:
             p = subprocess.Popen(["python3", "attack_model.py",
                 "--attack", "cwl2",
                 "--model", "gtsrb_model",
                 "--model_folder", "model/trained/",
-                "--outdir", os.path.join(IMG_TMP_DIR, token),
+                "--outdir", outdir,
                 "--binary_search_steps", bss,
                 "--confidence", confidence,
                 "--max_iterations", max_iterations,
                 "--target", target,
-                "--image", "gi.png"], stdout=f, stderr=f, bufsize=1, universal_newlines=True)
+                "--image", src_img_path], stdout=f, stderr=f, bufsize=1, universal_newlines=True)
 
     except Exception as e:
         print(type(e))

@@ -72,8 +72,10 @@ def main():
 	print("Create label map", flush=True)
 
 	if FLAGS.generate_random:
+		print("Using random noise")
 		img = np.random.rand(FLAGS.img_size, FLAGS.img_size, 3)
 	else:
+		print("Loading image from", FLAGS.image)
 		with Image.open(FLAGS.image) as img:
 			img = dataset.preprocess(img)
 
@@ -180,7 +182,7 @@ def main():
 		os.makedirs(outdir)
 
 	for i in range(len(adv)):
-		filepath = os.path.join(outdir, FLAGS.attack + "_" + FLAGS.image[:-3] + "_")
+		filepath = os.path.join(outdir, FLAGS.attack + "_")
 		print(filepath)
 
 		# Original image
@@ -219,8 +221,10 @@ def main():
 		orig_softmax_y = softmax(orig_y)
 		adv_softmax_y = softmax(adv_y)
 
-		print("confidences: ", orig_softmax_y[pred_input_i], "/", orig_softmax_y[pred_adv_i], ",",
-								adv_softmax_y[pred_input_i], "/", adv_softmax_y[pred_adv_i])
+		print("Original image: ")
+		print(label_map[pred_input_i], orig_softmax_y[pred_input_i], "\t", label_map[pred_adv_i], orig_softmax_y[pred_adv_i])
+		print("Adversarial image: ")
+		print(label_map[pred_input_i], adv_softmax_y[pred_input_i], "\t", label_map[pred_adv_i], adv_softmax_y[pred_adv_i])
 
 		print("Total distortion:", np.sum((adv[i]-adv_inputs[i])**2)**.5)
 
