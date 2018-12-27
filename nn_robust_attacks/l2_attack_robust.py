@@ -16,10 +16,10 @@ MAX_ITERATIONS = 500   # number of iterations to perform gradient descent
 ABORT_EARLY = True       # if we stop improving, abort gradient descent early
 LEARNING_RATE = 1e-2     # larger values converge faster to less accurate results
 TARGETED = True          # should we target one specific class? or just be wrong?
-CONFIDENCE = 20           # how strong the adversarial example should be
+CONFIDENCE = 0           # how strong the adversarial example should be
 INITIAL_CONST = 1e-1     # the initial constant c to pick as a first guess
 
-transformations = [
+TRANSFORMATIONS = [
     lambda x, y: [[0, 0], [x, y/6], [0, y], [x, y-y/6]],
     lambda x, y: [[0, 0], [x, y/10], [0, y], [x, y-y/10]],
     lambda x, y: [[0, 0], [x, 0], [0, y], [x, y]],
@@ -64,14 +64,24 @@ def homography(x1s, x2s):
     # we transpose the result for convenience
     return tf.transpose(tf.matrix_solve_ls(A, P, fast=True))
 
-
 class CarliniL2Robust:
+    def __init__(self, model, sess):
+        self.model = model
+        self.sess = sess
+
+    def generate_np(self, imgs, **kwargs):
+        y_target = kwargs.pop("y_target")
+        attack = CarliniL2RobustInner(self.model, self.sess, **kwargs)
+        return attack.generate_np(imgs, y_target)
+
+class CarliniL2RobustInner:
     def __init__(self, ch_model, sess, image_size=64, num_channels=3, num_labels=43, batch_size=1,
                  confidence = CONFIDENCE, targeted = TARGETED, learning_rate = LEARNING_RATE,
                  binary_search_steps = BINARY_SEARCH_STEPS, max_iterations = MAX_ITERATIONS,
                  abort_early = ABORT_EARLY, 
                  initial_const = INITIAL_CONST,
-                 boxmin = 0, boxmax = 1):
+                 transformations = TRANSFORMATIONS,
+                 clip_min = 0, clip_max = 1):
         """
         The L_2 optimized attack. 
 
@@ -95,8 +105,8 @@ class CarliniL2Robust:
         initial_const: The initial tradeoff-constant to use to tune the relative
           importance of distance and confidence. If binary_search_steps is large,
           the initial constant is not important.
-        boxmin: Minimum pixel value (default -0.5).
-        boxmax: Maximum pixel value (default 0.5).
+        clip_min: Minimum pixel value (default -0.5).
+        clip_max: Maximum pixel value (default 0.5).
         """
 
         self.sess = sess
@@ -128,9 +138,9 @@ class CarliniL2Robust:
         self.assign_tlab = tf.placeholder(tf.float32, (batch_size,num_labels))
         self.assign_const = tf.placeholder(tf.float32, [batch_size])
         
-        # the resulting image, tanh'd to keep bounded from boxmin to boxmax
-        self.boxmul = (boxmax - boxmin) / 2.
-        self.boxplus = (boxmin + boxmax) / 2.
+        # the resulting image, tanh'd to keep bounded from clip_min to clip_max
+        self.boxmul = (clip_max - clip_min) / 2.
+        self.boxplus = (clip_min + clip_max) / 2.
         self.newimg = tf.tanh(modifier + self.timg) * self.boxmul + self.boxplus
 
         self.images = []

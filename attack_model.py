@@ -149,7 +149,15 @@ def main():
 			'max_iterations': FLAGS.max_iterations
 		},
 		'robust_cwl2': {
-			'y_target': adv_targets
+			'y_target': adv_targets,
+			'max_iterations': FLAGS.max_iterations,
+			'binary_search_steps': FLAGS.binary_search_steps,
+			'learning_rate': 0.01,
+			'batch_size': 1,
+			'initial_const': 10,
+			'confidence': FLAGS.confidence,
+			'clip_min': FLAGS.boxmin,
+			'clip_max': FLAGS.boxmax
 		}
 	}
 
