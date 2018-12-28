@@ -19,23 +19,19 @@
 </div>
 {% endblock %}
 
-{% block additional_js %}
-	<script src="{% static 'js/attack.js' %}"></script>
-{% endblock %}
-
 {% block content %}
 <div class="container">
 	<form method="POST" action="/attack/start_attack" enctype="multipart/form-data" id="upload-form">
 		{% csrf_token %}
 		<div class="form-row">
 			<div class="form-group col-md-6">
-					<label for="attack">Attack</label>
-					<select id="attack" name="attack" class="form-control" onchange="attackChanged(this)">
-							<option value="none">Select an attack...</option>
+					<label for="attack-selector">Attack</label>
+					<select id="attack-selector" name="attack" class="form-control">
 							<option value="cwl2">Carlini & Wagner L2 (CWL2)</option>
 							<option value="jsma">Jacobian-based Saliency Map Attack (JSMA)</option>
 					</select>
 			</div>
+
 			<div class="form-group col-md-6">
 				<label for="target">Target label</label>
 				<select id="target" name="target" class="form-control">
@@ -79,7 +75,15 @@
 			</div>
 		</div>
 
-		<div id="attack-options">
+		<div class="form-group form-group-lg">
+			<div class="input-group input-file" name="filechooser">
+				<input name="imagefile" type="file" class='input-ghost'/>
+				<button class="btn btn-choose btn-secondary" type="button">Choose</button>
+				<input type="text" class="form-control input-lg input-selected-file" placeholder='Choose a file...' required/>
+			</div>
+		</div>
+
+		<div>
 			<div id="cwl2-options" class="form-group form-group-lg attack-options">
 				<div class="form-row">
 					<div class="form-group col-md-4">
@@ -104,4 +108,8 @@
 	</form>
 </div>
 
+{% endblock %}
+
+{% block after_body_scripts %}
+	<script src="{% static 'js/attack.js' %}"></script>
 {% endblock %}

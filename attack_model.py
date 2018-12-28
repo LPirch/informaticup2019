@@ -10,8 +10,8 @@ import logging
 import pickle
 import sys
 
-from os import makedirs
-from os.path import exists
+import os
+import os.path
 from PIL import Image
 
 from utils import Timer
@@ -72,8 +72,10 @@ def main():
 	print("Create label map", flush=True)
 
 	if FLAGS.generate_random:
+		print("Using random noise")
 		img = np.random.rand(FLAGS.img_size, FLAGS.img_size, 3)
 	else:
+		print("Loading image from", FLAGS.image)
 		with Image.open(FLAGS.image) as img:
 			img = dataset.preprocess(img)
 
@@ -176,16 +178,16 @@ def main():
 
 	outdir = FLAGS.outdir
 
-	if not exists(outdir):
-		makedirs(outdir)
+	if not os.path.exists(outdir):
+		os.makedirs(outdir)
 
 	for i in range(len(adv)):
-		filepath = outdir + FLAGS.attack + "_" + FLAGS.image[:-3] + "_"
+		filepath = os.path.join(outdir, FLAGS.attack + "_")
 		print(filepath)
 
 		# Original image
 		img = Image.fromarray(inputs_img[i], 'RGB')
-		img.save(outdir + FLAGS.attack + "_" + FLAGS.image + "original.png")
+		img.save(filepath + "original.png")
 
 		orig_y = model_logits(sess, x, logits, adv_inputs[i:i+1])
 		pred_input_i = np.argmax(orig_y, axis=-1)
@@ -197,19 +199,20 @@ def main():
 			continue
 
 		# Adversarial images
+		adv_image_path = filepath + str(pred_adv_i) + "adv.png"
 		img = Image.fromarray(adv_img[i], 'RGB')
-		img.save(filepath + str(pred_adv_i) + "adv.png")
+		img.save(adv_image_path)
 
-		if not exists(filepath + str(pred_adv_i) + "adv.png"):
+		if not os.path.exists(adv_image_path):
 			print("Saving file failed... retrying")
 			img = Image.fromarray(adv[i], 'RGB')
-			img.save(filepath + str(pred_adv_i) + "adv.png")
+			img.save(adv_image_path)
 
-		if not exists(filepath + str(pred_adv_i) + "adv.png"):
+		if not os.path.exists(adv_image_path):
 			print("Saving file failed again")
 			print("Saving to pickle:")
-			print(filepath + str(pred_adv_i) + "adv.png")
-			with open(filepath + str(pred_adv_i) + "adv.pickle", "wb") as f:
+			print(adv_image_path)
+			with open(adv_image_path + ".pickle", "wb") as f:
 				pickle.dump(f)
 
 		print(label_map[pred_input_i], "->", label_map[pred_adv_i])
@@ -218,12 +221,14 @@ def main():
 		orig_softmax_y = softmax(orig_y)
 		adv_softmax_y = softmax(adv_y)
 
-		print("confidences: ", orig_softmax_y[pred_input_i], "/", orig_softmax_y[pred_adv_i], ",",
-								adv_softmax_y[pred_input_i], "/", adv_softmax_y[pred_adv_i])
+		print("Original image: ")
+		print(label_map[pred_input_i], orig_softmax_y[pred_input_i], "\t", label_map[pred_adv_i], orig_softmax_y[pred_adv_i])
+		print("Adversarial image: ")
+		print(label_map[pred_input_i], adv_softmax_y[pred_input_i], "\t", label_map[pred_adv_i], adv_softmax_y[pred_adv_i])
 
 		print("Total distortion:", np.sum((adv[i]-adv_inputs[i])**2)**.5)
 
-		with open(filepath + str(pred_adv_i) + ".conf", "w") as f:
+		with open(adv_image_path + ".conf", "w") as f:
 			f.write("python3 " + " ".join(sys.argv))
 
 

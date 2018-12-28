@@ -12,6 +12,14 @@
 	min-height: 400px; 
 }
 
+.input-file .input-ghost {
+	display: none;
+}
+
+.input-file .input-selected-file {
+	cursor: pointer;
+}
+
 ::-webkit-scrollbar {
 	width: 0.5em;
 }
