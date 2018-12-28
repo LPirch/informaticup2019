@@ -6,6 +6,7 @@ FLAGS = tf.flags.FLAGS
 if __name__ == "__main__":
 	tf.flags.DEFINE_string("modelname", "testmodel", "Name of the model.")
 	tf.flags.DEFINE_string("data_root", "data", "The path to the data set directory.")
+	tf.flags.DEFINE_string("dataset", "gtsrb", "The reference dataset")
 
 	tf.flags.DEFINE_integer("random_seed", 42, "seed for random numbers")
 
@@ -18,7 +19,8 @@ if __name__ == "__main__":
 	tf.flags.DEFINE_float("validation_split", 0.2, "Validation split")
 
 	tf.flags.DEFINE_integer("max_per_class", 500, "Maximum number of images per class to load")
-	tf.flags.DEFINE_boolean("load_augmented", False, "")
+	tf.flags.DEFINE_boolean("load_augmented", False, "Whether to load the augmented dataset")
+	tf.flags.DEFINE_boolean("enable_tensorboard", False, "Whether to enable tensorboard")
 
 	train_dict = {
 		'random_seed': FLAGS.random_seed,
@@ -29,9 +31,9 @@ if __name__ == "__main__":
 		'epochs': FLAGS.epochs,
 		'loss': FLAGS.loss,
 		'validation_split': FLAGS.validation_split,
-		'dataset_name': 'gtsrb',
+		'dataset_name': FLAGS.dataset,
 		'load_augmented': FLAGS.load_augmented,
-		'enable_tensorboard': False,
+		'enable_tensorboard': FLAGS.enable_tensorboard,
 		'max_per_class': FLAGS.max_per_class
 	}
 	train_rebuild(**train_dict)	

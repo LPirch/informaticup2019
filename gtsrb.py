@@ -74,6 +74,7 @@ class GTSRB():
 		max_per_class 	 -- the maximum number of training images per class (default: 1000)
 		validation_split -- the percentage of validation samples
 		"""
+
 		n_per_class = np.zeros(self.n_classes, dtype="uint32")
 		class_distr = self.get_class_distr(load_augmented=load_augmented)
 		class_distr = np.clip(class_distr, a_min=0, a_max=max_per_class)
