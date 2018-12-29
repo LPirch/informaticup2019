@@ -74,11 +74,6 @@ def main():
 		with Image.open(FLAGS.image) as img:
 			img = dataset.preprocess(img)
 
-	print("Target: ", FLAGS.target, label_map[FLAGS.target])
-
-	adv_inputs = np.array([img])
-	adv_targets = np.expand_dims(np.eye(FLAGS.n_classes)[FLAGS.target], axis=0)
-
 	# setup session
 	sess = tf.Session()
 	K.set_session(sess)
@@ -90,8 +85,15 @@ def main():
 	tf_model = load_model("model/trained/" + FLAGS.model + ".h5", compile=False)
 	model = KerasModelWrapper(tf_model)
 
+	n_classes = tf_model.output_shape[1]
+
 	# symbolic model predictions
 	logits = model.get_logits(x)
+
+	print("Target: ", FLAGS.target, label_map[FLAGS.target])
+
+	adv_inputs = np.array([img])
+	adv_targets = np.expand_dims(np.eye(n_classes)[FLAGS.target], axis=0)
 
 	# attack dict
 	# TODO: maybe put this in a separate config file
@@ -157,7 +159,9 @@ def main():
 			'initial_const': 10,
 			'confidence': FLAGS.confidence,
 			'clip_min': FLAGS.boxmin,
-			'clip_max': FLAGS.boxmax
+			'clip_max': FLAGS.boxmax,
+			'num_labels': n_classes,
+			'outdir': FLAGS.outdir,
 		}
 	}
 
@@ -170,44 +174,20 @@ def main():
 	with Timer("Attack (n_images=" + str(len(adv_inputs)) + ")"):
 		adv = attack.generate_np(adv_inputs, **attack_kwargs)
 
-	if FLAGS.attack == "robust_cwl2":
-		adv, o_advs = adv
-		adv = np.array(adv)
-
-		try:
-			if not exists("robust-perturbations"):
-				makedirs("robust-perturbations")
-		except:
-			print("Could not create folder 'robust-perturbations'")
-
-		for o_id, img in enumerate(o_advs):
-			try:
-				img = Image.fromarray(np.rint(img[0] * 255).astype('uint8'), 'RGB')
-				img.save("robust-perturbations/{}_img.png".format(o_id))
-			except:
-				print("Could not save img", o_id)
-
 	# prepare img data for writing to file
 	inputs_img = np.rint(adv_inputs * 255).astype('uint8')
 	adv_img = np.rint(adv * 255).astype('uint8')
 
-	if FLAGS.attack == "cwl2":
-		outdir = "tmp/" + str(FLAGS.confidence) + "/"
-	elif FLAGS.attack == "robust_cwl2":
-		outdir = "tmp/robust-" + str(FLAGS.confidence) + "/"
-	else:
-		outdir = "tmp/" + str(FLAGS.attack) + "/"
-
-	if not exists(outdir):
-		makedirs(outdir)
+	if not exists(FLAGS.outdir):
+		makedirs(FLAGS.outdir)
 
 	for i in range(len(adv)):
-		filepath = outdir + FLAGS.attack + "_" + FLAGS.image[:-3] + "_"
+		filepath = FLAGS.outdir + FLAGS.attack + "_" + FLAGS.image[:-3] + "_"
 		print(filepath)
 
 		# Original image
 		img = Image.fromarray(inputs_img[i], 'RGB')
-		img.save(outdir + FLAGS.attack + "_" + FLAGS.image + "original.png")
+		img.save(FLAGS.outdir + FLAGS.attack + "_" + FLAGS.image + "original.png")
 
 		orig_y = model_logits(sess, x, logits, adv_inputs[i:i+1])
 		pred_input_i = np.argmax(orig_y, axis=-1)
@@ -258,11 +238,11 @@ if __name__ == '__main__':
 	tf.flags.DEFINE_boolean("generate_random", False, "Use random (noisy) image as source")
 
 	tf.flags.DEFINE_integer("img_size", 64, "Image size")
-	tf.flags.DEFINE_integer("n_classes", 43, "Amount of classes")
+	tf.flags.DEFINE_string("outdir", "/tmp", "Where to save images")
 
 	tf.flags.DEFINE_integer("batch_size", 1, "")
 	tf.flags.DEFINE_integer("binary_search_steps", 3, "")
-	tf.flags.DEFINE_integer("max_iterations", 10000, "")
+	tf.flags.DEFINE_integer("max_iterations", 500, "")
 	tf.flags.DEFINE_integer("confidence", 20, "")
 	tf.flags.DEFINE_float("boxmin", 0, "")
 	tf.flags.DEFINE_float("boxmax", 1, "")

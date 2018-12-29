@@ -5,6 +5,8 @@
 ## This program is licenced under the BSD 2-Clause licence,
 ## contained in the LICENCE file in this directory.
 
+import os
+import os.path
 import sys
 import tensorflow as tf
 import numpy as np
@@ -71,17 +73,19 @@ class CarliniL2Robust:
 
     def generate_np(self, imgs, **kwargs):
         y_target = kwargs.pop("y_target")
-        attack = CarliniL2RobustInner(self.model, self.sess, **kwargs)
+        num_labels = kwargs.pop("num_labels")
+        attack = CarliniL2RobustInner(self.model, self.sess, num_labels, **kwargs)
         return attack.generate_np(imgs, y_target)
 
 class CarliniL2RobustInner:
-    def __init__(self, ch_model, sess, image_size=64, num_channels=3, num_labels=43, batch_size=1,
+    def __init__(self, ch_model, sess, num_labels, image_size=64, num_channels=3, batch_size=1,
                  confidence = CONFIDENCE, targeted = TARGETED, learning_rate = LEARNING_RATE,
                  binary_search_steps = BINARY_SEARCH_STEPS, max_iterations = MAX_ITERATIONS,
                  abort_early = ABORT_EARLY, 
                  initial_const = INITIAL_CONST,
                  transformations = TRANSFORMATIONS,
-                 clip_min = 0, clip_max = 1):
+                 clip_min = 0, clip_max = 1,
+                 outdir = None):
         """
         The L_2 optimized attack. 
 
@@ -119,6 +123,12 @@ class CarliniL2RobustInner:
         self.initial_const = initial_const
         self.batch_size = batch_size
 
+        self.outdir = outdir
+
+        # prediction BEFORE-SOFTMAX of the model
+        self.model = ch_model.model
+        self.model.pop()
+
         self.repeat = binary_search_steps >= 10
 
         self.I_KNOW_WHAT_I_AM_DOING_AND_WANT_TO_OVERRIDE_THE_PRESOFTMAX_CHECK = False
@@ -146,9 +156,6 @@ class CarliniL2RobustInner:
         self.images = []
         self.outputs = []
 
-        model = ch_model.model
-        model.pop()
-
         for transformation in transformations:
             # get a random destination box
             src = tf.constant([[0, 0], [image_size, 0], [0, image_size], [image_size, image_size]], dtype=tf.float32)
@@ -159,12 +166,9 @@ class CarliniL2RobustInner:
             img = tf.contrib.image.transform(self.newimg, h, interpolation="BILINEAR")
 
             self.images.append(img)
-            self.outputs.append(model(img))
+            self.outputs.append(self.model(img))
 
         self.output = self.outputs[len(self.outputs)//2]
-
-        # prediction BEFORE-SOFTMAX of the model
-        self.model = model
         
         # distance to the input data
         self.l2dist = tf.reduce_sum(tf.square(self.newimg-(tf.tanh(self.timg) * self.boxmul + self.boxplus)),[1,2,3])
@@ -340,4 +344,23 @@ class CarliniL2RobustInner:
         # return the best solution found
         o_bestl2 = np.array(o_bestl2)
 
-        return o_bestattack, o_bestimages
+        if self.outdir and o_bestimages:
+            print("Saving to", self.outdir)
+            try:
+                if not os.path.exists(self.outdir):
+                    os.makedirs(self.outdir)
+
+                for i, img in enumerate(o_bestimages):
+                    filename = "cwl2robust_misc" + str(i) + ".png"
+                    filepath = os.path.join(self.outdir, filename)
+
+                    try:
+                        img2 = Image.fromarray(np.rint(img[0] * 255).astype('uint8'), 'RGB')
+                        img2.save(filepath)
+                    except Exception as e:
+                        print("ERROR2: Saving images failed", e)
+
+            except Exception as e:
+                print("ERROR: Saving images failed", e)
+
+        return o_bestattack
