@@ -16,5 +16,7 @@ urlpatterns = [
     url('selectmodel', views.handle_select_model),
     url('uploadfile', views.handle_uploaded_file),
 
-    url('start_training', views.handle_start_training)
+    url('start_training', views.handle_start_training),
+    url('proc_info', views.handle_proc_info),
+    url('proc_delete', views.handle_proc_delete)
 ]

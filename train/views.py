@@ -1,3 +1,5 @@
+from project_conf import MODEL_SAVE_PATH, PROCESS_DIR, TRAINING_PREFIX
+
 import os
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
@@ -8,11 +10,15 @@ from keras.models import load_model
 import keras.backend as K
 
 from train.train import train_rebuild
+from train.train_handler import TrainHandler
 from utils_proc import gen_token, get_running_procs, get_token_from_pid, is_pid_running, write_pid
 import subprocess
 
-MODEL_SAVE_PATH = os.path.join('data', 'models')
-PROCESS_DIR = ".process"
+
+training_methods = {
+	'rebuild': TrainHandler,
+	'substitute': TrainHandler
+}
 
 def overview(request):
 	selected_model = request.session.get('selected_model')
@@ -37,7 +43,17 @@ def models(request):
 	return render(request, 'train/models.html')
 
 def training(request):
-	return render(request, 'train/training.html')
+	context = {}
+	try:
+		procs = get_running_procs(prefix=TRAINING_PREFIX)
+		if len(procs) > 0:
+			context.update({
+				'pid': procs[0]['id']
+			})
+	except ValueError as e:
+		print("WARNING: ignored the following ValueError: "+str(e))
+	
+	return render(request, 'train/training.html', context)
 
 def tensorboard(request):    
 	return render(request, 'train/tensorboard.html')
@@ -107,7 +123,7 @@ def handle_select_model(request):
 	return HttpResponse()
 
 def get_model_summary(modelname):
-	model = load_model(os.path.join('model', 'trained', modelname))
+	model = load_model(os.path.join(MODEL_SAVE_PATH, modelname))
 	K.clear_session()
 	layer_info = []
 	for layer in model.layers:
@@ -120,87 +136,74 @@ def get_model_summary(modelname):
 	return layer_info
 
 def handle_start_training(request):
-	train_method, popen_args = parse_train_params(request)
+	if request.method == "POST":
+		training = request.POST["training"]
 	
-	token = gen_token()
-	process_dir = os.path.join(PROCESS_DIR, token)
-	print(">>", token)
+	if training in training_methods:
+		return start_training(request, training_methods[training])
 
+	return HttpResponse("Training method not found")
+
+def handle_proc_info(request):
+	status = {}
+	if request.method == "GET":
+		pid = request.GET.get('pid', '')
+		if pid and is_pid_running(pid):
+			status = {'running': True}
+		else:
+			status = {'running': False}
+
+	return JsonResponse(status, safe=False)
+
+def start_training(request, training):
 	try:
-		os.makedirs(process_dir)
-	except:
-		return HttpResponse("Error during mkdir")
-	
-	try:
-		with open(os.path.join(process_dir, 'stdout'), 'wb') as f:
-			p = subprocess.Popen(["python", "train_model.py", 
-								*popen_args], stdout=f, stderr=f, 
-								bufsize=1, universal_newlines=True)
+		kwargs = training.parse_arguments(request)
 	except Exception as e:
 		print(type(e))
 		print(str(e))
-		return HttpResponse("Error during Popen")
-	
-	pid = str(p.pid)
-	try:
-		write_pid(token, pid)
-	except Exception as e:
-		print(type(e))
-		print(str(e))
-		return HttpResponse("Error during create PID")
-
-
-	return redirect('/train/training.html?pid='+pid)
-
-def parse_train_params(request):
-	if request.POST["training"] == "rebuild":
-		train_method = train_rebuild
-	elif request.POST["training"] == "substitute":
-		train_method = train_substitute
-
-	popen_args = [
-			'--modelname', str(request.POST["modelname"]),
-			'--epochs', str(request.POST["epochs"]),
-			'--batch_size', str(request.POST["batch_size"]),
-			'--learning_rate', str(request.POST["lr"]),
-			'--optimizer', str(request.POST["optimizer"]),
-			'--dataset', str(request.POST["dataset"]),
-			'--validation_split', str(request.POST["valsplit"]),
-			'--max_per_class', str(request.POST["maxperclass"])
-	]
-	
-	if int(request.POST["augmentation"]):
-		popen_args.append('--load_augmented')
-	if int(request.POST["tensorboard"]):
-		popen_args.append('--enable_tensorboard')
-
-	return train_method, popen_args
-	
-	
-	
-"""
-def start_rebuild(request):
-	try:
-		training = train_rebuild
-		train_dict = {
-			'modelname': str(request.POST["modelname"]),
-			'epochs': int(request.POST["epochs"]),
-			'batch_size': int(request.POST["batch_size"]),
-			'learning_rate': float(request.POST["lr"]),
-			'optimizer': str(request.POST["optimizer"]),
-			'dataset': str(request.POST["dataset"]),
-			'validation_split': float(request.POST["valsplit"]),
-			'max_per_class': int(request.POST["maxperclass"]),
-			'load_augmented': bool(request.POST["augmentation"]),
-			'enable_tensorboard': bool(request.POST["tensorboard"])
-		}
-
-		#TODO actually start training
-	except Exception as e:
 		return HttpResponse("Invalid argument")
 	
+	token = gen_token(TRAINING_PREFIX)
+	process_dir = os.path.join(PROCESS_DIR, token)
+
+	try:
+		os.mkdir(process_dir)
+	except:
+		return HttpResponse("Error on mkdir")
+	
+	try:
+		pid = training.start(process_dir, kwargs)
+	except Exception as e:
+		print(type(e))
+		print(str(e))
+		return HttpResponse("Error on Popen")
+
+	try:
+		write_pid(token, pid)
+	except:
+		return HttpResponse("Error on create pid")
+	
 	context = {
-		'training_running': True
+		'pid': pid
 	}
 	return render(request, 'train/training.html', context)
-"""
+
+def handle_proc_delete(request):
+	pid = request.GET.get('pid')
+	clear_proc(pid)
+	context = { "train" : {"active_class": "active"} }
+	return redirect('/train/models.html', context)
+
+def clear_proc(pid):
+	token = get_token_from_pid(pid)
+
+	if os.path.exists(os.path.join(PROCESS_DIR, token, 'stdout')):
+		os.remove(os.path.join(PROCESS_DIR, token, 'stdout'))
+	
+	print(os.path.join(PROCESS_DIR, token))
+	if os.path.exists(os.path.join(PROCESS_DIR, token)):
+		os.removedirs(os.path.join(PROCESS_DIR, token))
+	
+	print(os.path.join(PROCESS_DIR, str(pid)))
+	if os.path.exists(os.path.join(PROCESS_DIR, str(pid))):
+		os.remove(os.path.join(PROCESS_DIR, str(pid)))

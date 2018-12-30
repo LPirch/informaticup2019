@@ -1,3 +1,5 @@
+from project_conf import PROCESS_DIR, IMG_TMP_DIR
+
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.core.files.storage import default_storage
@@ -9,16 +11,13 @@ import random
 
 from .cwl2 import CWL2AttackHandling
 
-PROCESSES_DIR = ".process"
-IMG_TMP_DIR = os.path.join("static", "img")
-
 attacks = {
     "cwl2": CWL2AttackHandling
 }
 
 def get_token_from_pid(pid):
     pid = str(int(pid))
-    pid_dir = os.path.join(PROCESSES_DIR, pid)
+    pid_dir = os.path.join(PROCESS_DIR, pid)
 
     if not os.path.exists(pid_dir):
         raise RuntimeError("No process with pid found")
@@ -49,7 +48,7 @@ def attack(request):
 def overview(request):
     processes  = []
 
-    for p in filter(lambda x: x.isdigit(), os.listdir(PROCESSES_DIR)):
+    for p in filter(lambda x: x.isdigit(), os.listdir(PROCESS_DIR)):
         processes.append({
             "id": p,
             "running": is_pid_running(int(p))
@@ -70,7 +69,7 @@ def details(request):
         "img_path": os.path.join(IMG_TMP_DIR, token)
     }
 
-    if not os.path.exists(os.path.join(PROCESSES_DIR, pid)):
+    if not os.path.exists(os.path.join(PROCESS_DIR, pid)):
         return HttpResponse("No process with pid")
 
     return render(request, 'attack/details.html', context)
@@ -90,11 +89,11 @@ def start_attack(request, attack):
     except:
         return HttpResponse("Invalid argument")
 
-    if not os.path.exists(PROCESSES_DIR):
-        os.makedirs(PROCESSES_DIR)
+    if not os.path.exists(PROCESS_DIR):
+        os.makedirs(PROCESS_DIR)
 
     token = str(random.random())
-    process_dir = os.path.join(PROCESSES_DIR, token)
+    process_dir = os.path.join(PROCESS_DIR, token)
 
     try:
         os.mkdir(process_dir)
@@ -117,7 +116,7 @@ def start_attack(request, attack):
     pid = str(p.pid)
 
     try:
-        with open(os.path.join(PROCESSES_DIR, pid), "w") as f:
+        with open(os.path.join(PROCESS_DIR, pid), "w") as f:
             f.write(token)
     except:
         return HttpResponse("Error on create pid")
@@ -126,13 +125,13 @@ def start_attack(request, attack):
 
 def handle_proc_info(request):
     token = get_token_from_pid(request.GET["pid"])
-    process_dir = os.path.join(PROCESSES_DIR, token)
+    process_dir = os.path.join(PROCESS_DIR, token)
 
     try:
         with open(os.path.join(process_dir, "stdout"), "r") as g:
             out = g.read()
     except:
-        return HttpResponse("Could not read process output (" + PROCESSES_DIR + token + ".out)")
+        return HttpResponse("Could not read process output (" + PROCESS_DIR + token + ".out)")
 
     return HttpResponse(out)
 
