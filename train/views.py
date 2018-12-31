@@ -14,7 +14,35 @@ from train.train_handler import TrainHandler
 from utils_proc import gen_token, get_running_procs, get_token_from_pid, is_pid_running, write_pid
 import subprocess
 
+BASE_CONTEXT = {
+	'tabs': [
+		{'name': 'Overview', 'url': 'overview.html'},
+		{'name': 'Training', 'url': 'training.html'},
+		{'name': 'Details', 'url': 'details.html'}
+	]
+}
 
+def overview(request):
+	context = dict(
+		{'active': 'Overview'},
+		**BASE_CONTEXT
+	)
+	return render(request, 'train/overview.html', context)
+
+def training(request):
+	context = dict(
+		{'active': 'training'},
+		**BASE_CONTEXT
+	)
+	return render(request, 'train/training.html', context)
+
+def details(request):
+	context = dict(
+		{'active': 'details'},
+		**BASE_CONTEXT
+	)
+	return render(request, 'train/details.html', context)
+"""
 training_methods = {
 	'rebuild': TrainHandler,
 	'substitute': TrainHandler
@@ -207,3 +235,4 @@ def clear_proc(pid):
 	print(os.path.join(PROCESS_DIR, str(pid)))
 	if os.path.exists(os.path.join(PROCESS_DIR, str(pid))):
 		os.remove(os.path.join(PROCESS_DIR, str(pid)))
+"""
