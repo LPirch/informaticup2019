@@ -15,12 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import render
+
+def welcome(request):
+    return render(request, 'welcome.html')
 
 urlpatterns = [
-    path('', include('mainview.urls')),
-    path('preprocess/', include('preprocess.urls')),
+    path('', welcome, name='index'),
+    path('index.html', welcome),
+    path('welcome.html', welcome),
     path('train/', include('train.urls')),
     path('attack/', include('attack.urls')),
-    path('evaluation/', include('evaluation.urls')),
     path('admin/', admin.site.urls),
 ]
