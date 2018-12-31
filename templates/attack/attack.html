@@ -5,20 +5,6 @@
 	<link rel="stylesheet" href="{% static 'css/attack.css' %}">
 {% endblock %}
 
-{% block tab-nav %}
-<div class="navbar navbar-expand-lg bg-secondary display-4 sub-nav">
-	<i class="fas fa-angle-double-right"></i>
-	<ul class="nav nav-pills" role="tablist">
-		<li class="nav-item">
-			<a class="nav-link" href="index.html">Overview</a>
-		</li>
-		<li class="nav-item active">
-			<a class="nav-link" href="attack.html">Attack</a>
-		</li>
-	</ul>
-</div>
-{% endblock %}
-
 {% block content %}
 <div class="container">
 	<form method="POST" action="/attack/start_attack" enctype="multipart/form-data" id="upload-form">
