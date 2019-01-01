@@ -10,7 +10,7 @@ from keras.models import load_model
 import keras.backend as K
 
 from train.train import train_rebuild
-from train.train_handler import TrainHandler
+from train.handler import TrainHandler
 from utils_proc import gen_token, get_running_procs, get_token_from_pid, is_pid_running, write_pid, kill_proc
 import subprocess
 
