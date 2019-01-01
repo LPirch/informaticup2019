@@ -65,68 +65,6 @@ $(document).ready(function(){
 	});
 });
 
-/* 
- * reload model table according to data fetched from django 
- */
-/*
-function reload_models() {
-	$.ajax({
-		'url': "/train/models/reloadmodel",
-		'type':"GET",
-		'success': function(data, status, xhr){
-
-			$('#models-tbody').html("");
-			for (var i = 0; i < data.length; i++) {
-				var model = data[i];
-				var select_icon = '';
-				if(model.selected) {
-					select_icon = '<i class="fa fa-check"></i>';
-				}
-
-				// generate row content
-				$('#models-tbody').append('<tr class="table-active"> \
-					<td scope="row">'+(i+1)+'</td> \
-					<td class="table-selected">'+select_icon+'</td> \
-					<td class="model-filename">'+model.name+'</td> \
-					<td>'+model.modified+' </td>\
-					<td><a class="fas fa-trash-alt" data-toggle="confirmation" data-placement="right"\
-					data-btn-ok-label="Proceed" data-btn-ok-class="btn-success"\
-					data-btn-cancel-label="Cancel" data-btn-cancel-class="btn-danger"\
-					data-title="Are you sure?" data-content="This cannot be undone."></a></td>\
-					</tr>');
-			}
-
-			// show info text if no data has been passed
-			if(data.length == 0) {
-				$('#empty-table-info').removeClass('invisible');
-				$('#model-table').addClass('invisible');
-			} else {
-				$('#empty-table-info').addClass('invisible');
-				$('#model-table').removeClass('invisible');
-			}
-
-			$("a.fa-trash-alt").each(function(){
-				$(this).confirmation({
-					rootSelector: '[data-toggle=confirmation]',
-				});
-				$(this).click(function() {
-					var filename = $( this ).parent().siblings(".model-filename").text();
-					delete_model(filename);
-				});
-				
-			});
-		}
-	});
-
-	// re-add click handlers for generated rows
-	$("#model-table").unbind("click");
-	$("#model-table").on('click', 'tbody tr', function(){
-		select_model($(this).children('.model-filename').text());
-	});
-	return false;
- } 
- */
-
  /*
  * Send GET request for deleting a model file. 
  * @param {file} file name of the file to delete
@@ -162,22 +100,17 @@ function select_model(file) {
 	return false;
 };
 
+/* 
+ * reload model table according selected model passed
+ */
 function reload_models(selected) {
 	var models = document.querySelectorAll("tr.table-active");
 	models.forEach(function(m) {
 		name = m.querySelector('.model-filename').innerText;
-		//check = m.querySelector('.model-selected i')
 		attack = m.querySelector('.model-attack i')
 		if(name === selected) {
-			//check.classList.remove('hidden');
 			attack.classList.add('in');
 		} else {
-			/*
-			if(!check.classList.contains('hidden')) {
-				check.classList.add('hidden');
-			}
-			*/
-
 			if(attack.classList.contains('in')) {
 				attack.classList.remove('in');
 			}

@@ -9,17 +9,31 @@ html, body {
 }
 
 .navbar{ 
-	padding-top: 0 !important;
-	padding-bottom: 0 !important;
+	font-size: 1.5em;
+	padding: 0.2em !important;
+	padding-bottom: 0.2em !important;
 
 	overflow: hidden;
 	position: sticky;
 	top: 0;
 }
 
+a.nav-link {
+	margin-left: 0.5em !important;
+}
+
+a {
+	color: white;
+}
+
+a:hover {
+	color: white;
+	text-decoration: none;
+}
+
 div.alert {
-    margin-top: 2em;
-    margin-bottom: 2em;
+	margin-top: 2em;
+	margin-bottom: 2em;
 }
 
 ::-webkit-scrollbar {
