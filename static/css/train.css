@@ -1,65 +1,42 @@
 .spacer {
-    min-height: 2em;
+	min-height: 2em;
 }
 
 .nav-link {
-    border-radius: 0.25em !important;
+	border-radius: 0.25em !important;
 }
 
 .fa-trash-alt:hover, .fa-redo-alt:hover {
-    color: #b4b4b4 !important;
+	color: #b4b4b4 !important;
 }
 
 .btn-primary:hover {
-    background-image: none !important;
-    background-color: #347cbb;
+	background-image: none !important;
+	background-color: #347cbb;
 }
 
 .table-active:hover {
-    background-color: #444 !important;
+	background-color: #444 !important;
 }
 
 .btn-sm {
-    margin: 0.25em !important;
+	margin: 0.25em !important;
 }
 
 .table th {
-    margin-top: 0 !important;
-    border-top-width: 0 !important;
+	margin-top: 0 !important;
+	border-top-width: 0 !important;
 }
 
 .sub-content {
-    margin-left: 2em; 
+	margin-left: 2em; 
 }
 
 .table-wrapper-scroll-y {
-    height: 50vh;
-    overflow: auto;
+	height: 50vh;
+	overflow: auto;
 }
 
 .hidden {
-    display: none;
-}
-
-.navbar{ 
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-
-    overflow: hidden;
-    position: sticky;
-    top: 0;
-}
-
-button {
-    border: none !important;
-}
-
-.title {
-    margin-left: 3em;
-    margin-top: 1em;
-}
-
-div.alert {
-    margin-top: 2em;
-    margin-bottom: 2em;
+	display: none;
 }

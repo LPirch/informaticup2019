@@ -1,11 +1,9 @@
-from project_conf import PROCESS_DIR, IMG_TMP_DIR, RANDOM_SEED
+from project_conf import PROCESS_DIR, IMG_TMP_DIR
 
 import os
 import os.path
 import subprocess
 import random
-
-random.seed(RANDOM_SEED)
 
 def init_directories():
 	if not os.path.exists(PROCESS_DIR):

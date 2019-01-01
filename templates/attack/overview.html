@@ -5,13 +5,38 @@
 	<link rel="stylesheet" href="{% static 'css/attack.css' %}">
 {% endblock %}
 
+{% block additional_js %}
+	<script src="{% static 'js/attack/overview.js' %}"></script>
+{% endblock %}
+
 {% block content %}
+{% if processes|length == 0 %}
+<div class="container text-center">
+	<div class="alert alert-secondary">
+		<strong>There are no attack processes to show at the moment.</strong>
+	</div>
+
+	<a class="btn btn-primary" href="/attack/attack.html">Go to Attack</a>
+</div>
+{% else %}
+<div class="title">
+	<h3>Attack Processes</h3>
+</div>
 <div class="container">
-	<table class="table">
-		<tr><th>PID</th><th>Running</th></tr>
+	<table class="table table-hover">
+		<tr>
+			<th>PID</th>
+			<th>Running</th>
+			<th><!--delete column--></th>
+		</tr>
 	{% for proc in processes %}
-		<tr><td><a href="details.html?pid={{ proc.id }}">{{ proc.id }}</a></td><td>({{proc.running}})</td></tr>
+		<tr id="tr-{{proc.id}}">
+			<td><a href="details.html?pid={{ proc.id }}">{{ proc.id }}</a></td>
+			<td>({{proc.running}})</td>
+			<td class="text-center" ><div onclick="delete_proc('{{proc.id}}')"><i class="fas fa-trash-alt"></i></div></td>
+		</tr>
 	{% endfor %}
 	</table>
 </div>
+{% endif %}
 {% endblock %}

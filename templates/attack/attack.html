@@ -6,6 +6,9 @@
 {% endblock %}
 
 {% block content %}
+<div class="title">
+	<h3>Start Attack</h3>
+</div>
 <div class="container">
 	<form method="POST" action="/attack/start_attack" enctype="multipart/form-data" id="upload-form">
 		{% csrf_token %}

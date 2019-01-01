@@ -5,11 +5,13 @@ from django.http import HttpResponse, JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
+from utils_proc import is_pid_running, get_token_from_pid, kill_proc
+
 import os
 import os.path
 import random
 
-from .cwl2 import CWL2AttackHandling
+from attack.handler import CWL2AttackHandler
 
 BASE_CONTEXT = {
 	'tabs': [
@@ -20,32 +22,8 @@ BASE_CONTEXT = {
 }
 
 attacks = {
-	"cwl2": CWL2AttackHandling
+	"cwl2": CWL2AttackHandler
 }
-
-def get_token_from_pid(pid):
-	pid = str(int(pid))
-	pid_dir = os.path.join(PROCESS_DIR, pid)
-
-	if not os.path.exists(pid_dir):
-		raise RuntimeError("No process with pid found")
-
-	try:
-		with open(pid_dir, "r") as f:
-			token = f.read()
-	except:
-		raise RuntimeError("Could not read from process pid-file")
-
-	return token
-
-def is_pid_running(pid):
-	""" Check For the existence of a unix pid. """
-	try:
-		os.kill(pid, 0)
-	except OSError:
-		return False
-	else:
-		return True
 
 def attack(request):
 	context = dict(
@@ -73,20 +51,19 @@ def overview(request):
 	return render(request, 'attack/overview.html', context)
 
 def details(request):
-	pid = str(int(request.GET["pid"]))
-	token = get_token_from_pid(pid)
+	pid = request.GET.get('pid', '')
 
-	if not os.path.exists(os.path.join(PROCESS_DIR, pid)):
-		return HttpResponse("No process with pid")
-
-	context = dict(
-		{
-			'active': 'Details',
+	context = dict({'active': 'Details'}, **BASE_CONTEXT)
+	if pid:
+		pid = int(pid)
+		token = get_token_from_pid(pid)
+		context.update({
 			'pid': str(pid),
 			'img_path': os.path.join(IMG_TMP_DIR, token)
-		},
-		**BASE_CONTEXT
-	)
+		})
+	else:
+		context['error_none_selected'] =  True
+
 	return render(request, 'attack/details.html', context)
 
 def handle_start_attack(request):
@@ -99,9 +76,11 @@ def handle_start_attack(request):
 	return HttpResponse("Attack not found")
 
 def start_attack(request, attack):
+	import traceback
 	try:
-		args = attack.handle_arguments(request)
+		kwargs = attack.parse_arguments(request)
 	except:
+		traceback.print_exc()
 		return HttpResponse("Invalid argument")
 
 	if not os.path.exists(PROCESS_DIR):
@@ -116,27 +95,28 @@ def start_attack(request, attack):
 		return HttpResponse("Error on mkdir")
 
 	outdir = os.path.join(IMG_TMP_DIR, token)
+	kwargs["outdir"] = outdir
 
-	if args["image"]:
+	if kwargs["image"]:
 		src_img_path = os.path.join(outdir, "original.png")
-		args["src_img_path"] = default_storage.save(src_img_path, ContentFile(args["image"].read()))
+		# override image arg with tmp filename of img
+		kwargs["image"] = default_storage.save(src_img_path, ContentFile(kwargs["image"].read()))
 
 	try:
-		p = attack.start(outdir=outdir, process_dir=process_dir, **args)
+		pid = attack.start(process_dir, kwargs)
 	except Exception as e:
 		print(type(e))
 		print(str(e))
+		traceback.print_exc()
 		return HttpResponse("Error on Popen")
 
-	pid = str(p.pid)
-
 	try:
-		with open(os.path.join(PROCESS_DIR, pid), "w") as f:
+		with open(os.path.join(PROCESS_DIR, str(pid)), "w") as f:
 			f.write(token)
 	except:
 		return HttpResponse("Error on create pid")
 
-	return redirect('/attack/details.html?pid=' + pid)
+	return redirect('/attack/overview.html')
 
 def handle_proc_info(request):
 	token = get_token_from_pid(request.GET["pid"])
@@ -160,3 +140,14 @@ def handle_list_images(request):
 		return JsonResponse({"images": []})
 
 	return JsonResponse({"images": images})
+
+def handle_delete_proc(request):
+	pid = request.GET.get('pid', '')
+
+	if pid:
+		pid = int(pid)
+		kill_proc(pid)
+
+		return redirect('/attack/overview.html')
+	else:
+		return HttpResponse(status=400)

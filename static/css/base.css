@@ -8,6 +8,20 @@ html, body {
 	overflow-y: hidden;
 }
 
+.navbar{ 
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+
+	overflow: hidden;
+	position: sticky;
+	top: 0;
+}
+
+div.alert {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
 ::-webkit-scrollbar {
 	width: 0.5em;
 }
@@ -67,4 +81,13 @@ html, body {
 
 .slow-fade.in {
 	opacity: 1;
+}
+
+.title {
+	margin-left: 3em;
+	margin-top: 1em;
+}
+
+button {
+	border: none !important;
 }

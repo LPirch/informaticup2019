@@ -45,3 +45,7 @@
 ::-webkit-scrollbar-thumb:hover {
 	background: #00af00; 
 }
+
+textarea {
+	border-radius: 1em;
+}

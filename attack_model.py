@@ -92,7 +92,7 @@ def main():
 	x = tf.placeholder(tf.float32, shape=(None, dataset.img_size, dataset.img_size, dataset.n_channels))
 
 	# load model
-	model = load_model(FLAGS.model_folder + FLAGS.model + ".h5", compile=False)
+	model = load_model(os.path.join(FLAGS.model_folder, FLAGS.model + ".h5"), compile=False)
 	model = KerasModelWrapper(model)
 
 	# symbolic model predictions

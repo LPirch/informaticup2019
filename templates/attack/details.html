@@ -6,6 +6,18 @@
 {% endblock %}
 
 {% block content %}
+{% if error_none_selected %}
+<div class="container text-center">
+	<div class="alert alert-secondary">
+		<strong>No attack selected. Please select one in the overview table.</strong>
+	</div>
+
+	<a class="btn btn-primary" href="/attack/overview.html">Go to Overview</a>
+</div>
+{% else %}
+<div class="title">
+	<h3>Terminal Output</h3>
+</div>
 <div class="container">
 	<textarea id="console" readonly></textarea>
 	<div id="images"></div>
@@ -75,4 +87,5 @@
 		fetch();
 	})();
 </script>
+{% endif %}
 {% endblock %}
