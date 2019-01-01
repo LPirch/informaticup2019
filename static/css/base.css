@@ -53,7 +53,7 @@ html, body {
 	transition: opacity 0.15s linear;
 }
 
-.fade.in {
+.fade {
 	opacity: 1;
 }
 
