@@ -43,7 +43,7 @@ def overview(request):
 
 	context = dict(
 		{
-			'active': 'overview',
+			'active': 'Overview',
 			'processes': processes
 		}, 
 		**BASE_CONTEXT
