@@ -18,12 +18,13 @@
 	<script src="{% static 'js/popper.min.js' %}"></script>
 	<script src="{% static 'js/bootstrap.min.js' %}"></script>
 	<script src="{% static 'js/nav.js' %}"></script>
+	<script src="{% static 'js/base.js' %}"></script>
 	{% block additional_js %}
 	{% endblock %}
 </head>
 
 <body>
-	<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+	<nav class="navbar navbar-expand-md navbar-dark bg-primary">
 		<button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navGroupCollapse" aria-controls="navGroupCollapse" aria-expanded="false" aria-label="Toggle navigation">
 			<span class="navbar-toggler-icon"></span>
 		</button>
@@ -31,15 +32,18 @@
 		<div class="collapse navbar-collapse" id="navGroupCollapse">
 			<ul class="navbar-nav mr-auto">
 				{% for tab in tabs %}
-				<li class="nav-item {%if tab.name == active%}active{%endif%}"><a class="nav-link" href="{{tab.url}}">{{tab.name}}</a></li>
+				<li class="nav-item {%if tab.name == active%}active{%endif%}">
+					<a class="nav-link {% if tab.name == active %}tab-highlight{%endif%}" href="{{tab.url}}">{{tab.name}}</a>
+				</li>
 				{% endfor %}
 			</ul>
 		</div>
 
 		<a class="navbar-brand" href="/"><i class="fas fa-eye-slash"></i> Home</a>
 	</nav>
-
+	<div class="content slow-fade">
 	{% block content %} {% endblock %}
+	</div>
 
 	{% block after_body_scripts %} {% endblock %}
 </body>

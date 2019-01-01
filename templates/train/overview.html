@@ -5,31 +5,87 @@
 	<link rel="stylesheet" href="{% static 'css/train.css' %}">
 {% endblock %}
 
+{% block additional_js %}
+	<script src="{% static 'js/train.js' %}"></script>
+	<script src="{% static 'js/bootstrap-confirmation.min.js' %}"></script>
+{% endblock %}
+
 {% block content %}
+<div class="title">
+	<h3>Model Selection</h3>
+</div>
 <div id="my-tab-content" class="container tab-content content">
-	<h3>Selected Model: {{ selected_model }} </h3>
-	<div class="sub-content">
-		<h4>Architecture</h4>
-		<div class="table-wrapper-scroll-y">
-			<table class="table table-sm table-striped">
-				<thead>
-					<th>Type</th>
-					<th>Input Shape</th>
-					<th>Output Shape</th>
-				</thead>
-				<tbody>
-					{% for layer in layers %}
-					<tr>
-						<td>{{ layer.name }}</td>
-						<td>{{ layer.input_shape }}</td>
-						<td>{{ layer.output_shape }}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
+	{% if models|length == 0 %}
+	<div class="container text-center" id="empty-table-info">
+		<div class="container text-center" id="empty-table-info">
+			<div class="alert alert-secondary">
+				<strong>There are no trained models yet.</strong>
+			</div>
+		</div>
+	</div>
+	{% else %}
+	<table class="table table-hover" id="model-table">
+	<thead>
+		<tr>
+		<th scope="col">#</th>
+		<th scope="col">Name</th>
+		<th scope="col">Size</th>
+		<th scope="col">Last Modified</th>
+		<th scope="col"><!--link to attack--></th>
+		<th scope="col"><!--info column--></th>
+		<th scope="col"><!--delete column--></th>
+		</tr>
+	</thead>
+	<tbody  id="models-tbody">
+		{% for model in models %}
+		<tr class="table-active" onclick="select_model('{{ model.name }}')"> 
+			<td scope="row">{{ forloop.counter }}</td> 
+			<td class="model-filename">{{ model.name }}</td>
+			<td>{{ model.size }}</td>
+			<td>{{ model.modified }}</td>
+			<td class="model-attack text-center">
+				<a href="/attack/overview.html"><i class="fas fa-bolt custom-fade {% if model.selected %}in{% endif %}"></i></a>
+			</td>
+			<td class="text-center"><div data-toggle="modal" data-target="#modal"><i class="fas fa-info"></i></div></td>
+			<td class="text-center">
+				<a class="fas fa-trash-alt" data-toggle="confirmation" data-placement="right"
+					data-btn-ok-label="Proceed" data-btn-ok-class="btn-success"
+					data-btn-cancel-label="Cancel" data-btn-cancel-class="btn-danger"
+					data-title="Are you sure?" data-content="This cannot be undone."></a>
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+	</table>
+	{% endif %}
+</div>
+<div class="title">
+	<h3>Model Upload</h3>
+</div>
+<div class="container">
+	<form method="POST" action="/train/uploadmodel" enctype="multipart/form-data" id="upload-form">
+		{% csrf_token %}
+		<div class="form-group form-group-lg">
+			<div class="input-group input-file" name="filechooser">
+				<button class="btn btn-choose btn-secondary" type="button">Choose</button>
+				<input type="text" class="form-control input-lg" placeholder='Choose a file...' id="input-selected-file"/>
+				<button type="submit" class="btn btn-primary" type="button">Submit</button>
+			</div>
+		</div>
+	</form>
+</div>
+
+<div class="modal fade" id="modal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+		<div class="modal-header">
+			<h4 class="modal-title">Architecture</h4>
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		</div>
+		<div class="modal-body">
+			<p>TODO: architecture</p>
+		</div>
 		</div>
 	</div>
 </div>
-
-
 {% endblock %}

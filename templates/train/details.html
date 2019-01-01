@@ -28,5 +28,41 @@
 {% endblock %}
 
 {% block content %}
-<h4> TODO </h4>
+{% if error_none_running %}
+<div class="container text-center" id="empty-table-info">
+	<div class="alert alert-secondary">
+		<strong>No training process is currently running.</strong>
+	</div>
+</div>
+{% else %}
+<div class="title">
+	<h3>PID {{ pid }}</h3>
+</div>
+<div class="title">
+	<h3>Architecture</h3>
+</div>
+<div class="container">
+	<div class="table-wrapper-scroll-y">
+		<table class="table table-sm table-striped">
+			<thead>
+				<th>Type</th>
+				<th>Input Shape</th>
+				<th>Output Shape</th>
+			</thead>
+			<tbody>
+				{% for layer in layers %}
+				<tr>
+					<td>{{ layer.name }}</td>
+					<td>{{ layer.input_shape }}</td>
+					<td>{{ layer.output_shape }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+<div class="container">
+	<a class="btn btn-danger" href="javascript:abort('{{pid}}')"><i class="fas fa-ban"></i></a>
+</div>
+{% endif %}
 {% endblock %}

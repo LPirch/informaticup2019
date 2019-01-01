@@ -32,3 +32,15 @@ def cnn_model(img_size, n_classes):
 	model.add(Activation('softmax'))
 
 	return model
+
+def dense_model(img_size, n_classes):
+	model = Sequential()
+
+	model.add(Flatten())
+	model.add(Dense(img_size * img_size * 3, activation='relu'))
+	model.add(Dropout(0.05))
+	model.add(Dense(img_size * img_size, activation='relu'))
+	model.add(Dense(n_classes))
+	model.add(Activation('softmax'))
+
+	return model
