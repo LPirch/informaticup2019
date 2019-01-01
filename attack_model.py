@@ -23,6 +23,8 @@ from cleverhans.utils import set_log_level
 # TODO: re-add physical attack
 from robust_physical_perturbations.attack import Physical, softmax
 
+from nn_robust_attacks.l2_attack_robust import CarliniL2Robust
+
 FLAGS = tf.flags.FLAGS
 
 def model_logits(sess, x, predictions, samples, feed=None):
@@ -79,11 +81,6 @@ def main():
 		with Image.open(FLAGS.image) as img:
 			img = dataset.preprocess(img)
 
-	print("Target: ", FLAGS.target, label_map[FLAGS.target], flush=True)
-
-	adv_inputs = np.array([img])
-	adv_targets = np.expand_dims(np.eye(FLAGS.n_classes)[FLAGS.target], axis=0)
-
 	# setup session
 	sess = tf.Session()
 	K.set_session(sess)
@@ -92,11 +89,18 @@ def main():
 	x = tf.placeholder(tf.float32, shape=(None, dataset.img_size, dataset.img_size, dataset.n_channels))
 
 	# load model
-	model = load_model(FLAGS.model_folder + FLAGS.model + ".h5", compile=False)
-	model = KerasModelWrapper(model)
+	tf_model = load_model(FLAGS.model_folder + FLAGS.model + ".h5", compile=False)
+	model = KerasModelWrapper(tf_model)
+
+	n_classes = tf_model.output_shape[1]
 
 	# symbolic model predictions
 	logits = model.get_logits(x)
+
+	print("Target: ", FLAGS.target, label_map[FLAGS.target])
+
+	adv_inputs = np.array([img])
+	adv_targets = np.expand_dims(np.eye(n_classes)[FLAGS.target], axis=0)
 
 	# attack dict
 	# TODO: maybe put this in a separate config file
@@ -107,7 +111,8 @@ def main():
 		'spsa': SPSA,
 		'pgd': ProjectedGradientDescent,
 		'jsma': SaliencyMapMethod,
-		'physical': Physical
+		'physical': Physical,
+		'robust_cwl2': CarliniL2Robust
 	}
 
 	attack_params = {
@@ -151,6 +156,19 @@ def main():
 			'y_target': adv_targets,
 			'mask_path': FLAGS.mask_image,
 			'max_iterations': FLAGS.max_iterations
+		},
+		'robust_cwl2': {
+			'y_target': adv_targets,
+			'max_iterations': FLAGS.max_iterations,
+			'binary_search_steps': FLAGS.binary_search_steps,
+			'learning_rate': 0.01,
+			'batch_size': 1,
+			'initial_const': 10,
+			'confidence': FLAGS.confidence,
+			'clip_min': FLAGS.boxmin,
+			'clip_max': FLAGS.boxmax,
+			'num_labels': n_classes,
+			'outdir': FLAGS.outdir,
 		}
 	}
 
@@ -241,7 +259,6 @@ if __name__ == '__main__':
 	tf.flags.DEFINE_boolean("generate_random", False, "Use random (noisy) image as source")
 
 	tf.flags.DEFINE_integer("img_size", 64, "Image size")
-	tf.flags.DEFINE_integer("n_classes", 43, "Amount of classes")
 
 	tf.flags.DEFINE_integer("batch_size", 1, "")
 	tf.flags.DEFINE_integer("binary_search_steps", 3, "")
@@ -254,7 +271,7 @@ if __name__ == '__main__':
 	tf.flags.DEFINE_integer("random_seed", 42, "")
 
 	tf.flags.DEFINE_string("attack", "cwl2", "Type of attack")
-	tf.flags.DEFINE_string("outdir", "outdir", "Directory for saving images")
+	tf.flags.DEFINE_string("outdir", "/tmp", "Directory for saving images")
 	tf.flags.DEFINE_string("model_folder", "model/trained/", "From where to load the model")
 	tf.flags.DEFINE_string("model", "last-cleverhans_testmodel", "Trained model")
 
