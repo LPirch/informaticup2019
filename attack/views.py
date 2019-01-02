@@ -7,13 +7,14 @@ import os
 import os.path
 import random
 
-from .cwl2 import CWL2AttackHandling
+from .cwl2 import CWL2AttackHandling, RobustCWL2AttackHandling
 
 PROCESSES_DIR = ".process"
 IMG_TMP_DIR = os.path.join("static", "img")
 
 attacks = {
-    "cwl2": CWL2AttackHandling
+    "cwl2": CWL2AttackHandling,
+    "robust_cwl2": RobustCWL2AttackHandling
 }
 
 def get_token_from_pid(pid):
@@ -87,8 +88,8 @@ def handle_start_attack(request):
 def start_attack(request, attack):
     try:
         args = attack.handle_arguments(request)
-    except:
-        return HttpResponse("Invalid argument")
+    except Exception as e:
+        return HttpResponse("Invalid argument" + str(e))
 
     if not os.path.exists(PROCESSES_DIR):
         os.makedirs(PROCESSES_DIR)

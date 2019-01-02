@@ -28,7 +28,7 @@
 					<label for="attack-selector">Attack</label>
 					<select id="attack-selector" name="attack" class="form-control">
 							<option value="cwl2">Carlini & Wagner L2 (CWL2)</option>
-							<option value="jsma">Jacobian-based Saliency Map Attack (JSMA)</option>
+							<option value="robust_cwl2">Modified Carlini & Wagner L2 (Robust CWL2)</option>
 					</select>
 			</div>
 
@@ -87,20 +87,34 @@
 			<div id="cwl2-options" class="form-group form-group-lg attack-options">
 				<div class="form-row">
 					<div class="form-group col-md-4">
-						<label for="max_iterations">Max iterations</label>
-						<input id="max_iterations" type="number" class="form-control" name="max_iterations" placeholder="Max iterations" value="1000">
+						<label for="cwl2_max_iterations">Max iterations</label>
+						<input id="cwl2_max_iterations" type="number" class="form-control" name="cwl2_max_iterations" placeholder="Max iterations" value="1000">
 					</div>
 					<div class="form-group col-md-4">
-						<label for="bss">Binary search steps</label>
-						<input id="bss" type="number" class="form-control" name="binary_search_steps" placeholder="Binary search steps" value="5">
+						<label for="cwl2_bss">Binary search steps</label>
+						<input id="cwl2_bss" type="number" class="form-control" name="cwl2_binary_search_steps" placeholder="Binary search steps" value="5">
 					</div>
 					<div class="form-group col-md-4">
-						<label for="confidence">Confidence</label>
-						<input id="confidence" type="number" class="form-control" name="confidence" placeholder="Confidence" value="0">
+						<label for="cwl2_confidence">Confidence</label>
+						<input id="cwl2_confidence" type="number" class="form-control" name="cwl2_confidence" placeholder="Confidence" value="20">
 					</div>
 				</div>
 			</div>
-			<div id="jsma-options" class="form-group form-group-lg attack-options">
+			<div id="robust_cwl2-options" class="form-group form-group-lg attack-options">
+				<div class="form-row">
+					<div class="form-group col-md-4">
+						<label for="robust_cwl2_max_iterations">Max iterations</label>
+						<input id="robust_cwl2_max_iterations" type="number" class="form-control" name="robust_cwl2_max_iterations" placeholder="Max iterations" value="1000">
+					</div>
+					<div class="form-group col-md-4">
+						<label for="robust_cwl2_bss">Binary search steps</label>
+						<input id="robust_cwl2_bss" type="number" class="form-control" name="robust_cwl2_binary_search_steps" placeholder="Binary search steps" value="5">
+					</div>
+					<div class="form-group col-md-4">
+						<label for="robust_cwl2_confidence">Confidence</label>
+						<input id="robust_cwl2_confidence" type="number" class="form-control" name="robust_cwl2_confidence" placeholder="Confidence" value="20">
+					</div>
+				</div>
 			</div>
 		</div>
 
