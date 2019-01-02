@@ -168,7 +168,7 @@ def main():
 			'clip_min': FLAGS.boxmin,
 			'clip_max': FLAGS.boxmax,
 			'num_labels': n_classes,
-			'outdir': FLAGS.outdir,
+			'outdir': FLAGS.outdir
 		}
 	}
 
