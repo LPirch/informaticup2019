@@ -37,18 +37,18 @@ def softmax(x):
     return e_x / e_x.sum(axis=0) # only difference
 
 class Physical:
-    def __init__(self, wrapper_model, sess, image_size=64, num_channels=3, num_labels=43):
+    def __init__(self, wrapper_model, sess):
         model = wrapper_model.model
 
         self.sess = sess
         self.model = model
         self.printability_optimization = False
 
-        self.image_size = image_size
-        self.num_channels = num_channels
-        self.num_labels = num_labels
+    def generate_np(self, inputs, y_target, mask_path, num_labels=43, max_iterations=2000, image_size=64, num_channels=3):
+        assert len(inputs) == 1
+        assert len(y_target) == 1
 
-        op, placeholders, varops = setup_attack_graph(sess, model, image_size, image_size, num_channels, nb_classes=num_labels,
+        op, placeholders, varops = setup_attack_graph(self.sess, self.model, image_size, image_size, num_channels, nb_classes=num_labels,
             regloss="l1", printability_optimization=self.printability_optimization, printability_tuples=False, clipping=True,
             noise_clip_min=-20.0, noise_clip_max=20.0, noisy_input_clip_min=0, noisy_input_clip_max=1,
             attack_lambda=0.001, optimization_rate=0.25, adam_beta1=0.9, adam_beta2=0.999, adam_epsilon=0.0001)
@@ -57,11 +57,11 @@ class Physical:
         self.pholders = placeholders
         self.varops = varops
 
-        self.regloss = True
+        self.num_labels = num_labels
+        self.image_size = image_size
+        self.num_channels = num_channels
 
-    def generate_np(self, inputs, y_target, mask_path, max_iterations=2000):
-        assert len(inputs) == 1
-        assert len(y_target) == 1
+        self.regloss = True
 
         with Image.open(mask_path) as mask:
             mask = np.asarray(mask, dtype="uint8")
