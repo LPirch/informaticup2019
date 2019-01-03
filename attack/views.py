@@ -7,14 +7,15 @@ import os
 import os.path
 import random
 
-from .cwl2 import CWL2AttackHandling, RobustCWL2AttackHandling
+from .cwl2 import CWL2AttackHandling, RobustCWL2AttackHandling, PhysicalAttackHandling
 
 PROCESSES_DIR = ".process"
 IMG_TMP_DIR = os.path.join("static", "img")
 
 attacks = {
     "cwl2": CWL2AttackHandling,
-    "robust_cwl2": RobustCWL2AttackHandling
+    "robust_cwl2": RobustCWL2AttackHandling,
+    "physical": PhysicalAttackHandling
 }
 
 def get_token_from_pid(pid):
@@ -107,6 +108,10 @@ def start_attack(request, attack):
     if args["image"]:
         src_img_path = os.path.join(outdir, "original.png")
         args["src_img_path"] = default_storage.save(src_img_path, ContentFile(args["image"].read()))
+
+    if args["mask_image"]:
+        mask_path = os.path.join(outdir, "mask.png")
+        args["mask_path"] = default_storage.save(mask_path, ContentFile(args["mask_image"].read()))
 
     try:
         p = attack.start(outdir=outdir, process_dir=process_dir, **args)
