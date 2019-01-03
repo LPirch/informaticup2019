@@ -155,7 +155,8 @@ def main():
 		'physical': {
 			'y_target': adv_targets,
 			'mask_path': FLAGS.mask_image,
-			'max_iterations': FLAGS.max_iterations
+			'max_iterations': FLAGS.max_iterations,
+			'num_labels': n_classes
 		},
 		'robust_cwl2': {
 			'y_target': adv_targets,
