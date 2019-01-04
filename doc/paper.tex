@@ -1,0 +1,81 @@
+\documentclass[sigconf]{acmart}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}    
+
+\usepackage{color}
+\usepackage{subcaption}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmin}{arg\,min\,}
+\DeclareMathOperator*{\argmax}{arg\,max\,}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\loss}{loss}
+\DeclareMathOperator{\softmax}{softmax}\DeclareMathOperator{\softplus}{softplus}
+
+\DeclareMathOperator{\EX}{\mathbb{E}}% expected value
+
+\newcommand{\myvec}[1]{\boldsymbol{#1}}
+\newcommand{\minimize}{\text{minimize}}
+\newcommand{\optimize}[4]{\begin{aligned}
+& \underset{#2}{#1}
+& & #3 \\
+& \text{subject to}
+& & #4
+\end{aligned}}
+\usepackage{natbib}
+\setcitestyle{square, comma, numbers,sort&compress, super}
+
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{tikz-qtree}
+\usetikzlibrary{arrows, calc, decorations.pathreplacing, angles, quotes, positioning}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{chains}
+
+% configure acm template to a minimalistic version
+\setcopyright{none}
+\settopmatter{printccs=false, printacmref=false, printfolios=false}
+\renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference information in first column
+\pagestyle{plain} % removes running headers
+
+\widowpenalty
+\clubpenalty
+
+\begin{document}
+% Title portion
+\title{InformatiCup 2019}
+
+\author{Jonas Möller}
+\affiliation{%
+	\institution{TU Braunschweig}
+}
+\email{jo.moeller@tu-braunschweig.de}
+
+\author{Lukas Pirch}
+\affiliation{%
+	\institution{TU Braunschweig}
+}
+\email{l.pirch@tu-braunschweig.de}
+
+\maketitle
+
+\input{introduction}
+\input{background}
+\input{methodology}
+\input{architecture}
+
+\input{submitted_images}
+\input{model_architecture}
+
+\input{evaluation}
+
+\input{extensibility}
+
+%\bibliographystyle{IEEEtran}
+\bibliographystyle{plainnat}
+\bibliography{bib} %name of bib file
+
+\end{document}

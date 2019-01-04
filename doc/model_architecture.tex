@@ -1,0 +1,45 @@
+%!TEX root = paper.tex"`
+
+\section{Model architecture}
+
+\begin{enumerate}
+\item Aufbau CNN\footnote{\url{https://chsasank.github.io/keras-tutorial.html}}
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{ l r }
+\hline
+
+Layer Type & GTSRB Model \\
+\hline
+
+  Convolution + ReLU & $3 \times 3 \times 32$ \\
+  Convolution + ReLU & $3 \times 3 \times 32$  \\
+  Max Pooling & $2 \times 2$ \\
+  Dropout & $0.2$ \\
+
+  Convolution + ReLU & $3 \times 3 \times 64$ \\
+  Convolution + ReLU & $3 \times 3 \times 64$ \\
+  Max Pooling & $2 \times 2$ \\
+  Dropout & $0.2$ \\
+  
+  Convolution + ReLU & $3 \times 3 \times 128$ \\
+  Convolution + ReLU & $3 \times 3 \times 128$ \\
+  Max Pooling & $2 \times 2$ \\
+  Dropout & $0.2$ \\
+    
+  Fully Connected + ReLU & $512$\\
+  Dropout & $0.5$ \\
+
+  Fully Connected + ReLU & $43$\\
+  
+  Softmax & $43$ \\ \hline 
+  \vspace{1.5pt}
+\end{tabular}
+\caption{Architecture of our neural networks}
+\label{table:model}
+\end{table}
+\item Geschichte Adversarial Samples
+\item Carlini \& Wagner Angriff \cite{carlini2017towards}
+\item Limitation of 64x64 -> no real world attack but constructed
+\end{enumerate}

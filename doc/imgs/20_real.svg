@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.0"
+   width="735"
+   height="735"
+   id="svg1904">
+  <defs
+     id="defs1906" />
+  <g
+     id="layer1">
+    <path
+       d="M 391.91972,14.243162 L 722.65773,345.2093 C 737.80778,360.35936 732.35514,380.09718 721.87445,391.16572 L 393.09465,720.95694 C 376.25267,737.79891 352.57438,731.35374 341.78594,720.5653 L 14.964338,394.29884 C -0.7041983,378.6303 -1.0447956,357.69367 14.18105,342.46782 C 14.18105,342.46782 341.3943,14.634803 341.3943,14.634803 C 358.70344,-0.89065873 378.69349,1.2187057 391.91972,14.243162 z "
+       style="fill:white;fill-opacity:1;fill-rule:nonzero;stroke:black;stroke-width:2.03192091;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect1924" />
+    <path
+       d="M 387.72893,30.498744 L 705.6622,348.22179 C 719.91435,362.47394 717.12142,374.0323 707.26189,384.44485 L 386.28527,705.52327 C 370.44147,721.36706 359.63687,716.36595 349.48783,706.21691 L 31.203018,388.24192 C 16.463115,373.50201 15.080636,362.09037 29.404086,347.76692 C 29.404086,347.76692 350.39389,27.256144 350.39389,27.256144 C 366.67716,12.65084 375.28659,18.246212 387.72893,30.498744 z "
+       style="fill:none;fill-opacity:1;fill-rule:nonzero;stroke:black;stroke-width:12.17423248;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="path2814" />
+    <rect
+       width="293.37677"
+       height="293.37677"
+       x="-146.68831"
+       y="373.03519"
+       transform="matrix(0.707107,-0.707107,0.707107,0.707107,0,0)"
+       style="opacity:1;fill:#fc3;fill-opacity:1;fill-rule:nonzero;stroke:black;stroke-width:5.34560061;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect4591" />
+  </g>
+</svg>

@@ -1,0 +1,41 @@
+\section{Introduction}
+
+\begin{enumerate}
+\item Thema motivieren
+\begin{enumerate}
+\item Was ist ML?
+\item Wofür wird ML benutzt?
+\item Was sind Adversarial Examples (Irrbilder)?
+\item Gefahr durch Adversarial Examples?
+\end{enumerate}
+\item Stand der Forschung erklären
+\item Gliederung (?)
+\end{enumerate}
+
+
+Context: Self driving cars which automatically detect and classify traffic signs.
+Threat: Patterns (e.g. on the back of a lorry) might be classified as a traffic sign and leads to a wrong and potentially dangerous response of the car.
+
+\begin{enumerate}
+\item herausarbeiten, dass es um digitale adversarial samples geht
+(i.e. relativ kleiner input 64x64 und pixelgenaue veränderungen werden betrachten)
+in kontrast zu: \cite{eykholt2018robust}
+\end{enumerate}
+
+Find images (Irrbilder) that do not look like traffic signs to a human observer,
+but are recognized with a confidence of >90\% as a traffic sign by the neural network.
+
+This corresponds to the current scientific research direction of adversarial examples.
+These are images which are specifically created by an attacker with the intention of tricking the machine learning system into misclassifying.
+
+The neural network under attack is available via a web interface,
+which reports the top five most-likely classes and their confidences for a given image.
+Additionally, we are given the information that the remote model has been trained on the GTSRB dataset.
+This equates to Oracle access ($X \rightarrow Y$) and Training data ($T$) knowledge \cite{papernot2016limitations}.
+
+Adversarial Examples are an active research direction and though there exist a plethora of attacks,
+it's neither clearly established why adversarial examples exist nor how to effectively defend against them.
+One of the most prominent projects for benchmarking defenses is the CleverHans project where a lot of state-of-the-art attacks are included \cite{papernot2016cleverhans}.
+
+% Damn it I had something for this
+% Something something Source-Target misclassifcation 
