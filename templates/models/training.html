@@ -7,7 +7,7 @@
 
 {% block additional_js %}
 <script src="{% static 'js/train.js' %}"></script>
-<script src="{% static 'js/train/training.js' %}"></script>
+<script src="{% static 'js/models/training.js' %}"></script>
 {% endblock %}
 
 {% block tab-nav %}
@@ -41,7 +41,7 @@
 	<h3>Start Training</h3>
 </div>
 <div class="container">
-	<form method="POST" action="/train/start_training" enctype="multipart/form-data" id="upload-form">
+	<form method="POST" action="/models/start_training" enctype="multipart/form-data" id="upload-form">
 	{% csrf_token %}
 		<div class="form-row">
 			<div class="form-group col-md-6">

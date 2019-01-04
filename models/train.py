@@ -21,7 +21,7 @@ from cleverhans.utils_tf import model_eval
 from cleverhans.train import train
 
 from gtsrb import GTSRB
-from train.model_specs import cnn_model, dense_model
+from models.model_specs import cnn_model, dense_model
 
 MODEL_TYPES = {
 	'cnn_model': cnn_model,

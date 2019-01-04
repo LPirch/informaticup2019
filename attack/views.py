@@ -12,7 +12,7 @@ import os.path
 import random
 
 from attack.handler import CWL2AttackHandler
-from train.views import get_models_info
+from models.views import get_models_info
 
 BASE_CONTEXT = {
 	'tabs': [

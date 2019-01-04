@@ -32,7 +32,7 @@ urlpatterns = [
 	path('', welcome, name='index'),
 	path('index.html', welcome),
 	path('welcome.html', welcome),
-	path('train/', include('train.urls')),
+	path('models/', include('models.urls')),
 	path('attack/', include('attack.urls')),
 	path('admin/', admin.site.urls),
 	url('selectmodel', handle_select_model),

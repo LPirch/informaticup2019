@@ -4,14 +4,14 @@ function getModelInfo(modelname) {
 	loading_started();
 
 	var xhttp = new XMLHttpRequest();
-	xhttp.open("GET", "/train/start_model_info?modelname="+modelname);
+	xhttp.open("GET", "/models/start_model_info?modelname="+modelname);
 	xhttp.send();
 
 	var fetchInterval = setInterval(function() {
 		if(modelname) {
 			var csrftoken = getCookie('csrftoken');
 			var xhttp = new XMLHttpRequest();
-			xhttp.open("POST", "/train/model_info", true);
+			xhttp.open("POST", "/models/model_info", true);
 			xhttp.onreadystatechange = function() {
 				if (this.readyState == 4 && this.status == 200) {
 					var modelInfo = JSON.parse(xhttp.responseText);

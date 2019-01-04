@@ -10,7 +10,7 @@ $(document).ready(function(){
 			reload_models(selected);
 		}
 	}
-	xhttp.open("GET", "/train/overview/getselected");
+	xhttp.open("GET", "/models/overview/getselected");
 	xhttp.send();
 	// init delete confirmation popover
 	$('#confirm-delete').on('show.bs.modal', function(e) {
@@ -81,7 +81,7 @@ function delete_model(file) {
 			}
 			}
 	}
-	xhttp.open("GET", "/train/overview/deletemodel?filename="+file, true);
+	xhttp.open("GET", "/models/overview/deletemodel?filename="+file, true);
 	xhttp.send();
 	return false;
 };
@@ -118,9 +118,9 @@ function abort(pid) {
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
-			window.location.assign('/train/overview.html');
+			window.location.assign('/models/overview.html');
 		}
 	}
-	xhttp.open("GET", "/train/details/abort_training?pid="+pid, true);
+	xhttp.open("GET", "/models/details/abort_training?pid="+pid, true);
 	xhttp.send();
 }

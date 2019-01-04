@@ -14,6 +14,6 @@ function trainingChanged(option) {
 
 function proc_delete(pid) {
 	var xhttp = new XMLHttpRequest();
-	xhttp.open("GET", "train/proc_delete?pid="+pid, true);
+	xhttp.open("GET", "models/proc_delete?pid="+pid, true);
 	xhttp.send();
 }

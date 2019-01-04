@@ -9,8 +9,8 @@ from django import forms
 from time import strftime, ctime
 from datetime import datetime
 
-from train.train import train_rebuild
-from train.handler import TrainHandler
+from models.train import train_rebuild
+from models.handler import TrainHandler
 from utils_proc import gen_token, get_running_procs, get_token_from_pid, is_pid_running, write_pid, kill_proc
 import subprocess
 
@@ -38,7 +38,7 @@ def overview(request):
 		}, 
 		**BASE_CONTEXT
 	)
-	return render(request, 'train/overview.html', context)
+	return render(request, 'models/overview.html', context)
 
 def get_models_info(selected_model = ''):
 	models = []
@@ -110,7 +110,7 @@ def training(request):
 		{'active': 'Training'},
 		**BASE_CONTEXT
 	)
-	return render(request, 'train/training.html', context)
+	return render(request, 'models/training.html', context)
 
 def handle_start_training(request):
 	if request.method == "POST":
@@ -125,7 +125,7 @@ def handle_start_training(request):
 			}, 
 			**BASE_CONTEXT
 		)
-		return render(request, 'train/training.html', context) 
+		return render(request, 'models/training.html', context) 
 
 	if training in TRAINING_METHODS:
 		return start_training(request, TRAINING_METHODS[training])
@@ -168,7 +168,7 @@ def start_training(request, training):
 			}, 
 			**BASE_CONTEXT
 		)
-	return render(request, 'train/details.html', context)
+	return render(request, 'models/details.html', context)
 
 def handle_abort_training(request):
 	if request.method == 'GET':
@@ -201,7 +201,7 @@ def details(request):
 			'pid': procs[0]['id']
 		})
 
-	return render(request, 'train/details.html', context)
+	return render(request, 'models/details.html', context)
 
 # TODO init MODELSPECS_DIR (train.py), show architecture
 """
@@ -293,7 +293,7 @@ def overview(request):
 		context['layers'] = model_info
 		context['selected_model'] = selected_model
 	
-	return render(request, 'train/overview.html', context)
+	return render(request, 'models/overview.html', context)
 
 def models(request):
 	selected_model = request.session.get('selected_model')
@@ -302,7 +302,7 @@ def models(request):
 		"selected_model": "None"
 	}
 	
-	return render(request, 'train/models.html')
+	return render(request, 'models/models.html')
 
 def training(request):
 	context = {}
@@ -315,10 +315,10 @@ def training(request):
 	except ValueError as e:
 		print("WARNING: ignored the following ValueError: "+str(e))
 	
-	return render(request, 'train/training.html', context)
+	return render(request, 'models/training.html', context)
 
 def tensorboard(request):    
-	return render(request, 'train/tensorboard.html')
+	return render(request, 'models/tensorboard.html')
 
 def handle_model_reload(request):
 	selected_model = request.session.get('selected_model')
@@ -343,7 +343,7 @@ def handle_uploaded_file(request):
 		if not request.FILES:
 			# should be prevented by JS, but reload page as double-check
 			context = { "train" : {"active_class": "active"} }
-			return redirect('/train/models.html', context)
+			return redirect('/models/models.html', context)
 		filename = request.FILES['filechooser'].name
 		if os.path.exists(os.path.join(MODEL_SAVE_PATH, filename)):
 			return HttpResponse(400)
@@ -352,7 +352,7 @@ def handle_uploaded_file(request):
 		
 		# reload model table after file upload
 		context = { "train" : {"active_class": "active"} }
-		return redirect('/train/models.html', context)
+		return redirect('/models/models.html', context)
 	return HttpResponse(400)
 
 def store_uploaded_file(file):
@@ -448,13 +448,13 @@ def start_training(request, training):
 	context = {
 		'pid': pid
 	}
-	return render(request, 'train/training.html', context)
+	return render(request, 'models/training.html', context)
 
 def handle_proc_delete(request):
 	pid = request.GET.get('pid')
 	clear_proc(pid)
 	context = { "train" : {"active_class": "active"} }
-	return redirect('/train/models.html', context)
+	return redirect('/models/models.html', context)
 
 def clear_proc(pid):
 	token = get_token_from_pid(pid)
