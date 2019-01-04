@@ -10,8 +10,6 @@ urlpatterns = [
 	path('training.html', views.training),
 	path('details.html', views.details),
 
-	
-	url('selectmodel', views.handle_select_model),
 	url('deletemodel', views.handle_delete_model),
 	url('uploadmodel', views.handle_upload_model),
 	url('getselected', views.handle_get_selected),

@@ -12,6 +12,7 @@ import os.path
 import random
 
 from attack.handler import CWL2AttackHandler
+from train.views import get_models_info
 
 BASE_CONTEXT = {
 	'tabs': [
@@ -26,8 +27,14 @@ attacks = {
 }
 
 def attack(request):
+	selected_model = request.session.get('selected_model')
+	models = get_models_info(selected_model)
+
 	context = dict(
-		{'active': 'Attack'},
+		{
+			'active': 'Attack',
+			'models': models
+		},
 		**BASE_CONTEXT
 	)
 	return render(request, 'attack/attack.html', context)

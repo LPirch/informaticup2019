@@ -87,23 +87,6 @@ function delete_model(file) {
 };
 
 /* 
- * Send GET request to update the django session's selected model. 
- * @param {file} file name of the selected model
- */
-function select_model(file) {
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			reload_models(file);
-		}
-	}
-	xhttp.open("GET", "/train/overview/selectmodel?filename="+file, true);
-	xhttp.send();
-
-	return false;
-};
-
-/* 
  * reload model table according selected model passed
  */
 function reload_models(selected) {

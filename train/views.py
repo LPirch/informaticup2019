@@ -61,12 +61,6 @@ def readable_file_size(n_bytes, suffix='B'):
 		n_bytes /= 1e3
 	return "%.1f%s%s" % (n_bytes, 'Y', suffix)
 
-def handle_select_model(request):
-	if request.method == 'GET':
-		filename = request.GET.get('filename', '')
-		request.session['selected_model'] = filename
-	return HttpResponse()
-
 def handle_delete_model(request):
 	if request.method == 'GET':
 		filename = request.GET.get('filename', '')

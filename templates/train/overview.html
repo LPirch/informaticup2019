@@ -40,13 +40,13 @@
 	</thead>
 	<tbody  id="models-tbody">
 		{% for model in models %}
-		<tr class="table-active" onclick="select_model('{{ model.name }}')"> 
+		<tr class="table-active" onclick="select_model('{{ model.name }}', reload_models)"> 
 			<td scope="row">{{ forloop.counter }}</td> 
 			<td class="model-filename">{{ model.name }}</td>
 			<td>{{ model.size }}</td>
 			<td>{{ model.modified }}</td>
 			<td class="model-attack text-center">
-				<a href="/attack/overview.html"><i class="fas fa-bolt custom-fade {% if model.selected %}in{% endif %}"></i></a>
+				<a href="/attack/attack.html"><i class="fas fa-bolt custom-fade {% if model.selected %}in{% endif %}"></i></a>
 			</td>
 			<td class="text-center"><div data-toggle="modal" data-target="#modal" onclick="getModelInfo('{{model.name}}')"><i class="fas fa-info"></i></div></td>
 			{% csrf_token %}

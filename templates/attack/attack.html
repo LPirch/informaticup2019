@@ -5,7 +5,20 @@
 	<link rel="stylesheet" href="{% static 'css/attack.css' %}">
 {% endblock %}
 
+{% block additional_js %}
+	<script src="{% static 'js/attack/attack.js' %}"></script>
+{% endblock %}
+
 {% block content %}
+{% if models|length == 0 %}
+<div class="container text-center">
+	<div class="container text-center">
+		<div class="alert alert-danger">
+			<strong>There are no trained models yet.</strong>
+		</div>
+	</div>
+</div>
+{% else %}
 <div class="title">
 	<h3>Start Attack</h3>
 </div>
@@ -65,11 +78,21 @@
 		</div>
 
 		<div class="form-group form-group-lg">
+			<label for="imagefile">Source Image</label>
 			<div class="input-group input-file" name="filechooser">
 				<input name="imagefile" type="file" class='input-ghost'/>
 				<button class="btn btn-choose btn-secondary" type="button">Choose</button>
 				<input type="text" class="form-control input-lg input-selected-file" placeholder='Choose a file...' required/>
 			</div>
+		</div>
+		
+		<div class="form-group form-group-lg">
+			<label for="modelname">Target Model</label>
+			<select id="modelname" name="modelname" class="form-control">
+				{% for model in models %}
+				<option value="{{model.name}}" {% if model.selected %}selected{% endif %}>{{model.name}}</option>
+				{% endfor %}
+			</select>
 		</div>
 
 		<div>
@@ -96,7 +119,7 @@
 		<button type="submit" class="btn btn-primary">Submit</button>
 	</form>
 </div>
-
+{% endif %}
 {% endblock %}
 
 {% block after_body_scripts %}

@@ -12,8 +12,7 @@ class CWL2AttackHandler:
 			"target": str(int(request.POST["target"])),
 			"image": request.FILES["imagefile"],
 			"attack": "cwl2",
-			#TODO make this dynamic
-			"model": "gtsrb_model",
+			"model": str(request.POST["modelname"]),
 			"model_folder": MODEL_SAVE_PATH
 		}
 	
@@ -25,6 +24,8 @@ class CWL2AttackHandler:
 				popen_args.append(str(v))
 		
 		popen_args = ["python", "start_proc.py", process_dir, "python", "attack_model.py"] + popen_args
+		print("="*80)
+		print(popen_args)
 		pid = int(subprocess.check_output(popen_args).strip())
 		
 		return pid
