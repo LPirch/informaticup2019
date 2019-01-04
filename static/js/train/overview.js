@@ -1,7 +1,6 @@
 function getModelInfo(modelname) {
 	// remove file ending
 	modelname = modelname.split(".").slice(0, -1).join(".")
-	console.log("in getModelInfo, fetching "+modelname);
 	loading_started();
 
 	var xhttp = new XMLHttpRequest();

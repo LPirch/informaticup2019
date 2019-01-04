@@ -5,9 +5,8 @@ $(document).ready(function(){
 	// fetch available models on page load
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
-		if(xhttp.readyState == 4 && xhttp.status == 200) {
+		if (this.readyState == 4 && this.status == 200) {
 			var selected = JSON.parse(xhttp.responseText)
-			console.log(selected);
 			reload_models(selected);
 		}
 	}
@@ -72,13 +71,15 @@ $(document).ready(function(){
 function delete_model(file) {
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
-		var tds = document.querySelectorAll('.model-filename')
-		for(var i=0; i < tds.length; i++) {
-			if(tds[i].innerText === file) {
-				tds[i].parentNode.remove();
-				break;
+			if (this.readyState == 4 && this.status == 200) {
+			var tds = document.querySelectorAll('.model-filename')
+			for(var i=0; i < tds.length; i++) {
+				if(tds[i].innerText === file) {
+					tds[i].parentNode.remove();
+					break;
+				}
 			}
-		}
+			}
 	}
 	xhttp.open("GET", "/train/overview/deletemodel?filename="+file, true);
 	xhttp.send();
@@ -92,7 +93,9 @@ function delete_model(file) {
 function select_model(file) {
 	var xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
-		reload_models(file);
+		if (this.readyState == 4 && this.status == 200) {
+			reload_models(file);
+		}
 	}
 	xhttp.open("GET", "/train/overview/selectmodel?filename="+file, true);
 	xhttp.send();
