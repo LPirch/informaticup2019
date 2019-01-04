@@ -40,3 +40,51 @@
 .hidden {
 	display: none;
 }
+
+.modal-dialog {
+	height: 80%;
+	max-height: 80%;
+	width: 80%;
+	max-width: 80%;
+}
+
+.modal-content, .modal-body {
+	height: 100%;
+}
+
+.flex-center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#modal-content {
+	transition: opacity 1s ease-out;
+	opacity: 0; 
+	height: 0;
+	width: 0;
+	overflow: hidden;
+}
+#modal-content.active {
+	opacity: 1;
+	height: 75%;
+	width: 100%;
+	overflow-y: scroll;
+}
+
+#loading {
+	transition: opacity 1s ease-out;
+	opacity: 0; 
+	height: 0;
+	width: 0;
+	overflow: hidden;
+}
+#loading.active {
+	opacity: 1;
+	height: auto;
+	width: auto;
+}
+
+.striped tbody tr:nth-child(odd) {
+	background-color: #222222;
+}

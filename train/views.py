@@ -1,13 +1,13 @@
-from project_conf import MODEL_SAVE_PATH, PROCESS_DIR, TRAINING_PREFIX
+from project_conf import MODEL_SAVE_PATH, PROCESS_DIR, TRAINING_PREFIX, CACHE_DIR
 
 import os
+import json
+import pickle
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django import forms
 from time import strftime, ctime
 from datetime import datetime
-from keras.models import load_model
-import keras.backend as K
 
 from train.train import train_rebuild
 from train.handler import TrainHandler
@@ -108,6 +108,9 @@ def store_uploaded_file(file):
 		for chunk in file.chunks():
 			f.write(chunk)
 
+	modelname = file.name.split(".")[:-1].join(".")
+	invalidate_model_cache(modelname)
+
 def training(request):
 	context = dict(
 		{'active': 'Training'},
@@ -138,6 +141,7 @@ def handle_start_training(request):
 def start_training(request, training):
 	try:
 		kwargs = training.parse_arguments(request)
+		invalidate_model_cache(kwargs['modelname'])
 	except Exception as e:
 		print(type(e))
 		print(str(e))
@@ -225,6 +229,59 @@ def handle_get_selected(request):
 	selected_model = request.session.get('selected_model')
 	return JsonResponse(selected_model, safe=False)
 
+
+def handle_start_model_info(request):
+	if request.method == 'GET' and 'modelname' in request.GET:
+		# avoid starting multiple processes
+		if len(get_running_procs(prefix='modelinfo')) > 0:
+			return HttpResponse()
+
+		modelname = request.GET['modelname']
+		token = gen_token(prefix='modelinfo')
+		process_dir = os.path.join(PROCESS_DIR, token)
+		os.makedirs(process_dir)
+		args = ["python", "start_proc.py", process_dir, "python", "cache_model_arch.py", modelname]
+		pid = int(subprocess.check_output(args).strip())
+		write_pid(token, pid)
+		return HttpResponse()
+
+	return HttpResponse(status=400)
+
+
+def handle_model_info(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body.decode('utf-8'))
+			modelname = data['modelname']
+		except:
+			return HttpResponse(status=404)
+		pkl_path = os.path.join(CACHE_DIR, modelname+'.pkl')
+		if os.path.exists(pkl_path):
+			with open(pkl_path, 'rb') as pkl:
+				# stringify shape data for serialization
+				layer_info = []
+				for layer in pickle.load(pkl):
+					layer_dict = {}
+					for k,v in layer.items():
+						layer_dict[k] = str(v)
+					layer_info.append(layer_dict)
+		else:
+			return HttpResponse(status=404)
+		
+		procs = get_running_procs(prefix='modelinfo')
+		if len(procs) > 0:
+			# clean up temporary files of proc
+			pid = procs[0]['id']
+			kill_proc(pid)
+
+		return JsonResponse(layer_info, safe=False)
+		
+	return HttpResponse(status=400)
+
+def invalidate_model_cache(modelname):
+	pkl_path = os.path.join(CACHE_DIR, modelname+'.pkl')
+	if os.path.exists(pkl_path):
+		os.remove(pkl_path)
 """
 training_methods = {
 	'rebuild': TrainHandler,
