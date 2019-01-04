@@ -135,11 +135,13 @@
 						<label for="physical_max_iterations">Max iterations</label>
 						<input id="physical_max_iterations" type="number" class="form-control" name="physical_max_iterations" placeholder="Max iterations" value="1000">
 					</div>
-					<div class="input-group input-file" name="filechooser">
+					<div class="form-group col-md-12">
 						<label for="physical_mask_image">Mask image</label>
-						<input id="physical_mask_image" name="physical_mask_image" type="file" class='input-ghost'/>
-						<button class="btn btn-choose btn-secondary" type="button">Choose</button>
-						<input id="mask_input" type="text" class="form-control input-selected-file" placeholder='Choose a file...'/>
+						<div class="input-group input-file" name="filechooser">
+							<input id="physical_mask_image" name="physical_mask_image" type="file" class='input-ghost'/>
+							<button class="btn btn-choose btn-secondary" type="button">Choose</button>
+							<input id="mask_input" type="text" class="form-control input-selected-file" placeholder='Choose a file...'/>
+						</div>
 					</div>
 				</div>
 			</div>
