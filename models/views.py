@@ -102,7 +102,7 @@ def store_uploaded_file(file):
 		for chunk in file.chunks():
 			f.write(chunk)
 
-	modelname = file.name.split(".")[:-1].join(".")
+	modelname = (".").join(file.name.split(".")[:-1])
 	invalidate_model_cache(modelname)
 
 def training(request):
