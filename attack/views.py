@@ -5,13 +5,13 @@ from django.http import HttpResponse, JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
-from utils_proc import is_pid_running, get_token_from_pid, kill_proc
+from utils_proc import is_pid_running, get_token_from_pid, kill_proc, write_pid
 
 import os
 import os.path
 import random
 
-from attack.handler import CWL2AttackHandler
+from attack.handler import CWL2AttackHandler, RobustCWL2AttackHandler, PhysicalAttackHandler
 from models.views import get_models_info
 
 BASE_CONTEXT = {
@@ -23,7 +23,9 @@ BASE_CONTEXT = {
 }
 
 attacks = {
-	"cwl2": CWL2AttackHandler
+	"cwl2": CWL2AttackHandler,
+	"robust_cwl2": RobustCWL2AttackHandler,
+	"physical": PhysicalAttackHandler
 }
 
 def attack(request):
@@ -83,12 +85,10 @@ def handle_start_attack(request):
 	return HttpResponse("Attack not found")
 
 def start_attack(request, attack):
-	import traceback
 	try:
 		kwargs = attack.parse_arguments(request)
-	except:
-		traceback.print_exc()
-		return HttpResponse("Invalid argument")
+	except Exception as e:
+		return HttpResponse("Invalid argument" + str(e))
 
 	if not os.path.exists(PROCESS_DIR):
 		os.makedirs(PROCESS_DIR)
@@ -104,22 +104,24 @@ def start_attack(request, attack):
 	outdir = os.path.join(IMG_TMP_DIR, token)
 	kwargs["outdir"] = outdir
 
-	if kwargs["image"]:
+	if "image" in kwargs and kwargs["image"]:
 		src_img_path = os.path.join(outdir, "original.png")
 		# override image arg with tmp filename of img
 		kwargs["image"] = default_storage.save(src_img_path, ContentFile(kwargs["image"].read()))
+	
+	if "mask_image" in kwargs and kwargs["mask_image"]:
+		mask_path = os.path.join(outdir, "mask.png")
+		kwargs["mask_image"] = default_storage.save(mask_path, ContentFile(kwargs["mask_image"].read()))
 
 	try:
 		pid = attack.start(process_dir, kwargs)
 	except Exception as e:
 		print(type(e))
 		print(str(e))
-		traceback.print_exc()
 		return HttpResponse("Error on Popen")
 
 	try:
-		with open(os.path.join(PROCESS_DIR, str(pid)), "w") as f:
-			f.write(token)
+		write_pid(token, pid)
 	except:
 		return HttpResponse("Error on create pid")
 

@@ -10,6 +10,14 @@
 				d.style.display = "none";
 			}
 		});
+
+		var mask_input = document.querySelector('#mask_input');
+		if (select.value === 'physical') {
+			// 'true' value not required but can't pass only an attribute's name
+			mask_input.setAttribute('required', 'true');
+		} else {
+			mask_input.removeAttribute('required');
+		}
 	}
 
 	select.addEventListener("change", change);
