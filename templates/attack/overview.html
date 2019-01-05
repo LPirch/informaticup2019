@@ -30,10 +30,19 @@
 			<th><!--delete column--></th>
 		</tr>
 	{% for proc in processes %}
-		<tr id="tr-{{proc.id}}">
-			<td><a href="details.html?pid={{ proc.id }}">{{ proc.id }}</a></td>
-			<td>({{proc.running}})</td>
-			<td class="text-center" ><div onclick="delete_proc('{{proc.id}}')"><i class="fas fa-trash-alt"></i></div></td>
+		<tr id="tr-{{proc.id}}" class="align-bottom">
+			<td>
+				<div class="flex-container">
+					<div><a href="details.html?pid={{ proc.id }}">{{ proc.id }}</a></div>
+					{% if proc.running %}
+					<div><span class="badge badge-warning">In Progress</span></div>
+					{% else %}
+					<div><span class="badge badge-success">Finished</span></div>
+					{% endif %}
+				</div>
+			</td>
+			<td><div class="flex-container">({{proc.running}})</div></td>
+			<td class="text-center" ><div class="flex-container flex-icon" onclick="delete_proc('{{proc.id}}')"><i class="fas fa-trash-alt"></i></div></td>
 		</tr>
 	{% endfor %}
 	</table>
