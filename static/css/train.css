@@ -6,8 +6,8 @@
 	border-radius: 0.25em !important;
 }
 
-.fa-trash-alt:hover, .fa-redo-alt:hover {
-	color: #b4b4b4 !important;
+.fa-trash-alt:hover, .fa-bolt:hover, .fa-info:hover {
+	color: #00bc8c !important;
 }
 
 .btn-primary:hover {
