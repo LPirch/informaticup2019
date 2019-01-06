@@ -26,7 +26,7 @@
 	<table class="table table-hover">
 		<tr>
 			<th>PID</th>
-			<th>Running</th>
+			<th>Status</th>
 			<th><!--delete column--></th>
 		</tr>
 	{% for proc in processes %}
@@ -34,6 +34,10 @@
 			<td>
 				<div class="flex-container">
 					<div><a href="details.html?pid={{ proc.id }}">{{ proc.id }}</a></div>
+				</div>
+			</td>
+			<td>
+				<div class="flex-container">
 					{% if proc.running %}
 					<div><span class="badge badge-warning">In Progress</span></div>
 					{% else %}
@@ -41,7 +45,6 @@
 					{% endif %}
 				</div>
 			</td>
-			<td><div class="flex-container">({{proc.running}})</div></td>
 			<td class="text-center" ><div class="flex-container flex-icon" onclick="delete_proc('{{proc.id}}')"><i class="fas fa-trash-alt"></i></div></td>
 		</tr>
 	{% endfor %}
