@@ -124,7 +124,7 @@ def start_attack(request, attack):
 	except:
 		return HttpResponse("Error on create pid")
 
-	return redirect('/attack/overview.html')
+	return redirect('/attack/details.html?pid=' + str(pid))
 
 def handle_proc_info(request):
 	token = get_token_from_pid(request.GET["pid"])
