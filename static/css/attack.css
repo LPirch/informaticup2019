@@ -1,53 +1,12 @@
 .attack-options {
 	display: none;
 }
-
-.container textarea {
-	width: 100%;
-	background-color: #000;
-	border: 1px solid #000;
-	color: #00ff00;
-	padding: 8px;
-	font-family: courier new;
-	min-height: 400px; 
-}
-
 .input-file .input-ghost {
 	display: none;
 }
 
 .input-file .input-selected-file {
 	cursor: pointer;
-}
-
-::-webkit-scrollbar {
-	width: 0.5em;
-}
-
-::-webkit-scrollbar-track {
-	box-shadow: inset 0 0 5px black; 
-	border-radius: 10px;
-}
-
-.container textarea::-webkit-resizer {
-	background: darkgreen;
-}
-
-.container textarea::-webkit-scrollbar-thumb {
-	background: #00ff00; 
-	border-radius: 10px;
-}
-
-.container textarea::-webkit-scrollbar-track-piece {
-	background: black;
-}
-
-.container textarea::-webkit-scrollbar-thumb:hover {
-	background: #00af00; 
-}
-
-textarea {
-	border-radius: 1em;
 }
 
 .badge {

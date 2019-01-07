@@ -88,3 +88,17 @@
 .striped tbody tr:nth-child(odd) {
 	background-color: #222222;
 }
+
+.fa-info, .fa-trash-alt {
+	cursor: pointer;
+}
+
+.flex-row {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+a.btn-danger {
+	margin-left: 1.5em;
+}
