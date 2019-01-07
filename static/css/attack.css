@@ -29,20 +29,20 @@
 	border-radius: 10px;
 }
 
-::-webkit-resizer {
+.container textarea::-webkit-resizer {
 	background: darkgreen;
 }
 
-::-webkit-scrollbar-thumb {
+.container textarea::-webkit-scrollbar-thumb {
 	background: #00ff00; 
 	border-radius: 10px;
 }
 
-::-webkit-scrollbar-track-piece {
+.container textarea::-webkit-scrollbar-track-piece {
 	background: black;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.container textarea::-webkit-scrollbar-thumb:hover {
 	background: #00af00; 
 }
 

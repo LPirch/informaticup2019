@@ -16,7 +16,7 @@ function pollConsole(pid) {
 					clearInterval(interval);
 				}
 			}
-		};
+		}
 		xhttp.open("GET", "attack/proc_info?pid=" + pid, true);
 		xhttp.send();
 	}
