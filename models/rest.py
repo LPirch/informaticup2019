@@ -71,9 +71,6 @@ def handle_model_info(request):
 def handle_delete_model(request):
 	if request.method == 'POST':
 		filename = request.POST['filename']
-
-		# basic sanitizing
-		if re.match("^([a-zA-Z0-9_]+\.h5)$", filename):
 			return delete_model(filename)
 		return HttpResponse(status=400)
 	return HttpResponse(status=405)
