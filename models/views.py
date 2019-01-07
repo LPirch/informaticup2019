@@ -31,7 +31,7 @@ def overview(request):
 	return HttpResponse(status=405)
 
 
-def get_models_info():
+def get_models_info(selected=None):
 	models = []
 	for _, _, filenames in os.walk(MODEL_SAVE_PATH):
 		for f in filenames:
@@ -40,6 +40,7 @@ def get_models_info():
 			models.append({
 				'name': f, 
 				'modified': last_modified,
+				'selected': f == selected,
 				'size': readable_file_size(os.path.getsize(filepath))
 			})
 	return models

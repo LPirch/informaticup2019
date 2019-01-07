@@ -20,12 +20,18 @@ BASE_CONTEXT = {
 
 def attack(request):
 	if request.method == "GET":
-		models = get_models_info()
+		selected_model = ""
+
+		if "model" in request.GET:
+			selected_model = request.GET["model"]
+
+		models = get_models_info(selected=selected_model)
 
 		context = dict(
 			{
 				'active': 'Attack',
-				'models': models
+				'models': models,
+				'selected_model': selected_model
 			},
 			**BASE_CONTEXT
 		)
