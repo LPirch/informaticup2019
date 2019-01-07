@@ -2,16 +2,6 @@
  * Initialize event handlers, enable popover (opt-in API)
  */
 $(document).ready(function(){
-	// fetch available models on page load
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			var selected = JSON.parse(xhttp.responseText)
-			reload_models(selected);
-		}
-	}
-	xhttp.open("GET", "/models/overview/getselected");
-	xhttp.send();
 	// init delete confirmation popover
 	$('#confirm-delete').on('show.bs.modal', function(e) {
 		$(this).find('.btn-ok').attr('href', $(e.relatedTarget).data('href'));
@@ -62,48 +52,9 @@ $(document).ready(function(){
 			return false;
 		}
 	});
-});
-
- /*
- * Send GET request for deleting a model file. 
- * @param {file} file name of the file to delete
- */
-function delete_model(file) {
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-			if (this.readyState == 4 && this.status == 200) {
-			var tds = document.querySelectorAll('.model-filename')
-			for(var i=0; i < tds.length; i++) {
-				if(tds[i].innerText === file) {
-					tds[i].parentNode.remove();
-					break;
-				}
-			}
-			}
-	}
-	xhttp.open("GET", "/models/overview/deletemodel?filename="+file, true);
-	xhttp.send();
-	return false;
-};
-
-/* 
- * reload model table according selected model passed
- */
-function reload_models(selected) {
-	var models = document.querySelectorAll("tr.table-active");
-	models.forEach(function(m) {
-		name = m.querySelector('.model-filename').innerText;
-		attack = m.querySelector('.model-attack i')
-		if(name === selected) {
-			attack.classList.add('in');
-		} else {
-			if(attack.classList.contains('in')) {
-				attack.classList.remove('in');
-			}
-		}
-	});
 
 	$("a.fa-trash-alt").each(function(){
+		console.log("Trash");
 		$(this).confirmation({
 			rootSelector: '[data-toggle=confirmation]',
 		});
@@ -112,7 +63,31 @@ function reload_models(selected) {
 			delete_model(filename);
 		});
 	});
-}
+});
+
+ /*
+ * Send POST request for deleting a model file. 
+ * @param {file} file name of the file to delete
+ */
+function delete_model(file) {
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+		var tds = document.querySelectorAll('.model-filename');
+			for (var i = 0; i < tds.length; i++) {
+				if(tds[i].innerText === file) {
+					tds[i].parentNode.remove();
+					break;
+				}
+			}
+		}
+	}
+
+	xhttp.open("POST", "/models/overview/deletemodel", true);
+	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhttp.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
+	xhttp.send("filename=" + file);
+};
 
 function abort(pid) {
 	var xhttp = new XMLHttpRequest();
@@ -121,6 +96,9 @@ function abort(pid) {
 			window.location.assign('/models/overview.html');
 		}
 	}
-	xhttp.open("GET", "/models/details/abort_training?pid="+pid, true);
-	xhttp.send();
+
+	xhttp.open("POST", "/models/overview/abort_training", true);
+	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhttp.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
+	xhttp.send("pid=" + pid);
 }

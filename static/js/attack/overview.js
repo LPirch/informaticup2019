@@ -5,6 +5,8 @@ function delete_proc(pid) {
 			window.location.reload(true);
 		}
 	}
-	xhttp.open('GET', 'delete_proc?pid='+pid, true);
-	xhttp.send();
+	xhttp.open("POST", "delete_proc", true);
+	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhttp.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
+	xhttp.send("pid=" + pid);
 }

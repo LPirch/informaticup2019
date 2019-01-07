@@ -29,8 +29,7 @@ attacks = {
 }
 
 def attack(request):
-	selected_model = request.session.get('selected_model')
-	models = get_models_info(selected_model)
+	models = get_models_info()
 
 	context = dict(
 		{
@@ -151,12 +150,8 @@ def handle_list_images(request):
 	return JsonResponse({"images": images})
 
 def handle_delete_proc(request):
-	pid = request.GET.get('pid', '')
-
-	if pid:
-		pid = int(pid)
-		kill_proc(pid)
-
+	if request.method == "POST" and request.POST['pid']:
+		kill_proc(int(request.POST['pid']))
 		return redirect('/attack/overview.html')
-	else:
-		return HttpResponse(status=400)
+
+	return HttpResponse(status=400)

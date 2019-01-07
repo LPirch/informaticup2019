@@ -28,8 +28,7 @@ TRAINING_METHODS = {
 }
 
 def overview(request):
-	selected_model = request.session.get('selected_model')
-	models = get_models_info(selected_model)
+	models = get_models_info()
 
 	context = dict(
 		{
@@ -40,7 +39,7 @@ def overview(request):
 	)
 	return render(request, 'models/overview.html', context)
 
-def get_models_info(selected_model = ''):
+def get_models_info():
 	models = []
 	for _, _, filenames in os.walk(MODEL_SAVE_PATH):
 		for f in filenames:
@@ -49,7 +48,6 @@ def get_models_info(selected_model = ''):
 			models.append({
 				'name': f, 
 				'modified': last_modified,
-				'selected': f == selected_model,
 				'size': readable_file_size(os.path.getsize(filepath))
 			})
 	return models
@@ -62,11 +60,8 @@ def readable_file_size(n_bytes, suffix='B'):
 	return "%.1f%s%s" % (n_bytes, 'Y', suffix)
 
 def handle_delete_model(request):
-	if request.method == 'GET':
-		filename = request.GET.get('filename', '')
-		delete_model(filename)
-		if filename == request.session.get('selected_model'):
-			request.session['selected_model'] = None
+	if request.method == 'POST' and request.POST['filename']:
+		delete_model(request.POST['filename'])
 	return HttpResponse()
 
 def delete_model(filename):
@@ -85,11 +80,7 @@ def handle_upload_model(request):
 		else:
 			store_uploaded_file(request.FILES['filechooser'])
 		
-		# reload model table after file upload
-		selected_model = request.session.get('selected_model')
-		models = get_models_info(selected_model)
-
-		return overview(request)
+		return redirect('/models/')
 	return HttpResponse(400)
 
 def store_uploaded_file(file):
@@ -116,21 +107,22 @@ def handle_start_training(request):
 	if request.method == "POST":
 		training = request.POST["training"]
 	
-	# avoid two concurrent trainings
-	if len(get_running_procs(prefix="train")) > 0:
-		context = dict(
-			{
-				'active': 'Training',
-				'error_unavailable': True
-			}, 
-			**BASE_CONTEXT
-		)
-		return render(request, 'models/training.html', context) 
+		# avoid two concurrent trainings
+		if len(get_running_procs(prefix="train")) > 0:
+			context = dict(
+				{
+					'active': 'Training',
+					'error_unavailable': True
+				}, 
+				**BASE_CONTEXT
+			)
+			return render(request, 'models/training.html', context) 
 
-	if training in TRAINING_METHODS:
-		return start_training(request, TRAINING_METHODS[training])
+		if training in TRAINING_METHODS:
+			return start_training(request, TRAINING_METHODS[training])
 
-	return HttpResponse("Training method not found")
+		return HttpResponse("Training method not found")
+	return HttpResponse(status=400)
 
 def start_training(request, training):
 	try:
@@ -171,8 +163,8 @@ def start_training(request, training):
 	return render(request, 'models/details.html', context)
 
 def handle_abort_training(request):
-	if request.method == 'GET':
-		pid = int(request.GET.get('pid', ''))
+	if request.method == 'POST' and request.POST['pid']:
+		pid = int(request.POST['pid'])
 		kill_proc(pid)
 	return HttpResponse()
 
@@ -204,48 +196,44 @@ def details(request):
 	return render(request, 'models/details.html', context)
 
 
-def handle_get_selected(request):
-	selected_model = request.session.get('selected_model')
-	return JsonResponse(selected_model, safe=False)
+def handle_start_model_info(modelname):
+	# avoid starting multiple processes
+	if len(get_running_procs(prefix='modelinfo')) > 0:
+		# 409 Conflict
+		return HttpResponse(status=409)
 
+	# make sure the model actuall exists
+	if not os.path.join(MODEL_SAVE_PATH, modelname + '.h5'):
+		return HttpResponse(status=404)
 
-def handle_start_model_info(request):
-	if request.method == 'GET' and 'modelname' in request.GET:
-		# avoid starting multiple processes
-		if len(get_running_procs(prefix='modelinfo')) > 0:
-			return HttpResponse()
+	token = gen_token(prefix='modelinfo')
+	process_dir = os.path.join(PROCESS_DIR, token)
+	os.makedirs(process_dir)
+	args = ["python", "start_proc.py", process_dir, "python", "cache_model_arch.py", modelname]
+	pid = int(subprocess.check_output(args).strip())
+	write_pid(token, pid)
 
-		modelname = request.GET['modelname']
-		token = gen_token(prefix='modelinfo')
-		process_dir = os.path.join(PROCESS_DIR, token)
-		os.makedirs(process_dir)
-		args = ["python", "start_proc.py", process_dir, "python", "cache_model_arch.py", modelname]
-		pid = int(subprocess.check_output(args).strip())
-		write_pid(token, pid)
-		return HttpResponse()
-
-	return HttpResponse(status=400)
-
+	# Process has been started, inform user:
+	# 503 Service Unavailable (i.e. come back later)
+	return HttpResponse(status=503)
 
 def handle_model_info(request):
-	if request.method == 'POST':
-		try:
-			data = json.loads(request.body.decode('utf-8'))
-			modelname = data['modelname']
-		except:
-			return HttpResponse(status=404)
+	if request.method == 'GET' and request.GET['modelname']:
+		modelname = request.GET['modelname']
+
 		pkl_path = os.path.join(CACHE_DIR, modelname+'.pkl')
-		if os.path.exists(pkl_path):
-			with open(pkl_path, 'rb') as pkl:
-				# stringify shape data for serialization
-				layer_info = []
-				for layer in pickle.load(pkl):
-					layer_dict = {}
-					for k,v in layer.items():
-						layer_dict[k] = str(v)
-					layer_info.append(layer_dict)
-		else:
-			return HttpResponse(status=404)
+
+		if not os.path.exists(pkl_path):
+			return handle_start_model_info(modelname)
+
+		with open(pkl_path, 'rb') as pkl:
+			# stringify shape data for serialization
+			layer_info = []
+			for layer in pickle.load(pkl):
+				layer_dict = {}
+				for k,v in layer.items():
+					layer_dict[k] = str(v)
+				layer_info.append(layer_dict)
 		
 		procs = get_running_procs(prefix='modelinfo')
 		if len(procs) > 0:
@@ -253,7 +241,7 @@ def handle_model_info(request):
 			pid = procs[0]['id']
 			kill_proc(pid)
 
-		return JsonResponse(layer_info, safe=False)
+		return JsonResponse({"modelInfo": layer_info})
 		
 	return HttpResponse(status=400)
 

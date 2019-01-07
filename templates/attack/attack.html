@@ -5,10 +5,6 @@
 	<link rel="stylesheet" href="{% static 'css/attack.css' %}">
 {% endblock %}
 
-{% block additional_js %}
-	<script src="{% static 'js/attack/attack.js' %}"></script>
-{% endblock %}
-
 {% block content %}
 {% if models|length == 0 %}
 <div class="container text-center">
@@ -154,5 +150,5 @@
 {% endblock %}
 
 {% block after_body_scripts %}
-	<script src="{% static 'js/attack.js' %}"></script>
+	<script src="{% static 'js/attack/attack.js' %}"></script>
 {% endblock %}

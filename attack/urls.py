@@ -10,8 +10,11 @@ urlpatterns = [
 	path('details.html', views.details),
 	url('attack.html', views.attack),
 
+	# GET
 	url('proc_info', views.handle_proc_info),
-	url('start_attack', views.handle_start_attack),
 	url('list_images', views.handle_list_images),
+
+	# POST
+	url('start_attack', views.handle_start_attack),
 	url('delete_proc', views.handle_delete_proc)
 ]

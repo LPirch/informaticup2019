@@ -40,7 +40,7 @@
 	</thead>
 	<tbody  id="models-tbody">
 		{% for model in models %}
-		<tr class="table-active" onclick="select_model('{{ model.name }}', reload_models)"> 
+		<tr class="table-active"> 
 			<td scope="row">{{ forloop.counter }}</td> 
 			<td class="model-filename">{{ model.name }}</td>
 			<td>{{ model.size }}</td>

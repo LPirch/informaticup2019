@@ -22,19 +22,11 @@ from django.http import HttpResponse
 def welcome(request):
 	return render(request, 'welcome.html')
 
-def handle_select_model(request):
-	if request.method == 'GET':
-		filename = request.GET.get('filename', '')
-		request.session['selected_model'] = filename
-	return HttpResponse()
-
 urlpatterns = [
 	path('', welcome, name='index'),
 	path('index.html', welcome),
 	path('welcome.html', welcome),
 	path('models/', include('models.urls')),
 	path('attack/', include('attack.urls')),
-	path('admin/', admin.site.urls),
-	url('selectmodel', handle_select_model),
-
+	path('admin/', admin.site.urls)
 ]
