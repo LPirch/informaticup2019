@@ -5,6 +5,8 @@ api_key
 bin
 include 
 lib
+share
+venv
 
 # IDE config directories
 .vscode
@@ -12,6 +14,13 @@ lib
 
 # data
 data
+
+# temporary directories
+.cache
+.process
+.tensorboard
+logs
+tmp
 
 # python stuff
 __pycache__
