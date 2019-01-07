@@ -13,6 +13,7 @@ urlpatterns = [
 
 	# GET
 	url('model_info', rest.handle_model_info),
+	url('proc_info', rest.handle_proc_info),
 
 	# POST
 	url('deletemodel', rest.handle_delete_model),

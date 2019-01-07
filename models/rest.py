@@ -71,11 +71,7 @@ def handle_model_info(request):
 def handle_delete_model(request):
 	if request.method == 'POST':
 		filename = request.POST['filename']
-
-		# basic sanitizing
-		if re.match("^([a-zA-Z0-9_]+\.h5)$", filename):
-			return delete_model(filename)
-		return HttpResponse(status=400)
+		return delete_model(filename)
 	return HttpResponse(status=405)
 
 
@@ -188,3 +184,22 @@ def invalidate_model_cache(modelname):
 	pkl_path = os.path.join(CACHE_DIR, modelname+'.pkl')
 	if os.path.exists(pkl_path):
 		os.remove(pkl_path)
+
+def handle_proc_info(request):
+	if request.method == "GET":
+		procs = get_running_procs(prefix=TRAINING_PREFIX)
+		if len(procs) == 0:
+			return HttpResponse(status=404)
+		
+		pid = int(procs[0]['id'])
+		token = get_token_from_pid(pid)
+		process_dir = os.path.join(PROCESS_DIR, token)
+
+		try:
+			with open(os.path.join(process_dir, "stdout"), "r") as g:
+				out = g.read()
+		except:
+			return HttpResponse("Could not read process output (" + PROCESS_DIR + token + ".out)")
+
+		return JsonResponse({"console": out, "running": is_pid_running(pid)})
+	return HttpResponse(status=405)
