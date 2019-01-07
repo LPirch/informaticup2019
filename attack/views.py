@@ -17,8 +17,7 @@ from models.views import get_models_info
 BASE_CONTEXT = {
 	'tabs': [
 		{'name': 'Overview', 'url': 'overview.html'},
-		{'name': 'Attack', 'url': 'attack.html'},
-		{'name': 'Details', 'url': 'details.html'}
+		{'name': 'Attack', 'url': 'attack.html'}
 	]
 }
 
@@ -29,50 +28,59 @@ attacks = {
 }
 
 def attack(request):
-	models = get_models_info()
+	if request.method == "GET":
+		models = get_models_info()
 
-	context = dict(
-		{
-			'active': 'Attack',
-			'models': models
-		},
-		**BASE_CONTEXT
-	)
-	return render(request, 'attack/attack.html', context)
+		context = dict(
+			{
+				'active': 'Attack',
+				'models': models
+			},
+			**BASE_CONTEXT
+		)
+		return render(request, 'attack/attack.html', context)
+	return HttpResponse(status=405)
 
 def overview(request):
-	processes  = []
+	if request.method == "GET":
+		processes  = []
 
-	for p in filter(lambda x: x.isdigit(), os.listdir(PROCESS_DIR)):
-		processes.append({
-			"id": p,
-			"running": is_pid_running(int(p))
-		})
+		for p in filter(lambda x: x.isdigit(), os.listdir(PROCESS_DIR)):
+			processes.append({
+				"id": p,
+				"running": is_pid_running(int(p))
+			})
 
-	context = dict(
-		{
-			'active': 'Overview',
-			'processes': processes
-		}, 
-		**BASE_CONTEXT
-	)
-	return render(request, 'attack/overview.html', context)
+		context = dict(
+			{
+				'active': 'Overview',
+				'processes': processes
+			}, 
+			**BASE_CONTEXT
+		)
+		return render(request, 'attack/overview.html', context)
+	return HttpResponse(status=405)
 
 def details(request):
-	pid = request.GET.get('pid', '')
+	if request.method == "GET":
+		pid = request.GET['pid']
 
-	context = dict({'active': 'Details'}, **BASE_CONTEXT)
-	if pid:
-		pid = int(pid)
-		token = get_token_from_pid(pid)
-		context.update({
-			'pid': str(pid),
-			'img_path': os.path.join(IMG_TMP_DIR, token)
-		})
-	else:
-		context['error_none_selected'] =  True
+		context = dict({'active': 'Details'}, **BASE_CONTEXT)
+		context["tabs"] = [_ for _ in context["tabs"]]
+		context["tabs"].append({'name': 'Details', 'url': 'details.html'})
 
-	return render(request, 'attack/details.html', context)
+		if pid:
+			pid = int(pid)
+			token = get_token_from_pid(pid)
+			context.update({
+				'pid': str(pid),
+				'img_path': os.path.join(IMG_TMP_DIR, token)
+			})
+		else:
+			context['error_none_selected'] =  True
+
+		return render(request, 'attack/details.html', context)
+	return HttpResponse(status=405)
 
 def handle_start_attack(request):
 	if request.method == "POST":
@@ -80,8 +88,43 @@ def handle_start_attack(request):
 
 		if attack in attacks:
 			return start_attack(request, attacks[attack])
+		return HttpResponse(status=400)
+	return HttpResponse(status=405)
 
-	return HttpResponse("Attack not found")
+def handle_proc_info(request):
+	if request.method == "GET":
+		pid = str(int(request.GET["pid"]))
+		token = get_token_from_pid(pid)
+		process_dir = os.path.join(PROCESS_DIR, token)
+
+		try:
+			with open(os.path.join(process_dir, "stdout"), "r") as g:
+				out = g.read()
+		except:
+			return HttpResponse("Could not read process output (" + PROCESS_DIR + token + ".out)")
+
+		return JsonResponse({"console": out, "running": is_pid_running(pid)})
+	return HttpResponse(status=405)
+
+def handle_list_images(request):
+	if request.method == "GET":
+		pid = str(int(request.GET["pid"]))
+		token = get_token_from_pid(pid)
+		process_dir = os.path.join(IMG_TMP_DIR, token)
+
+		try:
+			images = list(filter(lambda x: x.endswith(".png"), os.listdir(process_dir)))
+		except:
+			return HttpResponse(status=400)
+
+		return JsonResponse({"images": images, "running": is_pid_running(pid)})
+	return HttpResponse(status=405)
+
+def handle_delete_proc(request):
+	if request.method == "POST":
+		kill_proc(int(request.POST['pid']))
+		return redirect('/attack/overview.html')
+	return HttpResponse(status=405)
 
 def start_attack(request, attack):
 	try:
@@ -125,35 +168,3 @@ def start_attack(request, attack):
 		return HttpResponse("Error on create pid")
 
 	return redirect('/attack/details.html?pid=' + str(pid))
-
-def handle_proc_info(request):
-	pid = str(int(request.GET["pid"]))
-	token = get_token_from_pid(pid)
-	process_dir = os.path.join(PROCESS_DIR, token)
-
-	try:
-		with open(os.path.join(process_dir, "stdout"), "r") as g:
-			out = g.read()
-	except:
-		return HttpResponse("Could not read process output (" + PROCESS_DIR + token + ".out)")
-
-	return JsonResponse({"console": out, "running": is_pid_running(pid)})
-
-def handle_list_images(request):
-	pid = str(int(request.GET["pid"]))
-	token = get_token_from_pid(pid)
-	process_dir = os.path.join(IMG_TMP_DIR, token)
-
-	try:
-		images = list(filter(lambda x: x.endswith(".png"), os.listdir(process_dir)))
-	except:
-		return HttpResponse(status=400)
-
-	return JsonResponse({"images": images, "running": is_pid_running(pid)})
-
-def handle_delete_proc(request):
-	if request.method == "POST" and request.POST['pid']:
-		kill_proc(int(request.POST['pid']))
-		return redirect('/attack/overview.html')
-
-	return HttpResponse(status=400)

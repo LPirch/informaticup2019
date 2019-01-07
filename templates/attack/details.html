@@ -20,64 +20,45 @@
 </div>
 <div class="container">
 	<textarea id="console" readonly></textarea>
-	<div id="images"></div>
+	<table id="images" class="table">
+		<tr><th>Image</th><th>Name</th><th>Local Classification</th><th>Remote classification</th></tr>
+	</table>
 </div>
-
-<script>
-(function() {
-	var interval = setInterval(fetch, 1000);
-
-	function fetch() {
-		var xhttp = new XMLHttpRequest();
-		xhttp.onreadystatechange = function() {
-			if (this.readyState == 4 && this.status == 200) {
-				var data = JSON.parse(xhttp.responseText);
-
-				var consoleDiv = document.getElementById("console");
-				consoleDiv.innerHTML = data["console"];
-				consoleDiv.scrollTop = consoleDiv.scrollHeight;
-
-				if (!data["running"]) {
-					clearInterval(interval);
-				}
-			}
-		};
-		xhttp.open("GET", "attack/proc_info?pid={{ pid }}", true);
-		xhttp.send();
-	}
-})();
-
-(function() {
-	var images = [];
-	var interval = setInterval(fetch, 1000);
-
-	function fetch() {
-		var xhttp = new XMLHttpRequest();
-		xhttp.onreadystatechange = function() {
-			if (this.readyState == 4 && this.status == 200) {
-				var data = JSON.parse(xhttp.responseText);
-
-				var recv_images = data["images"];
-				var new_images = []
-
-				for (var i = 0; i < recv_images.length; i++) {
-					if (!images.includes(recv_images[i])) {
-						new_images.push(recv_images[i]);
-						images.push(recv_images[i]);
-					}
-				}
-
-				for (var i = 0; i < new_images.length; i++) {
-					var img = document.createElement("img");
-					img.src = "/{{ img_path }}/" + new_images[i];
-					document.getElementById("images").appendChild(img);
-				}
-			}
-		};
-		xhttp.open("GET", "attack/list_images?pid={{ pid }}", true);
-		xhttp.send();
-	}
-})();
-</script>
 {% endif %}
+{% endblock %}
+
+{% block after_body_scripts %}
+	<script src="{% static 'js/attack/details.js' %}"></script>
+	<script>
+		var pid = "{{ pid }}";
+		pollConsole(pid);
+		pollImages(pid, function(newImage) {
+			var row = document.createElement("tr");
+
+			var img_cell = document.createElement("td");
+			var name_cell = document.createElement("td");
+			var local_cell = document.createElement("td");
+			var remote_cell = document.createElement("td");
+
+			var img = document.createElement("img");
+			img.src = "/{{ img_path }}/" + newImage;
+
+			var name = document.createTextNode(newImage);
+
+			document.getElementById("images").appendChild(row);
+
+			row.appendChild(img_cell);
+			row.appendChild(name_cell);
+			row.appendChild(local_cell);
+			row.appendChild(remote_cell);
+
+			img_cell.appendChild(img);
+			name_cell.appendChild(name);
+
+			getClassification(newImage, function(local, remote) {
+				local_cell.appendChild(document.createTextNode(local));
+				remote_cell.appendChild(document.createTextNode(remote));
+			});
+		});
+	</script>
 {% endblock %}
