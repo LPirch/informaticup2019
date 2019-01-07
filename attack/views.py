@@ -127,7 +127,8 @@ def start_attack(request, attack):
 	return redirect('/attack/details.html?pid=' + str(pid))
 
 def handle_proc_info(request):
-	token = get_token_from_pid(request.GET["pid"])
+	pid = str(int(request.GET["pid"]))
+	token = get_token_from_pid(pid)
 	process_dir = os.path.join(PROCESS_DIR, token)
 
 	try:
@@ -136,18 +137,19 @@ def handle_proc_info(request):
 	except:
 		return HttpResponse("Could not read process output (" + PROCESS_DIR + token + ".out)")
 
-	return HttpResponse(out)
+	return JsonResponse({"console": out, "running": is_pid_running(pid)})
 
 def handle_list_images(request):
-	token = get_token_from_pid(request.GET["pid"])
+	pid = str(int(request.GET["pid"]))
+	token = get_token_from_pid(pid)
 	process_dir = os.path.join(IMG_TMP_DIR, token)
 
 	try:
 		images = list(filter(lambda x: x.endswith(".png"), os.listdir(process_dir)))
 	except:
-		return JsonResponse({"images": []})
+		return HttpResponse(status=400)
 
-	return JsonResponse({"images": images})
+	return JsonResponse({"images": images, "running": is_pid_running(pid)})
 
 def handle_delete_proc(request):
 	if request.method == "POST" and request.POST['pid']:
