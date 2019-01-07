@@ -54,7 +54,6 @@ $(document).ready(function(){
 	});
 
 	$("a.fa-trash-alt").each(function(){
-		console.log("Trash");
 		$(this).confirmation({
 			rootSelector: '[data-toggle=confirmation]',
 		});
