@@ -7,6 +7,7 @@ include
 lib
 share
 venv
+man
 
 # IDE config directories
 .vscode
@@ -28,3 +29,4 @@ __pycache__
 
 # ignore bootstrap css files
 *min*
+static/css/fontawesome
