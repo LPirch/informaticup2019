@@ -3,10 +3,12 @@
 
 {% block additional_css %}
 	<link rel="stylesheet" href="{% static 'css/train.css' %}">
+	<link rel="stylesheet" href="{% static 'css/console.css' %}">
 {% endblock %}
 
 {% block additional_js %}
 <script src="{% static 'js/train.js' %}"></script>
+<script src="{% static 'js/models/details.js' %}"></script>
 {% endblock %}
 
 {% block tab-nav %}
@@ -35,34 +37,18 @@
 	</div>
 </div>
 {% else %}
-<div class="title">
-	<h3>PID {{ pid }}</h3>
+<div class="title flex-row">
+	<div><h3>PID: {{ pid }}</h3></div>
+	<div class="margin-left fade in" id="abort"><a class="btn btn-danger" href="javascript:abort('{{pid}}')"><i class="fas fa-ban"></i></a></div>
 </div>
 <div class="title">
-	<h3>Architecture</h3>
+	<h3>Terminal Output</h3>
 </div>
 <div class="container">
-	<div class="table-wrapper-scroll-y">
-		<table class="table table-sm table-striped">
-			<thead>
-				<th>Type</th>
-				<th>Input Shape</th>
-				<th>Output Shape</th>
-			</thead>
-			<tbody>
-				{% for layer in layers %}
-				<tr>
-					<td>{{ layer.name }}</td>
-					<td>{{ layer.input_shape }}</td>
-					<td>{{ layer.output_shape }}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-	</div>
+	<textarea id="console" readonly></textarea>
 </div>
-<div class="container">
-	<a class="btn btn-danger" href="javascript:abort('{{pid}}')"><i class="fas fa-ban"></i></a>
+<div class="container fade in" id="clear">
+	<button type="button" class="btn btn-primary" onclick="abort('{{pid}}')">Clear and Return</button>
 </div>
 {% endif %}
 {% endblock %}
