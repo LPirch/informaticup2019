@@ -56,7 +56,7 @@ def main():
 
 	print("Loaded pickle file", flush=True)
 
-	dataset = GTSRB('data', FLAGS.random_seed)
+	dataset = GTSRB(FLAGS.random_seed)
 	set_log_level(logging.DEBUG)
 	# Create label map and class map
 	class_map, label_map = {}, {}
