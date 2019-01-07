@@ -52,12 +52,30 @@ function pollImages(pid, newImgCallback) {
 					clearInterval(interval);
 				}
 			}
-		};
+		}
 		xhttp.open("GET", "attack/list_images?pid=" + pid, true);
 		xhttp.send();
 	}
 }
 
 function getClassification(img_name, callback) {
-	callback(0.1, 0.5);
+	function sendRequest() {
+		var xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				var data = JSON.parse(xhttp.responseText);
+				callback(data["remote"]);
+			} else if (this.readyState == 4 && this.status == 409) {
+				// The server is currently processing another request
+				setTimeout(sendRequest, 1500);
+			} else if (this.readyState == 4 && this.status == 503) {
+				// The server is currently processing our request
+				setTimeout(sendRequest, 1500);
+			}
+		}
+		xhttp.open("GET", "model/classify?image=" + img_name + "&pid=" + pid, true);
+		xhttp.send();
+	}
+
+	sendRequest();
 }

@@ -14,6 +14,7 @@ urlpatterns = [
 	# GET
 	url('proc_info', rest.handle_proc_info),
 	url('list_images', rest.handle_list_images),
+	url('classify', rest.handle_classify),
 
 	# POST
 	url('start_attack', rest.handle_start_attack),

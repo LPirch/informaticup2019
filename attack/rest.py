@@ -1,4 +1,4 @@
-from project_conf import PROCESS_DIR, IMG_TMP_DIR
+from project_conf import PROCESS_DIR, IMG_TMP_DIR, CACHE_DIR
 
 from django.shortcuts import redirect
 from django.http import HttpResponse, JsonResponse
@@ -11,6 +11,10 @@ from attack.handler import CWL2AttackHandler, RobustCWL2AttackHandler, PhysicalA
 import os
 import os.path
 import random
+import json
+import requests
+import pickle
+import re
 
 attacks = {
 	"cwl2": CWL2AttackHandler,
@@ -48,6 +52,59 @@ def handle_list_images(request):
 		return JsonResponse({"images": images, "running": is_pid_running(pid)})
 	return HttpResponse(status=405)
 
+
+def handle_classify(request):
+	if request.method == "GET":
+		image = request.GET["image"]
+		token = get_token_from_pid(request.GET["pid"])
+
+		if not re.match("^[a-zA-Z0-9_]+\.png$", image):
+			return HttpResponse(status=400)
+
+		process_dir = os.path.join(IMG_TMP_DIR, token)
+		img_path = os.path.join(process_dir, image)
+
+		if not os.path.exists(img_path):
+			return HttpResponse(status=404)
+
+		cache_dir = os.path.join(CACHE_DIR, token)
+		cache_file = os.path.join(cache_dir, image + ".cache")
+
+		if not os.path.exists(cache_dir):
+			os.makedirs(cache_dir)
+
+		if os.path.exists(cache_file):
+			with open(cache_file, "rb") as f:
+				remote = pickle.load(f)
+		else:
+			with open(img_path, "rb") as f:
+				remote = fetch_oracle_response(f.read())
+
+			try:
+				with open(cache_file, "wb") as f:
+					pickle.dump(remote, f)
+			except:
+				print("Creating pickle failed", cache_file)
+
+		return JsonResponse({"remote": remote})
+	return HttpResponse(status=405)
+
+def load_api_key(loc="api_key"):
+	with open(loc, 'r') as f:
+		key = f.read().strip()
+	return key
+
+def fetch_oracle_response(img):
+	URL = "https://phinau.de/trasi"
+	API_KEY = load_api_key()
+
+	r = requests.post(URL, data={'key': API_KEY}, files={'image': img})
+
+	if r.status_code != 200:
+		log_http_error(r.status_code, r.text)
+		raise RuntimeError
+
+	return json.loads(r.text)
 
 def handle_start_attack(request):
 	if request.method == "POST":
