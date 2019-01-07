@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 
 from models.handler import TrainHandler
-from utils_proc import gen_token, get_running_procs, get_token_from_pid, write_pid, kill_proc
+from utils_proc import gen_token, get_running_procs, get_token_from_pid, write_pid, kill_proc, is_pid_running
 import subprocess
 import re
 
@@ -71,6 +71,9 @@ def handle_model_info(request):
 def handle_delete_model(request):
 	if request.method == 'POST':
 		filename = request.POST['filename']
+
+		# basic sanitizing
+		if re.match("^([a-zA-Z0-9_]+\.h5)$", filename):
 			return delete_model(filename)
 		return HttpResponse(status=400)
 	return HttpResponse(status=405)
