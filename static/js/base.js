@@ -1,5 +1,10 @@
 document.addEventListener("DOMContentLoaded", function() {
-	document.querySelector('.content').classList.add('in');
+	setTimeout(function(){
+		// chrome sometimes skips this animation if we don't wait 
+		document.querySelector('.content').classList.add('in');
+		// chrome fails to set the textArea resizer color on page load
+		document.styleSheets[0].insertRule('.container textarea::-webkit-resizer {background: black;}', 0)
+	}, 1);
 });
 
 /*
