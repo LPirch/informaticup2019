@@ -8,6 +8,7 @@ from django.http import JsonResponse, HttpResponse
 from models.handler import TrainHandler
 from utils_proc import gen_token, get_running_procs, get_token_from_pid, write_pid, kill_proc
 import subprocess
+import re
 
 TRAINING_METHODS = {
 	'rebuild': TrainHandler,
@@ -40,7 +41,7 @@ def handle_start_model_info(modelname):
 
 
 def handle_model_info(request):
-	if request.method == 'GET' and request.GET['modelname']:
+	if request.method == 'GET':
 		modelname = request.GET['modelname']
 
 		pkl_path = os.path.join(CACHE_DIR, modelname+'.pkl')
@@ -64,27 +65,33 @@ def handle_model_info(request):
 			kill_proc(pid)
 
 		return JsonResponse({"modelInfo": layer_info})
-	return HttpResponse(status=400)
+	return HttpResponse(status=405)
+
 
 def handle_delete_model(request):
-	if request.method == 'POST' and request.POST['filename']:
-		delete_model(request.POST['filename'])
-	return HttpResponse()
+	if request.method == 'POST':
+		filename = request.POST['filename']
+
+		# basic sanitizing
+		if re.match("^([a-zA-Z0-9_]+\.h5)$", filename):
+			return delete_model(filename)
+		return HttpResponse(status=400)
+	return HttpResponse(status=405)
 
 
 def handle_upload_model(request):
 	if request.method == 'POST':
 		if not request.FILES:
 			# do nothing if no file is provided
-			return HttpResponse()
+			return HttpResponse(status=400)
 		filename = request.FILES['filechooser'].name
 		if os.path.exists(os.path.join(MODEL_SAVE_PATH, filename)):
-			return HttpResponse(400)
+			return HttpResponse(status=400)
 		else:
 			store_uploaded_file(request.FILES['filechooser'])
 		
 		return redirect('/models/')
-	return HttpResponse(400)
+	return HttpResponse(status=405)
 
 
 def handle_start_training(request):
@@ -99,20 +106,23 @@ def handle_start_training(request):
 			return start_training(request, TRAINING_METHODS[training])
 
 		return redirect('/models/training.html?error=' + UNKNOWN_TRAINING) 
-	return HttpResponse(status=400)
+	return HttpResponse(status=405)
 
 
 def handle_abort_training(request):
-	if request.method == 'POST' and request.POST['pid']:
+	if request.method == 'POST':
 		pid = int(request.POST['pid'])
 		kill_proc(pid)
-	return HttpResponse()
+		return HttpResponse(status=200)
+	return HttpResponse(status=405)
 
 
 def delete_model(filename):
 	filepath = os.path.join(MODEL_SAVE_PATH, filename)
 	if os.path.exists(filepath):
 		os.remove(filepath)
+		return HttpResponse(status=200)
+	return HttpResponse(status=404)
 
 
 def store_uploaded_file(file):

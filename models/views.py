@@ -17,16 +17,18 @@ BASE_CONTEXT = {
 }
 
 def overview(request):
-	models = get_models_info()
+	if request.method == "GET":
+		models = get_models_info()
 
-	context = dict(
-		{
-			'active': 'Overview',
-			'models': models
-		}, 
-		**BASE_CONTEXT
-	)
-	return render(request, 'models/overview.html', context)
+		context = dict(
+			{
+				'active': 'Overview',
+				'models': models
+			}, 
+			**BASE_CONTEXT
+		)
+		return render(request, 'models/overview.html', context)
+	return HttpResponse(status=405)
 
 
 def get_models_info():
@@ -52,24 +54,28 @@ def readable_file_size(n_bytes, suffix='B'):
 
 
 def training(request):
-	context = dict(
-		{'active': 'Training'},
-		**BASE_CONTEXT
-	)
-	return render(request, 'models/training.html', context)
+	if request.method == "GET":
+		context = dict(
+			{'active': 'Training'},
+			**BASE_CONTEXT
+		)
+		return render(request, 'models/training.html', context)
+	return HttpResponse(status=405)
 
 
 def details(request):
-	context = dict(
-		{'active': 'Details'},
-		**BASE_CONTEXT
-	)
-	procs = get_running_procs(prefix="train")
-	if len(procs) == 0:
-		context['error_none_running'] = True
-	else:
-		context.update({
-			'pid': procs[0]['id']
-		})
+	if request.method == "GET":
+		context = dict(
+			{'active': 'Details'},
+			**BASE_CONTEXT
+		)
+		procs = get_running_procs(prefix="train")
+		if len(procs) == 0:
+			context['error_none_running'] = True
+		else:
+			context.update({
+				'pid': procs[0]['id']
+			})
 
-	return render(request, 'models/details.html', context)
+		return render(request, 'models/details.html', context)
+	return HttpResponse(status=405)
