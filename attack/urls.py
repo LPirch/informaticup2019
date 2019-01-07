@@ -2,6 +2,7 @@ from django.urls import path
 from django.conf.urls import url
 
 from . import views
+from . import rest
 
 urlpatterns = [
 	path('', views.overview, name='index'),
@@ -11,10 +12,10 @@ urlpatterns = [
 	url('attack.html', views.attack),
 
 	# GET
-	url('proc_info', views.handle_proc_info),
-	url('list_images', views.handle_list_images),
+	url('proc_info', rest.handle_proc_info),
+	url('list_images', rest.handle_list_images),
 
 	# POST
-	url('start_attack', views.handle_start_attack),
-	url('delete_proc', views.handle_delete_proc)
+	url('start_attack', rest.handle_start_attack),
+	url('delete_proc', rest.handle_delete_proc)
 ]
