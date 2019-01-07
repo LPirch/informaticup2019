@@ -1,3 +1,5 @@
+from project_conf import DATA_ROOT
+
 import os
 import zipfile
 import random
@@ -11,7 +13,7 @@ from sklearn.model_selection import train_test_split
 
 
 class GTSRB():
-	def __init__(self, data_root, random_seed):
+	def __init__(self, random_seed):
 		self.img_size = 64
 		self.n_channels = 3
 		self.n_classes = 43
@@ -19,9 +21,8 @@ class GTSRB():
 		self.box_max = 1
 		self.n_train_imgs = 39209
 		self.n_test_imgs = 12630
-		self.data_root = data_root
-		self.train_zip = os.path.join(data_root, 'GTSRB_Final_Training_Images.zip')
-		self.test_zip = os.path.join(data_root, 'GTSRB_Final_Test_Images.zip')
+		self.train_zip = os.path.join(DATA_ROOT, 'GTSRB_Final_Training_Images.zip')
+		self.test_zip = os.path.join(DATA_ROOT, 'GTSRB_Final_Test_Images.zip')
 		self.img_extension = '.ppm'
 		self.random_seed = random_seed
 

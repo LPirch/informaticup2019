@@ -1,5 +1,5 @@
 import tensorflow as tf
-from train.train import train_rebuild
+from models.train import train_rebuild
 
 FLAGS = tf.flags.FLAGS
 
@@ -38,4 +38,7 @@ if __name__ == "__main__":
 		'max_per_class': FLAGS.max_per_class,
 		'keras_verbosity': FLAGS.keras_verbosity
 	}
+
+	print("Calling train_rebuild with args ")
+	print(train_dict)
 	train_rebuild(**train_dict)	
