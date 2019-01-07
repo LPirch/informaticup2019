@@ -7,6 +7,7 @@ from time import strftime, ctime
 from datetime import datetime
 
 from utils_proc import get_running_procs
+from models.rest import ALREADY_TRAINING, UNKNOWN_TRAINING
 
 BASE_CONTEXT = {
 	'tabs': [
@@ -60,6 +61,16 @@ def training(request):
 			{'active': 'Training'},
 			**BASE_CONTEXT
 		)
+
+		if 'error' in request.GET:
+			if request.GET['error'] == ALREADY_TRAINING:
+				error_msg = 'Training has not been started because concurrent training processes are not supported.'
+			elif request.GET['error'] == UNKNOWN_TRAINING:
+				error_msg = 'The provided training method is unknown.'
+			else:
+				error_msg = 'Unexpected error occured.'
+			context.update({'error_msg': error_msg})
+		
 		return render(request, 'models/training.html', context)
 	return HttpResponse(status=405)
 
