@@ -3,8 +3,11 @@
  */
 $(document).ready(function(){
     $('ul.nav-pills li a').click(function (e) {
-        $('ul.nav-pills li.active').removeClass('active');
-        $(this).parent('li').addClass('active');
+        if (! $( this ).hasClass( "disabled" ) ) {
+            $('ul.nav-pills li.active').removeClass('active');
+            $(this).parent('li').addClass('active');
+            disable_nav();
+        }
     });
     $('a[data-toggle="tab"]').on('show.bs.tab', function(e) {
         localStorage.setItem('activeTab', $(e.target).attr('href'));
@@ -21,4 +24,12 @@ function set_active_tab(target) {
     var activeTab = localStorage.getItem('activeTab');
     $('a[href="'+target+'"]').parent().addClass('active');
     $('div'+target).addClass('active');
+}
+
+function disable_nav() {
+    $('ul.nav-pills li a').addClass('disabled');
+    setTimeout(function(){
+        $('ul.nav-pills li a').removeClass('disabled');
+        console.log("enabling nav");
+    }, 3000);
 }

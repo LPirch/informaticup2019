@@ -1,26 +1,32 @@
 """informaticup URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/2.1/topics/http/urls/
+	https://docs.djangoproject.com/en/2.1/topics/http/urls/
 Examples:
 Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+	1. Add an import:  from my_app import views
+	2. Add a URL to urlpatterns:  path('', views.home, name='home')
 Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+	1. Add an import:  from other_app.views import Home
+	2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
 Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+	1. Import the include() function: from django.urls import include, path
+	2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import render
+from django.conf.urls import url
+from django.http import HttpResponse
+
+def welcome(request):
+	return render(request, 'welcome.html')
 
 urlpatterns = [
-    path('', include('mainview.urls')),
-    path('preprocess/', include('preprocess.urls')),
-    path('train/', include('train.urls')),
-    path('attack/', include('attack.urls')),
-    path('evaluation/', include('evaluation.urls')),
-    path('admin/', admin.site.urls),
+	path('', welcome, name='index'),
+	path('index.html', welcome),
+	path('welcome.html', welcome),
+	path('models/', include('models.urls')),
+	path('attack/', include('attack.urls')),
+	path('admin/', admin.site.urls)
 ]

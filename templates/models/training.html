@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additional_css %}
+	<link rel="stylesheet" href="{% static 'css/train.css' %}">
+{% endblock %}
+
+{% block additional_js %}
+<script src="{% static 'js/train.js' %}"></script>
+<script src="{% static 'js/models/training.js' %}"></script>
+{% endblock %}
+
+{% block tab-nav %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+	<button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navGroupCollapse" aria-controls="navGroupCollapse" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+	
+	<div class="collapse navbar-collapse" id="navGroupCollapse">
+		<ul class="navbar-nav mr-auto">
+			<li class="nav-item"><a class="nav-link" href="overview.html">Overview</a></li>
+			<li class="nav-item active"><a class="nav-link" href="training.html">Training</a></li>
+			<li class="nav-item"><a class="nav-link" href="details.html">Details</a></li>
+		</ul>
+	</div>
+
+	<a class="navbar-brand" href="welcome.html">Superperturbator <i class="fas fa-eye-slash"></i></a>
+</nav>
+{% endblock %}
+
+{% block content %}
+{% if error_msg %}
+<div class="container text-center" id="empty-table-info">
+	<div class="alert alert-dismissible alert-danger">
+		<button type="button" class="close" data-dismiss="alert">&times;</button>
+		<strong>{{ error_msg }}</strong>
+	</div>
+</div>
+{% endif %}
+<div class="title">
+	<h3>Start Training</h3>
+</div>
+<div class="container">
+	<form method="POST" action="/models/start_training" enctype="multipart/form-data" id="upload-form">
+	{% csrf_token %}
+		<div class="form-row">
+			<div class="form-group col-md-6">
+				<label for="training">Training Method</label>
+				<select id="training" name="training" class="form-control" onchange="trainingChanged(this)">
+								<option value="none">Select a training method...</option>
+								<option value="rebuild">Rebuilding</option>
+								<option value="substitute">Substitute Model</option>
+				</select>
+			</div>
+	</div>
+	<div id="training-options">
+		<div id="rebuild-options" class="form-group form-group-lg training-options">
+			<div class="form-row">
+				<div class="form-group col-md-12">
+					<label for="modelname">Model Name</label>
+					<input id="modelname" type="text" class="form-control" name="modelname" placeholder="my_model">
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-4">
+					<label for="epochs">Epochs</label>
+					<input id="epochs" type="number" class="form-control" name="epochs" placeholder="epochs" value="30">
+				</div>
+				<div class="form-group col-md-4">
+					<label for="bsize">Batch Size</label>
+					<input id="bsize" type="number" class="form-control" name="batch_size" placeholder="Batch Size" value="64">
+				</div>
+				<div class="form-group col-md-4">
+					<label for="lr">Learning Rate</label>
+					<input id="lr" type="number" class="form-control" name="lr" placeholder="0.01" value="0.01">
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-4">
+					<label for="optimizer">Optimizer</label>
+					<select class="form-control" id="optimizer"  name="optimizer">
+							<option value="sgd">Stochastic Gradient Descent</option>
+							<option value="adam">Adam Optimizer</option>
+					</select>
+				</div>
+				<div class="form-group col-md-4">
+					<label for="dataset">Dataset</label>
+					<select class="form-control" id="dataset"  name="dataset">
+							<option value="gtsrb">German Traffic Sign Recognition Benchmark</option>
+					</select>
+				</div>
+				<div class="form-group col-md-4">
+					<label for="valsplit">Validation Split</label>
+					<input id="valsplit" type="number" class="form-control" name="valsplit" placeholder="0.2" value="0.2">
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-4">
+					<label for="maxperclass">Max. Number of Images per Class</label>
+					<input id="maxperclass" type="number" class="form-control" name="maxperclass" placeholder="1000" value="1000">
+				</div>
+				<div class="form-group col-md-4">
+					<label for="augmentation">Dataset Augmentation</label>
+					<select class="form-control" id="augmentation" name="augmentation">
+						<option value="0">disabled</option>
+						<option value="1">enabled</option>
+					</select>
+				</div>
+				<div class="form-group col-md-4">
+					<label for="tensorboard">Tensorboard</label>
+					<select class="form-control" id="tensorboard" name="tensorboard">
+						<option value="0">disabled</option>
+						<option value="1">enabled</option>
+					</select>
+				</div>
+			</div>
+		</div>
+		<div id="substitute-options" class="form-group form-group-lg training-options">
+		</div>
+	</div>
+
+	<button type="submit" class="btn btn-primary">Submit</button>
+	</form>
+</div>
+		
+{% endblock %}

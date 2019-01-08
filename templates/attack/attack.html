@@ -5,21 +5,19 @@
 	<link rel="stylesheet" href="{% static 'css/attack.css' %}">
 {% endblock %}
 
-{% block tab-nav %}
-<div class="navbar navbar-expand-lg bg-secondary display-4 sub-nav">
-	<i class="fas fa-angle-double-right"></i>
-	<ul class="nav nav-pills" role="tablist">
-		<li class="nav-item">
-			<a class="nav-link" href="index.html">Overview</a>
-		</li>
-		<li class="nav-item active">
-			<a class="nav-link" href="attack.html">Attack</a>
-		</li>
-	</ul>
-</div>
-{% endblock %}
-
 {% block content %}
+{% if models|length == 0 %}
+<div class="container text-center">
+	<div class="container text-center">
+		<div class="alert alert-danger">
+			<strong>There are no trained models yet.</strong>
+		</div>
+	</div>
+</div>
+{% else %}
+<div class="title">
+	<h3>Start Attack</h3>
+</div>
 <div class="container">
 	<form method="POST" action="/attack/start_attack" enctype="multipart/form-data" id="upload-form">
 		{% csrf_token %}
@@ -77,11 +75,21 @@
 		</div>
 
 		<div class="form-group form-group-lg">
+			<label for="imagefile">Source Image</label>
 			<div class="input-group input-file" name="filechooser">
 				<input name="imagefile" type="file" class='input-ghost'/>
 				<button class="btn btn-choose btn-secondary" type="button">Choose</button>
 				<input type="text" class="form-control input-lg input-selected-file" placeholder='Choose a file...' required/>
 			</div>
+		</div>
+		
+		<div class="form-group form-group-lg">
+			<label for="modelname">Target Model</label>
+			<select id="modelname" name="modelname" class="form-control">
+				{% for model in models %}
+				<option value="{{model.name}}" {% if model.selected %}selected{% endif %}>{{model.name}}</option>
+				{% endfor %}
+			</select>
 		</div>
 
 		<div>
@@ -123,11 +131,13 @@
 						<label for="physical_max_iterations">Max iterations</label>
 						<input id="physical_max_iterations" type="number" class="form-control" name="physical_max_iterations" placeholder="Max iterations" value="1000">
 					</div>
-					<div class="input-group input-file" name="filechooser">
+					<div class="form-group col-md-12">
 						<label for="physical_mask_image">Mask image</label>
-						<input id="physical_mask_image" name="physical_mask_image" type="file" class='input-ghost'/>
-						<button class="btn btn-choose btn-secondary" type="button">Choose</button>
-						<input type="text" class="form-control input-selected-file" placeholder='Choose a file...' required/>
+						<div class="input-group input-file" name="filechooser">
+							<input id="physical_mask_image" name="physical_mask_image" type="file" class='input-ghost'/>
+							<button class="btn btn-choose btn-secondary" type="button">Choose</button>
+							<input id="mask_input" type="text" class="form-control input-selected-file" placeholder='Choose a file...'/>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -136,9 +146,9 @@
 		<button type="submit" class="btn btn-primary">Submit</button>
 	</form>
 </div>
-
+{% endif %}
 {% endblock %}
 
 {% block after_body_scripts %}
-	<script src="{% static 'js/attack.js' %}"></script>
+	<script src="{% static 'js/attack/attack.js' %}"></script>
 {% endblock %}
