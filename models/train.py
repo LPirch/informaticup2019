@@ -9,7 +9,7 @@ import keras.backend as K
 
 import tensorflow as tf
 from cleverhans.utils_keras import KerasModelWrapper
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler, Tensorboard
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard
 from keras.models import load_model
 from keras.optimizers import Adam, SGD
 from tensorflow.python.training.adam import AdamOptimizer
