@@ -97,7 +97,7 @@ def train_rebuild(random_seed=42, modelname='testmodel',
 		ModelCheckpoint(modelpath, save_best_only=True)
 	]
 	if enable_tensorboard:
-		callbacks.append(Tensorboard(log_dir=TENSORBOARD_LOGDIR))
+		callbacks.append(TensorBoard(log_dir=TENSORBOARD_LOGDIR))
 	model.fit(X, Y,
 				batch_size=batch_size,
 				epochs=epochs,

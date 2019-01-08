@@ -22,8 +22,6 @@ if __name__ == "__main__":
 	tf.flags.DEFINE_boolean("enable_tensorboard", False, "Whether to enable tensorboard")
 	tf.flags.DEFINE_integer("keras_verbosity", 1, "Set the verbosity of keras training output")
 
-	tf.flags.DEFINE_string("training_method", "train_rebuild", "type of training [train_rebuild | train_substitute]")
-
 	train_dict = {
 		'random_seed': FLAGS.random_seed,
 		'modelname': FLAGS.modelname,
@@ -39,5 +37,5 @@ if __name__ == "__main__":
 		'max_per_class': FLAGS.max_per_class,
 		'keras_verbosity': FLAGS.keras_verbosity
 	}
-
+	
 	train_rebuild(**train_dict)	

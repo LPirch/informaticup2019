@@ -153,6 +153,7 @@ def start_training(request, training):
 		return HttpResponse("Error on mkdir")
 	
 	try:
+		print(">>"*80, "starting training with ", kwargs)
 		pid = training.start(process_dir, kwargs)
 	except Exception as e:
 		print(type(e))

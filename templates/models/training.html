@@ -108,7 +108,7 @@
 				</div>
 				<div class="form-group col-md-4">
 					<label for="enable_tensorboard">Tensorboard</label>
-					<select class="form-control" id="enable_tensorboard" name="tensorboard">
+					<select class="form-control" id="enable_tensorboard" name="enable_tensorboard">
 						<option value="0">disabled</option>
 						<option value="1">enabled</option>
 					</select>
@@ -118,14 +118,14 @@
 		<div id="substitute-options" class="form-group form-group-lg training-options">
 			<div class="form-row">
 				<div class="form-group col-md-12">
-					<label for="modelname">Model Name</label>
-					<input id="modelname" type="text" class="form-control" name="modelname" placeholder="my_model">
+					<label for="jbda_modelname">Model Name</label>
+					<input id="jbda_modelname" type="text" class="form-control" name="jbda_modelname" placeholder="my_model">
 				</div>
 			</div>
 			<div class="form-row">
 				<div class="form-group col-md-4">
-					<label for="tau">Number of Jacobian Iterations</label>
-					<input id="tau" type="number" class="form-control" name="tau" placeholder="5" value="5">
+					<label for="n_jac_iteration">Number of Jacobian Iterations</label>
+					<input id="n_jac_iteration" type="number" class="form-control" name="n_jac_iteration" placeholder="5" value="5">
 				</div>
 				<div class="form-group col-md-4">
 					<label for="lmbda">Lambda</label>
@@ -142,8 +142,8 @@
 					<input id="n_per_class" type="number" class="form-control" name="n_per_class" placeholder="5" value="5">
 				</div>
 				<div class="form-group col-md-4">
-					<label for="batch_size">Training Batch Size</label>
-					<input id="batch_size" type="number" class="form-control" name="batch_size" placeholder="64" value="64">
+					<label for="jbda_batch_size">Training Batch Size</label>
+					<input id="jbda_batch_size" type="number" class="form-control" name="jbda_batch_size" placeholder="64" value="64">
 				</div>
 				<div class="form-group col-md-4">
 						<label for="descent_only">Descent Only</label>
@@ -156,8 +156,8 @@
 			</div>
 			<div class="form-row">
 				<div class="form-group col-md-4">
-					<label for="enable_tensorboard">Tensorboard</label>
-					<select class="form-control" id="enable_tensorboard" name="enable_tensorboard">
+					<label for="jbda_enable_tensorboard">Tensorboard</label>
+					<select class="form-control" id="jbda_enable_tensorboard" name="jbda_enable_tensorboard">
 						<option value="0">disabled</option>
 						<option value="1">enabled</option>
 					</select>

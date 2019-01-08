@@ -12,15 +12,13 @@ class TrainHandlerRebuild:
 			'dataset': str(request.POST["dataset"]),
 			'validation_split': str(request.POST["valsplit"]),
 			'max_per_class': str(request.POST["maxperclass"]),
-			'enable_tensorboard': str(request.POST["enable_tensorboard"]),
 			'keras_verbosity': 2
 		}
 
 		if int(str(request.POST["augmentation"])):
 			kwargs.update({'load_augmented': None})
-		if int(str(request.POST['tensorboard'])):
+		if int(str(request.POST['enable_tensorboard'])):
 			kwargs.update({'enable_tensorboard': None})
-
 
 		return kwargs
 
@@ -39,15 +37,17 @@ class TrainHandlerRebuild:
 class TrainHandlerSubstitute:
 	def parse_arguments(request):
 		kwargs =  {
-			"modelname": str(request.POST["modelname"]),
-			"enable_tensorboard": str(request.POST["enable_tensorboard"]),
+			"modelname": str(request.POST["jbda_modelname"]),
 			"lmbda": float(str(request.POST["lmbda"])),
 			"tau": int(str(request.POST["tau"])),
 			"n_jac_iteration": int(str(request.POST["n_jac_iteration"])),
 			"n_per_class": int(str(request.POST["n_per_class"])),
-			"batch_size": int(str(request.POST["batch_size"])),
+			"batch_size": int(str(request.POST["jbda_batch_size"])),
 			"descent_only":  bool(str(request.POST["descent_only"]))
 		}
+
+		if int(str(request.POST['jbda_enable_tensorboard'])):
+			kwargs.update({'enable_tensorboard': None})
 
 		return kwargs
 
