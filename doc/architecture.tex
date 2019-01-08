@@ -1,7 +1,81 @@
-%!TEX root = paper.tex"`
+%!TEX root = paper.tex
 
 % Software architecture, not CNN-architecture
 \section{Architecture}
+
+This section describes the general architecture of our software solution and reasoning for choosing specific tools.
+We begin by describing the website front end which is visible to the user.
+From there on we move to the server's back end and finally into our business logic consisting mainly of independent python programs.
+
+We chose python as our main programming language, because of its extensive usage and support in machine learning -- especially the TensorFlow framework.
+We decided to build a website as our main user interface and subsequently chose the Django Framework to easily integrate our python programs into the server back end.
+By using a website, our user interface is largely platform independent and nicely separated from our back end, which we provide via a REST API.
+
+Currently our website is a local single user system, which we distribute as a docker container.
+This decision was mainly influenced by the competition's setup and further drawbacks of hosting a public server.
+If we had hosted our server publicly, we had to place additional emphasis on security evaluation, multi-user accessibility and server configuration.
+We therefore decided on a local container deployment.
+
+\subsection{Front end}
+
+The front end is divided into two categories: 'Models' (model creation) and 'Attack'. In the former category the user is able train, steal, upload and generally manage models. The latter is then used to configure and start attacks on a model.
+
+\subsubsection{Models}
+
+As discussed in Section \ref{sec:methodology} for an attack to be possible, we need to train a local substitute model, which we can access in a white-box manner.
+Due to the transferability property we can later transfer the adversarial examples, which we generated for our substitute model, to the remote model.
+
+The model creation category is organized in three tabs:
+
+\begin{enumerate}
+\item[1.] \textbf{Overview}
+On this page all available models -- as well as their meta-data (name, size, last modified, architecture) -- are shown to the user. The user can choose to attack one of the models and is redirected to the attacking section. Furthermore, the user is able to upload own models on this page.
+\item[2.] \textbf{Training}
+This page enables the user to configure and start a new training phase of a substitute model. Currently, only one training process can run at the same time.
+\item[3.] \textbf{Details}
+This page displays the details of the current training process and enables a user to abort the running training phase.
+\end{enumerate}
+
+\subsubsection{Attack}
+
+The Attack category is structured similarly to the 'Models' category, so the user recognizes known concepts. In this section the user is able to start arbitrary attacks against the available models.
+
+Attack:
+\begin{enumerate}
+\item path('', views.overview, name='index'),
+\item path('index.html', views.overview),
+\item path('overview.html', views.overview),
+\item path('details.html', views.details),
+\item url('attack.html', views.attack),
+
+	%# GET
+	%url('proc_info', rest.handle_proc_info),
+	%url('list_images', rest.handle_list_images),
+	%url('classify', rest.handle_classify),
+
+	%# POST
+	%url('start_attack', rest.handle_start_attack),
+	%url('delete_proc', rest.handle_delete_proc)
+\end{enumerate}
+
+Model:
+\begin{enumerate}
+\item path('', views.overview, name='index'),
+\item path('index.html', views.overview),
+\item path('overview.html', views.overview),
+\item path('training.html', views.training),
+\item path('details.html', views.details),
+
+	%# GET
+	%url('model_info', rest.handle_model_info),
+
+	%# POST
+	%url('deletemodel', rest.handle_delete_model),
+	%url('uploadmodel', rest.handle_upload_model),
+
+	%url('start_training', rest.handle_start_training),
+	%url('abort_training', rest.handle_abort_training),
+\end{enumerate}
 
 \begin{enumerate}
 \item Pipeline-artig

@@ -1,4 +1,4 @@
-%!TEX root = paper.tex"`
+%!TEX root = paper.tex
 
 \section{Methodology}
 \label{sec:methodology}
@@ -65,20 +65,23 @@ Modification of \cite{carlini2017towards} inspired by \cite{eykholt2018robust}
 \min ||\delta||^2_2 + \frac{c}{|T|} \cdot \sum_{T_i \in T} f(T_i(x + \delta))
 \end{equation}
 
-The modification to the Carlini \& Wagner is motivated by the context of the competition:
+The modification OF the Carlini \& Wagner attack is motivated by the context of the competition:
 
 In a real world scenario the classification of traffic signs is done under various environmental influences;
 these include but are not limited to distance and angle to the object, lighting, weather or vandalism of the sign.
 Often, a small change of these factors overshadows the adversarial perturbation. % TODO citation needed
-For an adversarial example to be successful, one had to stay at the exact position for which the sample was generated. 
+For an adversarial example to be successful, one often has to stay at the exact same position for which the sample was generated. 
 
 \citet{eykholt2018robust} try to combat these influences with a robust physical framework for their attack.
-Amongst other things they apply multiple transformations $T_i \in T$ to their source image,
+Amongst other methods they apply multiple transformations $T_i \in T$ to their source image,
 thus optimizing the perturbation to simultaneously work on multiple variations of the source image.
 
 For our modification of the Carlini \& Wagner attack we use four different transformations,
 which mimic the classification from multiple angles: Left, slightly left, slightly right and Right.
-While these are not sufficient enough to protect against other environmental influences,
+These transformations are inspired by the InformatiCup's introductory example:
+An autonomous car is driving behind a lorry, on which an adversarial sticker is placed.
+This image has to fool the classifier from multiple angles to successfully yield misbehavior of the self-driving car.
+While these image transformations are not sufficient enough to protect against other environmental influences,
 they nevertheless increase the robustness of the adversarial attacks and simulate a real-world usage.
 
 \subsection{Robust Physical Perturbations}
@@ -86,20 +89,30 @@ they nevertheless increase the robustness of the adversarial attacks and simulat
 The Robust Physical Perturbation (RP$_2$) was introduced by \citet{eykholt2018robust}.
 \footnote{The corresponding GitHub repository can be found in \cite{rp2repo}}
 
-The original method contains a few additional operations such as a Non-Printability Score (NPS) and calculating the mean over multiple transformations -- like we adapted for our Modified Carlini \& Wagner attack.
-However, we did not receive favorable results with these additional terms and subsequently removed them from the optimization.
-
-Thus, we focused on the most important aspect of this attack,
-which is the ability to define a masking on the image.
-This enables an attacker to define a graffiti-like perturbation.
-In the original paper this was used to make a neural network misclassify a stop sign.
-In our opinion this is a realistic and dangerous threat to autonomous driving, because a stop sign could for example be changed into a right of way sign.
-Because the InformatiCup explicitly excludes the misclassification of signs, we refrained from applying RP$_2$ to signs.
-
 \begin{equation}
 \argmin_\delta \lambda ||M_x \cdot \delta||_2 + J(F(x_i + M_x \cdot \delta), y)
 \end{equation}
 
-\begin{equation}
-\lambda=0.001
-\end{equation}
+The original method contains a few additional operations such as a Non-Printability Score (NPS) and calculating the mean over multiple transformations -- like we adapted for our Modified Carlini \& Wagner attack.
+However, we did not receive favorable results with these additional terms and subsequently removed them from the optimization.
+Thus, we focused on the most important aspect of this attack,
+which is the ability to define a masking on the image.
+This enables an attacker to define a graffiti-like perturbation.
+
+In the original paper this was used to reliably cause a neural network into misclassifying physical stop signs.
+The InformatiCup explicitly excluded the misclassification of traffic sign images from the competition.
+Yet we think this is a realistic and dangerous threat to autonomous driving as attacks can be hidden in graffiti-like perturbations as shown in Figure \ref{fig:stopsign}.
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/stopp_to_70}
+\end{subfigure}
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/7_real}
+\end{subfigure}
+\caption{Stop-sign (left) which is misclassified as 'Zulässige Höchstgeschwindigkeit (70)': 99.10\%; true class image (right) for comparison}
+\label{fig:stopsign}
+\end{figure}
