@@ -43,15 +43,15 @@
 <div class="container">
 	<form method="POST" action="/models/start_training" enctype="multipart/form-data" id="upload-form">
 	{% csrf_token %}
-		<div class="form-row">
-			<div class="form-group col-md-6">
-				<label for="training">Training Method</label>
-				<select id="training" name="training" class="form-control" onchange="trainingChanged(this)">
-								<option value="none">Select a training method...</option>
-								<option value="rebuild">Rebuilding</option>
-								<option value="substitute">Substitute Model</option>
-				</select>
-			</div>
+	<div class="form-row">
+		<div class="form-group col-md-6">
+			<label for="training">Training Method</label>
+			<select id="training" name="training" class="form-control" onchange="trainingChanged(this)">
+							<option value="none">Select a training method...</option>
+							<option value="rebuild">Rebuilding</option>
+							<option value="substitute">Substitute Model</option>
+			</select>
+		</div>
 	</div>
 	<div id="training-options">
 		<div id="rebuild-options" class="form-group form-group-lg training-options">
@@ -84,7 +84,7 @@
 					</select>
 				</div>
 				<div class="form-group col-md-4">
-					<label for="dataset">Dataset</label>
+					<label for="dataset">Reference Dataset</label>
 					<select class="form-control" id="dataset"  name="dataset">
 							<option value="gtsrb">German Traffic Sign Recognition Benchmark</option>
 					</select>
@@ -107,8 +107,8 @@
 					</select>
 				</div>
 				<div class="form-group col-md-4">
-					<label for="tensorboard">Tensorboard</label>
-					<select class="form-control" id="tensorboard" name="tensorboard">
+					<label for="enable_tensorboard">Tensorboard</label>
+					<select class="form-control" id="enable_tensorboard" name="tensorboard">
 						<option value="0">disabled</option>
 						<option value="1">enabled</option>
 					</select>
@@ -116,11 +116,58 @@
 			</div>
 		</div>
 		<div id="substitute-options" class="form-group form-group-lg training-options">
+			<div class="form-row">
+				<div class="form-group col-md-12">
+					<label for="modelname">Model Name</label>
+					<input id="modelname" type="text" class="form-control" name="modelname" placeholder="my_model">
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-4">
+					<label for="tau">Number of Jacobian Iterations</label>
+					<input id="tau" type="number" class="form-control" name="tau" placeholder="5" value="5">
+				</div>
+				<div class="form-group col-md-4">
+					<label for="lmbda">Lambda</label>
+					<input id="lmbda" type="number" class="form-control" name="lmbda" placeholder="0.1" value="0.1">
+				</div>
+				<div class="form-group col-md-4">
+					<label for="tau">Tau</label>
+					<input id="tau" type="number" class="form-control" name="tau" placeholder="2" value="2">
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-4">
+					<label for="n_per_class">Number of Samples per Class</label>
+					<input id="n_per_class" type="number" class="form-control" name="n_per_class" placeholder="5" value="5">
+				</div>
+				<div class="form-group col-md-4">
+					<label for="batch_size">Training Batch Size</label>
+					<input id="batch_size" type="number" class="form-control" name="batch_size" placeholder="64" value="64">
+				</div>
+				<div class="form-group col-md-4">
+						<label for="descent_only">Descent Only</label>
+						<select class="form-control" id="descent_only" name="descent_only">
+							<option value="1">True</option>
+							<option value="0">False</option>
+						</select>
+					</div>
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-4">
+					<label for="enable_tensorboard">Tensorboard</label>
+					<select class="form-control" id="enable_tensorboard" name="enable_tensorboard">
+						<option value="0">disabled</option>
+						<option value="1">enabled</option>
+					</select>
+				</div>
+			</div>
 		</div>
+		<button type="submit" class="btn btn-primary">Submit</button>
+		</form>
 	</div>
 
-	<button type="submit" class="btn btn-primary">Submit</button>
-	</form>
 </div>
 		
 {% endblock %}

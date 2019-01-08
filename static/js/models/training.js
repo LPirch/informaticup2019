@@ -1,5 +1,9 @@
 $$$ = function(a) { return document.getElementById(a); }
 
+document.addEventListener("DOMContentLoaded", function() {
+	trainingChanged('');
+});
+
 function trainingChanged(option) {
 	options = $$$("training-options").children;
 

@@ -1,3 +1,5 @@
+from project_conf import GTSRB_PKL_PATH
+
 import keras
 import keras.backend as K
 from keras.models import load_model
@@ -26,7 +28,7 @@ tf.flags.DEFINE_string("model", "gtsrb_model", "Trained model")
 tf.flags.DEFINE_string("image", "", "Classified image")
 tf.flags.DEFINE_integer("random_seed", 42, "")
 
-with open("data/gtsrb.pickle", "rb") as f:
+with open(GTSRB_PKL_PATH, "rb") as f:
 	gtsrb = pickle.load(f)
 
 class_map = {}

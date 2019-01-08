@@ -1,3 +1,4 @@
+from project_conf import GTSRB_PKL_PATH
 
 import keras.backend as K
 from cleverhans.utils_keras import KerasModelWrapper
@@ -51,7 +52,7 @@ def model_logits(sess, x, predictions, samples, feed=None):
 
 
 def main():
-	with open("data/gtsrb.pickle", "rb") as f:
+	with open(GTSRB_PKL_PATH, "rb") as f:
 		gtsrb = pickle.load(f)
 
 	print("Loaded pickle file", flush=True)

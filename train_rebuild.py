@@ -5,7 +5,6 @@ FLAGS = tf.flags.FLAGS
 
 if __name__ == "__main__":
 	tf.flags.DEFINE_string("modelname", "testmodel", "Name of the model.")
-	tf.flags.DEFINE_string("data_root", "data", "The path to the data set directory.")
 	tf.flags.DEFINE_string("dataset", "gtsrb", "The reference dataset")
 
 	tf.flags.DEFINE_integer("random_seed", 42, "seed for random numbers")
@@ -23,6 +22,8 @@ if __name__ == "__main__":
 	tf.flags.DEFINE_boolean("enable_tensorboard", False, "Whether to enable tensorboard")
 	tf.flags.DEFINE_integer("keras_verbosity", 1, "Set the verbosity of keras training output")
 
+	tf.flags.DEFINE_string("training_method", "train_rebuild", "type of training [train_rebuild | train_substitute]")
+
 	train_dict = {
 		'random_seed': FLAGS.random_seed,
 		'modelname': FLAGS.modelname,
@@ -39,6 +40,4 @@ if __name__ == "__main__":
 		'keras_verbosity': FLAGS.keras_verbosity
 	}
 
-	print("Calling train_rebuild with args ")
-	print(train_dict)
 	train_rebuild(**train_dict)	
