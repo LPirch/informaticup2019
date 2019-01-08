@@ -23,7 +23,7 @@
 	<h3>Attack Processes</h3>
 </div>
 <div class="container">
-	<table class="table table-hover">
+	<table class="table table-hover processes">
 		<tr>
 			<th>PID</th>
 			<th>Status</th>
@@ -45,7 +45,7 @@
 					{% endif %}
 				</div>
 			</td>
-			<td class="text-center" ><div class="flex-container flex-icon" onclick="delete_proc('{{proc.id}}')"><i class="fas fa-trash-alt"></i></div></td>
+			<td class="text-center" ><div class="flex-container flex-icon"><i class="fas fa-trash-alt" onclick="delete_proc('{{proc.id}}')"></i></div></td>
 		</tr>
 	{% endfor %}
 	</table>

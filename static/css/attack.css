@@ -25,3 +25,7 @@
 .flex-icon {
 	align-items: center;
 }
+
+.processes .flex-icon i {
+	cursor: pointer;
+}
