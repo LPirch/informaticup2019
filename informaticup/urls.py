@@ -15,17 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import render
-from django.conf.urls import url
-from django.http import HttpResponse
-
-def welcome(request):
-	return render(request, 'welcome.html')
 
 urlpatterns = [
-	path('', welcome, name='index'),
-	path('index.html', welcome),
-	path('welcome.html', welcome),
+	path('', include('welcome.urls'), name='index'),
+	path('index.html', include('welcome.urls')),
+	path('welcome.html', include('welcome.urls')),
 	path('models/', include('models.urls')),
 	path('attack/', include('attack.urls')),
 	path('admin/', admin.site.urls)

@@ -26,6 +26,21 @@ def load_api_key(loc="../api_key"):
 	return key
 
 
+def test_connection(api_key):
+	""" Test the connection for a given API key. 
+		Returns 1 on success, 0 for an invalid API key and -1 for any other error (e.g. connectivity problems).
+	"""
+	try:
+		r = requests.post(URL, data={'key': api_key}, files={'image': None})
+		if int(r.status_code) == 401:
+			return 0
+		if int(r.status_code) == 400:
+			return 1
+	except:
+		pass
+	
+	return -1
+
 def remote_evaluation(directory, target_ext=".png"):
 	for root, _, files in os.walk(directory):
 		files = [name for name in files if name.endswith(".zip")]

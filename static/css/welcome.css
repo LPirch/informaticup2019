@@ -26,3 +26,7 @@
 .btn-nav {
 	min-height: 100%;
 }
+
+.hidden {
+	display: none !important;
+}

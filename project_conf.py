@@ -7,3 +7,4 @@ PROCESS_DIR = ".process"
 IMG_TMP_DIR = os.path.join("static", "img")
 RANDOM_SEED = 42
 TRAINING_PREFIX = "train"
+API_KEY_LOCATION = 'api_key'
