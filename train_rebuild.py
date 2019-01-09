@@ -6,6 +6,7 @@ FLAGS = tf.flags.FLAGS
 
 if __name__ == "__main__":
 	tf.flags.DEFINE_string("modelname", "testmodel", "Name of the model.")
+	tf.flags.DEFINE_string("modeltype", "cnn_model", "Type of the model.")
 	tf.flags.DEFINE_string("dataset", "gtsrb", "The reference dataset")
 
 	tf.flags.DEFINE_integer("random_seed", 42, "seed for random numbers")
@@ -25,6 +26,7 @@ if __name__ == "__main__":
 	train_dict = {
 		'random_seed': FLAGS.random_seed,
 		'modelname': FLAGS.modelname,
+		'modeltype': FLAGS.modeltype,
 		'optimizer': FLAGS.optimizer,
 		'learning_rate': FLAGS.learning_rate,
 		'batch_size': FLAGS.batch_size,

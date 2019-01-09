@@ -5,6 +5,7 @@ class TrainHandlerRebuild:
 	def parse_arguments(request):
 		kwargs =  {
 			'modelname': str(request.POST["modelname"]),
+			'modeltype': str(request.POST["modeltype"]),
 			'epochs': str(request.POST["epochs"]),
 			'batch_size': str(request.POST["batch_size"]),
 			'learning_rate': str(request.POST["lr"]),
@@ -36,6 +37,7 @@ class TrainHandlerSubstitute:
 	def parse_arguments(request):
 		kwargs =  {
 			"modelname": str(request.POST["jbda_modelname"]),
+			'modeltype': str(request.POST["modeltype"]),
 			"lmbda": float(str(request.POST["lmbda"])),
 			"tau": int(str(request.POST["tau"])),
 			"n_jac_iteration": int(str(request.POST["n_jac_iteration"])),
