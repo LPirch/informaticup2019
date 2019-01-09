@@ -1,5 +1,5 @@
 from project_conf import GTSRB_PKL_PATH
-from label_map import gtsrb_map, remote_map
+from label_map import remote_map
 
 import keras.backend as K
 from cleverhans.utils_keras import KerasModelWrapper
