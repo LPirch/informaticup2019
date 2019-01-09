@@ -6,7 +6,6 @@ FLAGS = tf.flags.FLAGS
 
 if __name__ == "__main__":
 	tf.flags.DEFINE_string("modelname", "testmodel", "Name of the model.")
-	tf.flags.DEFINE_boolean("enable_tensorboard", False, "Whether to enable tensorboard")
 	tf.flags.DEFINE_float("lmbda", 0.1, "Step size to generate synthetic data along the remote gradient")
 	tf.flags.DEFINE_integer("tau", 2, "Number of jacobian iteration after which to switch the sign of lambda")
 	tf.flags.DEFINE_integer("n_jac_iteration", 5, "Number of jacobian iterations (how often to augment the data")
@@ -16,7 +15,6 @@ if __name__ == "__main__":
 
 	train_dict = {
 		"modelname":FLAGS.modelname ,
-		"enable_tensorboard":FLAGS.enable_tensorboard ,
 		"lmbda":FLAGS.lmbda ,
 		"tau":FLAGS.tau ,
 		"n_jac_iteration":FLAGS.n_jac_iteration ,

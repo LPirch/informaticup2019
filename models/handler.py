@@ -17,8 +17,6 @@ class TrainHandlerRebuild:
 
 		if int(str(request.POST["augmentation"])):
 			kwargs.update({'load_augmented': None})
-		if int(str(request.POST['enable_tensorboard'])):
-			kwargs.update({'enable_tensorboard': None})
 
 		return kwargs
 
@@ -45,9 +43,6 @@ class TrainHandlerSubstitute:
 			"batch_size": int(str(request.POST["jbda_batch_size"])),
 			"descent_only":  bool(str(request.POST["descent_only"]))
 		}
-
-		if int(str(request.POST['jbda_enable_tensorboard'])):
-			kwargs.update({'enable_tensorboard': None})
 
 		return kwargs
 

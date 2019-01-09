@@ -8,7 +8,6 @@ IMG_TMP_DIR = os.path.join("static", "img")
 RANDOM_SEED = 42
 TRAINING_PREFIX = "train"
 API_KEY_LOCATION = 'api_key'
-TENSORBOARD_LOGDIR = '.tensorboard'
 LOG_DIR = "logs"
 
 REMOTE_URL = "https://phinau.de/trasi"

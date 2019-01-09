@@ -1,4 +1,4 @@
-from project_conf import DATA_ROOT, TENSORBOARD_LOGDIR, MODEL_SAVE_PATH
+from project_conf import DATA_ROOT, MODEL_SAVE_PATH
 
 import os
 import logging
@@ -9,7 +9,7 @@ import keras.backend as K
 
 import tensorflow as tf
 from cleverhans.utils_keras import KerasModelWrapper
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler, TensorBoard
+from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from keras.models import load_model
 from keras.optimizers import Adam, SGD
 from tensorflow.python.training.adam import AdamOptimizer
@@ -50,8 +50,9 @@ def init_modelspecs():
 def train_rebuild(random_seed=42, modelname='testmodel',
 					optimizer='sgd', learning_rate=1e-2, batch_size=64,
 					epochs=1, loss='categorical_crossentropy', validation_split=0.2,
-					dataset_name='gtsrb', load_augmented=False, enable_tensorboard=False,
+					dataset_name='gtsrb', load_augmented=False,
 					max_per_class=1000, keras_verbosity=1):
+
 	modeldir = init_modeldir()
 	modelpath = os.path.join(modeldir, modelname+'.h5')
 	report = AccuracyReport()
@@ -92,18 +93,16 @@ def train_rebuild(random_seed=42, modelname='testmodel',
 					optimizer=op,
 					metrics=['accuracy'])
 
-	callbacks = [
-		LearningRateScheduler(lr_schedule),
-		ModelCheckpoint(modelpath, save_best_only=True)
-	]
-	if enable_tensorboard:
-		callbacks.append(TensorBoard(log_dir=TENSORBOARD_LOGDIR))
+	print("Training started")
 	model.fit(X, Y,
 				batch_size=batch_size,
 				epochs=epochs,
 				validation_split=validation_split,
 				verbose=keras_verbosity,
-				callbacks=callbacks
+				callbacks=[
+					LearningRateScheduler(lr_schedule),
+					ModelCheckpoint(modelpath, save_best_only=True)
+				]
 			)
 
 	model.save(os.path.join(modeldir, 'last-'+modelname+'.h5'))
@@ -191,7 +190,7 @@ def get_initial_set(dataset, n_per_class=1, max_tries=100, hot_encoded=False, co
 
 
 def train_substitute(modelname='testmodel', lmbda=0.1, tau=2, n_jac_iteration=5, 
-					n_per_class=1, enable_tensorboard=False, batch_size=64, descent_only=False):
+					n_per_class=1, batch_size=64, descent_only=False):
 	modeldir = init_modeldir()
 	modelpath = os.path.join(modeldir, modelname+'.h5')
 	set_log_level(logging.DEBUG)
@@ -255,18 +254,15 @@ def train_substitute(modelname='testmodel', lmbda=0.1, tau=2, n_jac_iteration=5,
 
 		# (4) fit model on current set
 		wrap.model.set_weights(initial_weights)
-		callbacks = [
-			LearningRateScheduler(lr_schedule),
-			ModelCheckpoint(modelpath, save_best_only=True)
-		]
-		if enable_tensorboard:
-			callbacks.append(Tensorboard(log_dir=TENSORBOARD_LOGDIR))
 		wrap.model.fit(X, Y,
 						batch_size=64,
 						epochs=(rho+1)*20,
 						validation_split=0.2 if len(X) > 64*5 else 0,
 						verbose=2,
-						callbacks= callbacks
+						callbacks= [
+							LearningRateScheduler(lr_schedule),
+							ModelCheckpoint(modelpath, save_best_only=True)
+						]
 					)
 
 

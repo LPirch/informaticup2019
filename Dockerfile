@@ -12,6 +12,6 @@ RUN pip install -r informaticup/pip_requirements.txt
 EXPOSE 8080
 EXPOSE 6006
 WORKDIR informaticup
-RUN mkdir .cache .process .tensorboard logs data
+RUN mkdir .cache .process logs data
 RUN python manage.py migrate
 CMD /bin/sh setup_project.sh && python manage.py runserver 0.0.0.0:80

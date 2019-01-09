@@ -20,7 +20,6 @@ if __name__ == "__main__":
 
 	tf.flags.DEFINE_integer("max_per_class", 500, "Maximum number of images per class to load")
 	tf.flags.DEFINE_boolean("load_augmented", False, "Whether to load the augmented dataset")
-	tf.flags.DEFINE_boolean("enable_tensorboard", False, "Whether to enable tensorboard")
 	tf.flags.DEFINE_integer("keras_verbosity", 1, "Set the verbosity of keras training output")
 
 	train_dict = {
@@ -34,7 +33,6 @@ if __name__ == "__main__":
 		'validation_split': FLAGS.validation_split,
 		'dataset_name': FLAGS.dataset,
 		'load_augmented': FLAGS.load_augmented,
-		'enable_tensorboard': FLAGS.enable_tensorboard,
 		'max_per_class': FLAGS.max_per_class,
 		'keras_verbosity': FLAGS.keras_verbosity
 	}
