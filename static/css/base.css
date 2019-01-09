@@ -105,3 +105,7 @@ div.alert {
 button {
 	border: none !important;
 }
+
+div.container {
+	margin-left: 15vh !important;
+}
