@@ -159,7 +159,7 @@ def start_attack(request, attack):
 			validate_img_size(mask_img.file, identifier='Mask')
 			kwargs["mask_image"] = default_storage.save(mask_path, mask_img)
 	except ValueError as e:
-		return redirect('attack/attack.html?model='+kwargs['model']+'&error='+str(e))
+		return redirect('/attack/attack.html?model='+kwargs['model']+'&error='+str(e))
 
 	try:
 		pid = attack.start(process_dir, kwargs)
