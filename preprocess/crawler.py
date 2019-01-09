@@ -9,6 +9,7 @@ import requests
 from PIL import Image
 from io import BytesIO
 from skimage import io
+import numpy as np
 
 # the api key is obviously not put into the repo
 API_KEY = None
@@ -85,8 +86,8 @@ def fetch_single_prediction(img, id_map, n_classes, one_hot=False, delay=None, r
 		json_data = cache[key]
 	else:
 		#  print("cache miss, crawling img", key)
-		if not os.path.exists(DATA_DIR):
-			os.makedirs(DATA_DIR)
+		if not os.path.exists(DATA_ROOT):
+			os.makedirs(DATA_ROOT)
 
 		img = np.rint(img * 255).astype('uint8')
 		img = Image.fromarray(img, 'RGB')
@@ -123,4 +124,4 @@ def log_http_error(status, text):
 		log.write(text+"\n")
 	
 if __name__ == "__main__":
-	remote_evaluation(DATA_DIR)
+	remote_evaluation(DATA_ROOT)
