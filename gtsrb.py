@@ -1,3 +1,5 @@
+from project_conf import DATA_ROOT
+
 import os
 import zipfile
 import random
@@ -11,7 +13,7 @@ from sklearn.model_selection import train_test_split
 
 
 class GTSRB():
-	def __init__(self, data_root, random_seed):
+	def __init__(self, random_seed):
 		self.img_size = 64
 		self.n_channels = 3
 		self.n_classes = 43
@@ -19,9 +21,8 @@ class GTSRB():
 		self.box_max = 1
 		self.n_train_imgs = 39209
 		self.n_test_imgs = 12630
-		self.data_root = data_root
-		self.train_zip = os.path.join(data_root, 'GTSRB_Final_Training_Images.zip')
-		self.test_zip = os.path.join(data_root, 'GTSRB_Final_Test_Images.zip')
+		self.train_zip = os.path.join(DATA_ROOT, 'GTSRB_Final_Training_Images.zip')
+		self.test_zip = os.path.join(DATA_ROOT, 'GTSRB_Final_Test_Images.zip')
 		self.img_extension = '.ppm'
 		self.random_seed = random_seed
 
@@ -74,6 +75,7 @@ class GTSRB():
 		max_per_class 	 -- the maximum number of training images per class (default: 1000)
 		validation_split -- the percentage of validation samples
 		"""
+
 		n_per_class = np.zeros(self.n_classes, dtype="uint32")
 		class_distr = self.get_class_distr(load_augmented=load_augmented)
 		class_distr = np.clip(class_distr, a_min=0, a_max=max_per_class)
@@ -161,8 +163,8 @@ class GTSRB():
 		"""Preprocess a given image: scaling to [0, 1], central square cropping and resizing."""
 		img = np.asarray(img, dtype="float32") / 255
 
+		# remove optional alpha channel
 		img = img[:,:,:self.n_channels]
-		assert img.shape == (self.img_size, self.img_size, self.n_channels), img.shape
 
 		# central square crop
 		min_side = min(img.shape[:-1])
@@ -173,6 +175,8 @@ class GTSRB():
 		# resize
 		img = transform.resize(img, (self.img_size, self.img_size))
 
+		assert img.shape == (self.img_size, self.img_size, self.n_channels), img.shape
+		
 		# channels first
 		# img = np.rollaxis(img, -1)
 		return np.array(img, dtype="float32")

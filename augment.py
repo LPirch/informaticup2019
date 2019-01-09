@@ -82,7 +82,7 @@ def main():
 		'channel_shift_range': 0
 	}
 	np.random.seed(random_seed)
-	gtsrb = GTSRB('data', random_seed)
+	gtsrb = GTSRB(random_seed)
 	distr = gtsrb.get_class_distr(gtsrb, load_augmented=False)
 	gtsrb.plot_class_distr(distr, output_file="before.png")
 	

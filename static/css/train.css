@@ -1,29 +1,104 @@
 .spacer {
-    min-height: 3em;
+	min-height: 2em;
 }
 
 .nav-link {
-    border-radius: 0.25em !important;
+	border-radius: 0.25em !important;
 }
 
-.fa-trash-alt:hover, .fa-redo-alt:hover {
-    color: #b4b4b4 !important;
+.fa-trash-alt:hover, .fa-bolt:hover, .fa-info:hover {
+	color: #00bc8c !important;
 }
 
 .btn-primary:hover {
-    background-image: none !important;
-    background-color: #347cbb;
+	background-image: none !important;
+	background-color: #347cbb;
 }
 
 .table-active:hover {
-    background-color: #444 !important;
+	background-color: #444 !important;
 }
 
 .btn-sm {
-    margin: 0.25em !important;
+	margin: 0.25em !important;
 }
 
 .table th {
-    margin-top: 0 !important;
-    border-top-width: 0 !important;
+	margin-top: 0 !important;
+	border-top-width: 0 !important;
+}
+
+.sub-content {
+	margin-left: 2em; 
+}
+
+.table-wrapper-scroll-y {
+	height: 50vh;
+	overflow: auto;
+}
+
+.hidden {
+	display: none;
+}
+
+.modal-dialog {
+	height: 80%;
+	max-height: 80%;
+	width: 80%;
+	max-width: 80%;
+}
+
+.modal-content, .modal-body {
+	height: 100%;
+}
+
+.flex-center {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+#modal-content {
+	transition: opacity 1s ease-out;
+	opacity: 0; 
+	height: 0;
+	width: 0;
+	overflow: hidden;
+}
+#modal-content.active {
+	opacity: 1;
+	height: 85%;
+	width: 100%;
+	overflow-y: scroll;
+}
+
+#loading {
+	transition: opacity 1s ease-out;
+	opacity: 0; 
+	height: 0;
+	width: 0;
+	overflow: hidden;
+}
+#loading.active {
+	opacity: 1;
+	height: auto;
+	width: auto;
+}
+
+.striped tbody tr:nth-child(odd) {
+	background-color: #222222;
+}
+
+.fa-info, .fa-trash-alt {
+	cursor: pointer;
+}
+
+.flex-row {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+a.btn-danger {
+	margin-left: 1.5em;
 }

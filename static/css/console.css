@@ -1,0 +1,36 @@
+.container textarea {
+	width: 100%;
+	background-color: #000;
+	border: 0.3em solid #000;
+	color: #00ff00;
+	padding: 0.5em;
+	font-family: courier new;
+	min-height: 50vh;
+	border-radius: 1em;
+}
+
+.container textarea::-webkit-scrollbar {
+	width: 0.5em;
+}
+
+.container textarea::-webkit-scrollbar-track {
+	box-shadow: inset 0 0 5px black; 
+	border-radius: 10px;
+}
+
+.container textarea::-webkit-resizer {
+	background: black;
+}
+
+.container textarea::-webkit-scrollbar-thumb {
+	background: #00ff00; 
+	border-radius: 10px;
+}
+
+.container textarea::-webkit-scrollbar-track-piece {
+	background: black;
+}
+
+.container textarea::-webkit-scrollbar-thumb:hover {
+	background: #00af00; 
+}

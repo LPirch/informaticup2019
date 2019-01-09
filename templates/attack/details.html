@@ -3,95 +3,66 @@
 
 {% block additional_css %}
 	<link rel="stylesheet" href="{% static 'css/attack.css' %}">
-{% endblock %}
-
-{% block tab-nav %}
-<div class="navbar navbar-expand-lg bg-secondary display-4 sub-nav">
-	<i class="fas fa-angle-double-right"></i>
-	<ul class="nav nav-pills" role="tablist">
-		<li class="nav-item">
-			<a class="nav-link" href="index.html">Overview</a>
-		</li>
-		<li class="nav-item">
-			<a class="nav-link" href="attack.html">Attack</a>
-		</li>
-		<li class="nav-item active">
-			<a class="nav-link">Details ({{pid}})</a>
-		</li>
-	</ul>
-</div>
+	<link rel="stylesheet" href="{% static 'css/console.css' %}">
 {% endblock %}
 
 {% block content %}
+{% if error_none_selected %}
+<div class="container text-center">
+	<div class="alert alert-secondary">
+		<strong>No attack selected. Please select one in the overview table.</strong>
+	</div>
 
+	<a class="btn btn-primary" href="/attack/overview.html">Go to Overview</a>
+</div>
+{% else %}
+<div class="title">
+	<h3>Terminal Output</h3>
+</div>
 <div class="container">
 	<textarea id="console" readonly></textarea>
-	<div id="images"></div>
+	<table id="images" class="table">
+		<tr><th>Image</th><th>Name</th><th>Remote classification</th></tr>
+	</table>
 </div>
+{% endif %}
+{% endblock %}
 
-<script>
-	(function() {
-		var iteration = 0;
+{% block after_body_scripts %}
+	<script src="{% static 'js/attack/details.js' %}"></script>
+	<script>
+		var pid = "{{ pid }}";
+		pollConsole(pid);
+		pollImages(pid, function(newImage) {
+			var row = document.createElement("tr");
 
-		function fetch() {
-			var xhttp = new XMLHttpRequest();
-			xhttp.onreadystatechange = function() {
-				if (this.readyState == 4 && this.status == 200) {
-					document.getElementById("console").innerHTML = xhttp.responseText;
+			var img_cell = document.createElement("td");
+			var name_cell = document.createElement("td");
+			var remote_cell = document.createElement("td");
+
+			var img = document.createElement("img");
+			img.src = "/{{ img_path }}/" + newImage;
+
+			var name = document.createTextNode(newImage);
+
+			document.getElementById("images").appendChild(row);
+
+			row.appendChild(img_cell);
+			row.appendChild(name_cell);
+			row.appendChild(remote_cell);
+
+			img_cell.appendChild(img);
+			name_cell.appendChild(name);
+
+			getClassification(newImage, function(remote) {
+				for (var i = 0; i < remote.length; i++) {
+					var cell = document.createElement("div");
+					var text = document.createTextNode(remote[i]["class"] + ": " + remote[i]["confidence"]);
+
+					cell.appendChild(text);
+					remote_cell.appendChild(cell);
 				}
-			};
-			xhttp.open("GET", "attack/proc_info?pid={{ pid }}", true);
-			xhttp.send();
-
-			iteration++;
-
-			// refresh up to 5 minutes
-			if (iteration < 60 * 5) {
-				setTimeout(fetch, 1000);
-			}
-		}
-
-		fetch();
-	})();
-</script>
-
-<script>
-	(function() {
-		var iteration = 0;
-		var images = [];
-
-		function fetch() {
-			var xhttp = new XMLHttpRequest();
-			xhttp.onreadystatechange = function() {
-				if (this.readyState == 4 && this.status == 200) {
-					var recv_images = JSON.parse(xhttp.responseText)["images"];
-					var new_images = []
-
-					for (var i = 0; i < recv_images.length; i++) {
-						if (!images.includes(recv_images[i])) {
-							new_images.push(recv_images[i]);
-							images.push(recv_images[i]);
-						}
-					}
-
-					for (var i = 0; i < new_images.length; i++) {
-						var img = document.createElement("img");
-						img.src = "/{{ img_path }}/" + new_images[i];
-						document.getElementById("images").appendChild(img);
-					}
-				}
-			};
-			xhttp.open("GET", "attack/list_images?pid={{ pid }}", true);
-			xhttp.send();
-
-			// refresh up to 25 minutes
-			if (iteration < 60 * 5) {
-				setTimeout(fetch, 5000);
-			}
-		}
-
-		fetch();
-	})();
-</script>
-
+			});
+		});
+	</script>
 {% endblock %}

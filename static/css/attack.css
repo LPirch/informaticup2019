@@ -1,17 +1,6 @@
 .attack-options {
 	display: none;
 }
-
-.container textarea {
-	width: 100%;
-	background-color: #000;
-	border: 1px solid #000;
-	color: #00ff00;
-	padding: 8px;
-	font-family: courier new;
-	min-height: 400px; 
-}
-
 .input-file .input-ghost {
 	display: none;
 }
@@ -20,28 +9,23 @@
 	cursor: pointer;
 }
 
-::-webkit-scrollbar {
-	width: 0.5em;
+.badge {
+	margin-bottom: 1em;
+	margin-left: 0.5em;
+	font-size: 0.65em;
 }
 
-::-webkit-scrollbar-track {
-	box-shadow: inset 0 0 5px black; 
-	border-radius: 10px;
+.flex-container {
+	display: flex;
+	justify-content: flex-start;
+	align-items: flex-end;
+	height: 1.5em;
 }
 
-::-webkit-resizer {
-	background: darkgreen;
+.flex-icon {
+	align-items: center;
 }
 
-::-webkit-scrollbar-thumb {
-	background: #00ff00; 
-	border-radius: 10px;
-}
-
-::-webkit-scrollbar-track-piece {
-	background: black;
-}
-
-::-webkit-scrollbar-thumb:hover {
-	background: #00af00; 
+.processes .flex-icon i {
+	cursor: pointer;
 }

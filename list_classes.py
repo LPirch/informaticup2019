@@ -1,6 +1,7 @@
+from project_conf import GTSRB_PKL_PATH
 import pickle
 
-with open("data/gtsrb.pickle", "rb") as f:
+with open(GTSRB_PKL_PATH, "rb") as f:
 	gtsrb = pickle.load(f)
 
 # Create label map and class map
