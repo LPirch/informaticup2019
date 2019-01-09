@@ -70,7 +70,7 @@ labels = np.array(labels)
 
 assert os.path.isfile(FLAGS.image)
 
-dataset = GTSRB('data', FLAGS.random_seed)
+dataset = GTSRB(FLAGS.random_seed)
 with Image.open(FLAGS.image) as img:
 	img = dataset.preprocess(img)
 

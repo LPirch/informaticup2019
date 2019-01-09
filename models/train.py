@@ -197,7 +197,7 @@ def train_substitute(modelname='testmodel', lmbda=0.1, tau=2, n_jac_iteration=5,
 	gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.95)
 	sess_kwargs = dict(gpu_options=gpu_options)
 
-	gtsrb = GTSRB('data', random_seed=42)
+	gtsrb = GTSRB(random_seed=42)
 	n_classes = int(len(remote_map)/2)
 
 	# (0) init constants
