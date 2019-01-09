@@ -1,5 +1,6 @@
 import tensorflow as tf
 from models.train import train_rebuild
+import functools
 
 FLAGS = tf.flags.FLAGS
 
@@ -38,4 +39,6 @@ if __name__ == "__main__":
 		'keras_verbosity': FLAGS.keras_verbosity
 	}
 	
+	# set flush=True as default value for print
+	print = functools.partial(print, flush=True)
 	train_rebuild(**train_dict)	

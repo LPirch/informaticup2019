@@ -14,6 +14,7 @@ import sys
 
 import os
 import os.path
+import functools
 from PIL import Image
 
 from utils import Timer
@@ -56,7 +57,7 @@ def main():
 	with open(GTSRB_PKL_PATH, "rb") as f:
 		gtsrb = pickle.load(f)
 
-	print("Loaded pickle file", flush=True)
+	print("Loaded pickle file")
 
 	dataset = GTSRB(FLAGS.random_seed)
 	set_log_level(logging.DEBUG)
@@ -166,18 +167,18 @@ def main():
 	attack = attacks[FLAGS.attack](model, sess=sess)
 	attack_kwargs = attack_params[FLAGS.attack]
 
-	print("Starting attack", flush=True)
-	print("Parameters: ", flush=True)
+	print("Starting attack")
+	print("Parameters: ")
 
 	for k, v in attack_kwargs.items():
 		print(k,":", v)
-	print("", flush=True)
+	print("")
 
 	# attack images
 	with Timer("Attack (n_images=" + str(len(adv_inputs)) + ")"):
 		adv = attack.generate_np(adv_inputs, **attack_kwargs)
 
-	print("Attack finished", flush=True)
+	print("Attack finished")
 
 	# prepare img data for writing to file
 	inputs_img = np.rint(adv_inputs * 255).astype('uint8')
@@ -240,7 +241,10 @@ def main():
 
 
 if __name__ == '__main__':
-	print("Starting attack", flush=True)
+	# set flush=True as default value for print
+	print = functools.partial(print, flush=True)
+	
+	print("Starting attack")
 
 	tf.flags.DEFINE_integer("target", 0, "Target label")
 	tf.flags.DEFINE_string("image", "", "Path to attacked image")

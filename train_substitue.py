@@ -1,5 +1,6 @@
 import tensorflow as tf
 from models.train import train_substitute
+import functools
 
 FLAGS = tf.flags.FLAGS
 
@@ -24,4 +25,6 @@ if __name__ == "__main__":
 		"descent_only": FLAGS.descent_only
 	}
 
+	# set flush=True as default value for print
+	print = functools.partial(print, flush=True)
 	train_substitute(**train_dict)	
