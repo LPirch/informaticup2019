@@ -1,7 +1,9 @@
 from project_conf import DATA_ROOT, MODEL_SAVE_PATH
 
 import os
+import gc
 import logging
+import pickle
 
 import numpy as np
 from keras.models import Model as KerasModel
@@ -14,6 +16,7 @@ from keras.models import load_model
 from keras.optimizers import Adam, SGD
 from tensorflow.python.training.adam import AdamOptimizer
 from tensorflow.python.training.momentum import MomentumOptimizer
+from cleverhans.attacks_tf import jacobian_graph, jacobian_augmentation
 
 from cleverhans.loss import CrossEntropy
 from cleverhans.utils import AccuracyReport, set_log_level
@@ -23,6 +26,7 @@ from cleverhans.train import train
 from gtsrb import GTSRB
 from models.model_specs import cnn_model, dense_model
 from preprocess.crawler import fetch_single_prediction
+from label_map import remote_map
 
 MODEL_TYPES = {
 	'cnn_model': cnn_model,
@@ -35,24 +39,16 @@ def init_modeldir():
 		os.makedirs(modeldir)
 	return modeldir
 
-def init_modelspecs():
-	model_specs = os.path.join(DATA_ROOT, )
-	if not os.path.exists(model_specs):
-		os.makedirs(model_specs)
-
-	for name, initializer in MODEL_TYPES.items():
-		modelpath = os.path.join(DATA_ROOT, name+'.h5')
-		if not os.path.exists(modelpath):
-			model = initializer()
-			model.compile()
-			model.save(modelpath)
-
-def train_rebuild(random_seed=42, modelname='testmodel',
+def train_rebuild(random_seed=42, modelname='testmodel', modeltype='cnn_model',
 					optimizer='sgd', learning_rate=1e-2, batch_size=64,
 					epochs=1, loss='categorical_crossentropy', validation_split=0.2,
 					dataset_name='gtsrb', load_augmented=False,
 					max_per_class=1000, keras_verbosity=1):
-
+					
+	print("initializing training")
+	if not modeltype in MODEL_TYPES:
+		raise RuntimeError("Unknown model type: "+str(modeltype))
+	modeltype = MODEL_TYPES[modeltype]
 	modeldir = init_modeldir()
 	modelpath = os.path.join(modeldir, modelname+'.h5')
 	report = AccuracyReport()
@@ -76,7 +72,7 @@ def train_rebuild(random_seed=42, modelname='testmodel',
 	if os.path.exists(modelpath):
 		os.remove(modelpath)
 
-	model = cnn_model(dataset.img_size, dataset.n_classes)
+	model = modeltype(dataset.img_size, dataset.n_classes)
 	
 	if optimizer == "adam":
 		op = Adam(lr=learning_rate, decay=1e-6)
@@ -163,7 +159,7 @@ def crawl_initial_set(dataset, pickle_path, n_per_class=5, max_tries=100, confid
 				print(*[np.max(y) for y in Y[slice_indices]])
 				print("remaining classes: ", n_classes - sum(done))
 		
-	print("="*80, 'FINISHED CRAWLING')
+	print("="*5, 'FINISHED CRAWLING')
 	print("minimum confidence: ", Y[custom_argmin(Y)])
 
 	with open(pickle_path, 'wb') as pkl:
@@ -189,8 +185,13 @@ def get_initial_set(dataset, n_per_class=1, max_tries=100, hot_encoded=False, co
 	return X, Y
 
 
-def train_substitute(modelname='testmodel', lmbda=0.1, tau=2, n_jac_iteration=5, 
+def train_substitute(modelname='testmodel', lmbda=0.1, tau=2, n_jac_iteration=5, modeltype='cnn_model',
 					n_per_class=1, batch_size=64, descent_only=False):
+	
+	print("initializing training")
+	if not modeltype in MODEL_TYPES:
+		raise RuntimeError("Unknown model type: "+str(modeltype))
+	modeltype = MODEL_TYPES[modeltype]
 	modeldir = init_modeldir()
 	modelpath = os.path.join(modeldir, modelname+'.h5')
 	set_log_level(logging.DEBUG)
@@ -210,7 +211,7 @@ def train_substitute(modelname='testmodel', lmbda=0.1, tau=2, n_jac_iteration=5,
 	if descent_only:
 		# we select only a few images per class but these should be classified
 		# with high confidence by the remote model
-		X, _ = gtsrb.get_training_data(max_per_class=n_per_class, n_per_class=n_per_class, confidence_threshold=0.95)
+		X, _ = get_initial_set(gtsrb, hot_encoded=False, n_per_class=n_per_class, confidence_threshold=0.95)
 	else:
 		X, _ = get_initial_set(gtsrb, hot_encoded=False, n_per_class=n_per_class, confidence_threshold=0)
 
@@ -218,12 +219,12 @@ def train_substitute(modelname='testmodel', lmbda=0.1, tau=2, n_jac_iteration=5,
 		return 0.01 * (0.1 ** int(epoch / 25))
 
 	for rho in range(N_JAC_ITERATION):
-		print("=" * 80, "jacobian iteration: ", rho, "training set size: ", len(X))
+		print("=" * 5, "jacobian iteration: ", rho, "training set size: ", len(X))
 		# for memory reasons, we must reinitialize the session in each iteration
 		sess = tf.Session(config=tf.ConfigProto(**sess_kwargs))
 		K.set_session(sess)
 
-		wrap = KerasModelWrapper(cnn_model(gtsrb.img_size, n_classes))
+		wrap = KerasModelWrapper(modeltype(gtsrb.img_size, n_classes))
 
 		op = SGD(lr=1e-2, decay=1e-6, momentum=0.9, nesterov=True)
 		wrap.model.compile(loss='categorical_crossentropy',
