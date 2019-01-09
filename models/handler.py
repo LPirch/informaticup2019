@@ -1,7 +1,7 @@
 import subprocess
 import os.path
 
-class TrainHandler:
+class TrainHandlerRebuild:
 	def parse_arguments(request):
 		kwargs =  {
 			'modelname': str(request.POST["modelname"]),
@@ -17,9 +17,8 @@ class TrainHandler:
 
 		if int(str(request.POST["augmentation"])):
 			kwargs.update({'load_augmented': None})
-		if int(str(request.POST['tensorboard'])):
+		if int(str(request.POST['enable_tensorboard'])):
 			kwargs.update({'enable_tensorboard': None})
-
 
 		return kwargs
 
@@ -30,7 +29,36 @@ class TrainHandler:
 			if v:
 				popen_args.append(str(v))
 		
-		popen_args = ["python", "start_proc.py", process_dir, "python", "train_model.py"] + popen_args
+		popen_args = ["python", "start_proc.py", process_dir, "python", "train_rebuild.py"] + popen_args
+		pid = int(subprocess.check_output(popen_args).strip())
+		
+		return pid
+
+class TrainHandlerSubstitute:
+	def parse_arguments(request):
+		kwargs =  {
+			"modelname": str(request.POST["jbda_modelname"]),
+			"lmbda": float(str(request.POST["lmbda"])),
+			"tau": int(str(request.POST["tau"])),
+			"n_jac_iteration": int(str(request.POST["n_jac_iteration"])),
+			"n_per_class": int(str(request.POST["n_per_class"])),
+			"batch_size": int(str(request.POST["jbda_batch_size"])),
+			"descent_only":  bool(str(request.POST["descent_only"]))
+		}
+
+		if int(str(request.POST['jbda_enable_tensorboard'])):
+			kwargs.update({'enable_tensorboard': None})
+
+		return kwargs
+
+	def start(process_dir, kwargs):
+		popen_args = []
+		for k,v in kwargs.items():
+			popen_args.append('--'+k)
+			if v:
+				popen_args.append(str(v))
+		
+		popen_args = ["python", "start_proc.py", process_dir, "python", "train_substitute.py"] + popen_args
 		pid = int(subprocess.check_output(popen_args).strip())
 		
 		return pid

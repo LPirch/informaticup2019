@@ -1,3 +1,5 @@
+from project_conf import GTSRB_PKL_PATH
+from label_map import remote_map
 
 import keras.backend as K
 from cleverhans.utils_keras import KerasModelWrapper
@@ -51,27 +53,13 @@ def model_logits(sess, x, predictions, samples, feed=None):
 
 
 def main():
-	with open("data/gtsrb.pickle", "rb") as f:
+	with open(GTSRB_PKL_PATH, "rb") as f:
 		gtsrb = pickle.load(f)
 
 	print("Loaded pickle file", flush=True)
 
 	dataset = GTSRB(FLAGS.random_seed)
 	set_log_level(logging.DEBUG)
-	# Create label map and class map
-	class_map, label_map = {}, {}
-
-	# Sorting must be applied to gtsrb, because the
-	# mapping needs to be stable through restarts
-	for filename, classification in sorted(gtsrb.items()):
-		for c in classification:
-			key = c["class"]
-			if key not in class_map:
-				class_id = len(class_map)
-				class_map[key] = class_id
-				label_map[class_id] = key
-
-	print("Create label map", flush=True)
 
 	if FLAGS.generate_random:
 		print("Using random noise")
@@ -97,7 +85,7 @@ def main():
 	# symbolic model predictions
 	logits = model.get_logits(x)
 
-	print("Target: ", FLAGS.target, label_map[FLAGS.target])
+	print("Target: ", FLAGS.target, remote_map[FLAGS.target])
 
 	adv_inputs = np.array([img])
 	adv_targets = np.expand_dims(np.eye(n_classes)[FLAGS.target], axis=0)
@@ -214,7 +202,7 @@ def main():
 		pred_adv_i = np.argmax(adv_y, axis=-1)
 
 		if pred_adv_i != FLAGS.target:
-			print("No adv: ", label_map[pred_input_i], label_map[pred_adv_i])
+			print("No adv: ", remote_map[pred_input_i], remote_map[pred_adv_i])
 			continue
 
 		# Adversarial images
@@ -234,16 +222,16 @@ def main():
 			with open(adv_image_path + ".pickle", "wb") as f:
 				pickle.dump(f)
 
-		print(label_map[pred_input_i], "->", label_map[pred_adv_i])
+		print(remote_map[pred_input_i], "->", remote_map[pred_adv_i])
 		print("Classification (original/target):", pred_input_i, "/", pred_adv_i)
 
 		orig_softmax_y = softmax(orig_y)
 		adv_softmax_y = softmax(adv_y)
 
 		print("Original image: ")
-		print(label_map[pred_input_i], orig_softmax_y[pred_input_i], "\t", label_map[pred_adv_i], orig_softmax_y[pred_adv_i])
+		print(remote_map[pred_input_i], orig_softmax_y[pred_input_i], "\t", remote_map[pred_adv_i], orig_softmax_y[pred_adv_i])
 		print("Adversarial image: ")
-		print(label_map[pred_input_i], adv_softmax_y[pred_input_i], "\t", label_map[pred_adv_i], adv_softmax_y[pred_adv_i])
+		print(remote_map[pred_input_i], adv_softmax_y[pred_input_i], "\t", remote_map[pred_adv_i], adv_softmax_y[pred_adv_i])
 
 		print("Total distortion:", np.sum((adv[i]-adv_inputs[i])**2)**.5)
 

@@ -5,7 +5,6 @@ FLAGS = tf.flags.FLAGS
 
 if __name__ == "__main__":
 	tf.flags.DEFINE_string("modelname", "testmodel", "Name of the model.")
-	tf.flags.DEFINE_string("data_root", "data", "The path to the data set directory.")
 	tf.flags.DEFINE_string("dataset", "gtsrb", "The reference dataset")
 
 	tf.flags.DEFINE_integer("random_seed", 42, "seed for random numbers")
@@ -38,7 +37,5 @@ if __name__ == "__main__":
 		'max_per_class': FLAGS.max_per_class,
 		'keras_verbosity': FLAGS.keras_verbosity
 	}
-
-	print("Calling train_rebuild with args ")
-	print(train_dict)
+	
 	train_rebuild(**train_dict)	

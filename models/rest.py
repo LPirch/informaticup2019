@@ -5,14 +5,14 @@ import pickle
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 
-from models.handler import TrainHandler
+from models.handler import TrainHandlerRebuild, TrainHandlerSubstitute
 from utils_proc import gen_token, get_running_procs, get_token_from_pid, write_pid, kill_proc, is_pid_running
 import subprocess
 import re
 
 TRAINING_METHODS = {
-	'rebuild': TrainHandler,
-	'substitute': TrainHandler
+	'rebuild': TrainHandlerRebuild,
+	'substitute': TrainHandlerSubstitute
 }
 
 ALREADY_TRAINING = "1"
@@ -153,6 +153,7 @@ def start_training(request, training):
 		return HttpResponse("Error on mkdir")
 	
 	try:
+		print(">>"*80, "starting training with ", kwargs)
 		pid = training.start(process_dir, kwargs)
 	except Exception as e:
 		print(type(e))
