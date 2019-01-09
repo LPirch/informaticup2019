@@ -1,4 +1,4 @@
-from project_conf import PROCESS_DIR, IMG_TMP_DIR, CACHE_DIR
+from project_conf import PROCESS_DIR, IMG_TMP_DIR, CACHE_DIR, API_KEY_LOCATION, REMOTE_URL
 
 from django.shortcuts import redirect
 from django.http import HttpResponse, JsonResponse
@@ -7,6 +7,9 @@ from django.core.files.base import ContentFile
 
 from utils_proc import is_pid_running, get_token_from_pid, kill_proc, write_pid
 from attack.handler import CWL2AttackHandler, RobustCWL2AttackHandler, PhysicalAttackHandler
+
+from PIL import Image
+from gtsrb import GTSRB
 
 import os
 import os.path
@@ -89,16 +92,15 @@ def handle_classify(request):
 		return JsonResponse({"remote": remote})
 	return HttpResponse(status=405)
 
-def load_api_key(loc="api_key"):
+def load_api_key(loc=API_KEY_LOCATION):
 	with open(loc, 'r') as f:
 		key = f.read().strip()
 	return key
 
 def fetch_oracle_response(img):
-	URL = "https://phinau.de/trasi"
-	API_KEY = load_api_key()
+	api_key = load_api_key()
 
-	r = requests.post(URL, data={'key': API_KEY}, files={'image': img})
+	r = requests.post(REMOTE_URL, data={'key': api_key}, files={'image': img})
 
 	if r.status_code != 200:
 		log_http_error(r.status_code, r.text)
@@ -143,14 +145,21 @@ def start_attack(request, attack):
 	outdir = os.path.join(IMG_TMP_DIR, token)
 	kwargs["outdir"] = outdir
 
-	if "image" in kwargs and kwargs["image"]:
-		src_img_path = os.path.join(outdir, "original.png")
-		# override image arg with tmp filename of img
-		kwargs["image"] = default_storage.save(src_img_path, ContentFile(kwargs["image"].read()))
-	
-	if "mask_image" in kwargs and kwargs["mask_image"]:
-		mask_path = os.path.join(outdir, "mask.png")
-		kwargs["mask_image"] = default_storage.save(mask_path, ContentFile(kwargs["mask_image"].read()))
+	try:
+		if "image" in kwargs and kwargs["image"]:
+			src_img_path = os.path.join(outdir, "original.png")
+			# override image arg with tmp filename of img
+			img = ContentFile(kwargs["image"].read())
+			validate_img_size(img.file, identifier='Source')
+			kwargs["image"] = default_storage.save(src_img_path, img)
+		
+		if "mask_image" in kwargs and kwargs["mask_image"]:
+			mask_path = os.path.join(outdir, "mask.png")
+			mask_img = ContentFile(kwargs["mask_image"].read())
+			validate_img_size(mask_img.file, identifier='Mask')
+			kwargs["mask_image"] = default_storage.save(mask_path, mask_img)
+	except ValueError as e:
+		return redirect('attack/attack.html?model='+kwargs['model']+'&error='+str(e))
 
 	try:
 		pid = attack.start(process_dir, kwargs)
@@ -165,3 +174,14 @@ def start_attack(request, attack):
 		return HttpResponse("Error on create pid")
 
 	return redirect('/attack/details.html?pid=' + str(pid))
+
+
+def validate_img_size(img, identifier=None):
+	img = Image.open(img)
+	dataset = GTSRB(random_seed=42)
+	expected = (dataset.img_size, dataset.img_size)
+
+	if img.size != expected:
+		if not identifier:
+			identifier="Input"
+		raise ValueError(identifier+" image size mismatch, was "+str(img.size)+ " but expected "+str(expected))

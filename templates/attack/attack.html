@@ -15,6 +15,16 @@
 	</div>
 </div>
 {% else %}
+{% if error %}
+<div class="container text-center">
+	<div class="container text-center">
+		<div class="alert alert-danger alert-dismissible">
+			<button type="button" class="close" data-dismiss="alert">&times;</button>
+			<strong>Attack did not start: {{ error }}</strong>
+		</div>
+	</div>
+</div>
+{% endif %}
 <div class="title">
 	<h3>Start Attack</h3>
 </div>

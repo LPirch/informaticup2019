@@ -21,9 +21,13 @@ BASE_CONTEXT = {
 def attack(request):
 	if request.method == "GET":
 		selected_model = ""
+		error_msg = ""
 
 		if "model" in request.GET:
 			selected_model = request.GET["model"]
+
+		if 'error' in request.GET:
+			error_msg = request.GET['error']
 
 		models = get_models_info(selected=selected_model)
 
@@ -35,6 +39,8 @@ def attack(request):
 			},
 			**BASE_CONTEXT
 		)
+		if error_msg:
+			context["error"] = error_msg
 		return render(request, 'attack/attack.html', context)
 	return HttpResponse(status=405)
 
