@@ -1,0 +1,33 @@
+# never copy the api key
+api_key
+
+# virtualenv directories
+bin
+include 
+lib
+share
+venv
+man
+
+# IDE config directories
+.vscode
+.idea
+
+# data (excluded gtsrb.pkl)
+data/*
+!data/gtsrb.pkl
+
+# temporary directories
+.cache
+.process
+.tensorboard
+logs
+tmp
+
+# python stuff
+__pycache__
+*.pyc
+
+# ignore bootstrap css files
+*min*
+static/css/fontawesome
