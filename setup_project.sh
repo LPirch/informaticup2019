@@ -12,7 +12,8 @@ if [ ! -d $PIP_CACHE ]; then
 fi
 
 export PYTHONPATH=$PIP_CACHE
-pip install -t $PIP_CACHE --upgrade -r pip_requirements.txt
+# pip install -r options doesn't work here (reinstalls the packages even if cached)
+cat pip_requirements.txt | xargs pip install --cache-dir $PIP_CACHE -t $PIP_CACHE --upgrade
 
 python manage.py migrate
 
