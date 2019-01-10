@@ -12,8 +12,7 @@ if [ ! -d $PIP_CACHE ]; then
 fi
 
 export PYTHONPATH=$PIP_CACHE
-pip install --upgrade pip
-pip install -t $PIP_CACHE -r pip_requirements.txt
+pip install -t $PIP_CACHE --upgrade -r pip_requirements.txt
 
 python manage.py migrate
 
