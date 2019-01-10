@@ -1,0 +1,21 @@
+FROM tensorflow/tensorflow:latest-gpu-py3
+LABEL maintainer="l.pirch@tu-bs.de"
+
+RUN apt install locales
+
+RUN locale-gen en_US.UTF-8
+RUN update-locale
+
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+RUN apt update && apt upgrade -y
+RUN apt install -y wget unzip
+
+# copy complete repo
+COPY . /informaticup
+
+WORKDIR informaticup
+RUN mkdir .cache .process logs
+CMD /bin/sh setup_project.sh && python manage.py runserver 0.0.0.0:80
