@@ -9,13 +9,14 @@ pip install -r pip_requirements.txt
 
 python manage.py migrate
 
-# create DATA_ROOT
-if [ ! -d $DATA_ROOT/GTSRB ]; then
-	wget -O train.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Training_Images.zip"
-	wget -O test.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Test_Images.zip"
-	unzip train.zip -d $DATA_ROOT
-	unzip test.zip -d $DATA_ROOT
-	rm train.zip test.zip
+# fetch reference datasets
+# [training]
+if [ ! -d $DATA_ROOT/GTSRB_Final_Training_Images.zip ]; then
+	wget -O $DATA_ROOT/GTSRB_Final_Training_Images.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Training_Images.zip"
+fi
+# [test]
+if [ ! -d $DATA_ROOT/GTSRB_Final_Test_Images.zip ]; then
+	wget -O $DATA_ROOT/GTSRB_Final_Test_Images.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Test_Images.zip"
 fi
 
 # fetch CSS dependencies
