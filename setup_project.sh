@@ -1,21 +1,29 @@
 # script to run setup important project files and run the docker container
 # WARNING: do not execute this as-is outside the container!
-DATA_ROOT=data
-CSS_BASEDIR=static/css
-JS_BASEDIR=static/js
+PROJECT_DIR=/informaticup
 
+DATA_ROOT=$PROJECT_DIR/data
+PIP_CACHE=$DATA_ROOT/pip_packages
+CSS_BASEDIR=$PROJECT_DIR/static/css
+JS_BASEDIR=$PROJECT_DIR/static/js
+
+if [ ! -d $PIP_CACHE ]; then
+	mkdir $PIP_CACHE
+fi
+
+export PYTHONPATH=$PIP_CACHE
 pip install --upgrade pip
-pip install -r pip_requirements.txt
+pip install -t $PIP_CACHE -r pip_requirements.txt
 
 python manage.py migrate
 
 # fetch reference datasets
 # [training]
-if [ ! -d $DATA_ROOT/GTSRB_Final_Training_Images.zip ]; then
+if [ ! -f $DATA_ROOT/GTSRB_Final_Training_Images.zip ]; then
 	wget -O $DATA_ROOT/GTSRB_Final_Training_Images.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Training_Images.zip"
 fi
 # [test]
-if [ ! -d $DATA_ROOT/GTSRB_Final_Test_Images.zip ]; then
+if [ ! -f $DATA_ROOT/GTSRB_Final_Test_Images.zip ]; then
 	wget -O $DATA_ROOT/GTSRB_Final_Test_Images.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Test_Images.zip"
 fi
 

@@ -37,8 +37,12 @@ sudo docker run -d \
 
 
 # to setup and run a docker container supporting nvidia cuda, execute following commands:
+# INFO:		you need to be able to execute nvidia-docker. if you want to do that, please
+#			read the instructions on https://github.com/NVIDIA/nvidia-docker according to
+#			your distro
 sudo docker built -t superperturbator-cuda -f cuda_dockerfile
 sudo docker run -d \
+	--runtime=nvidia \
 	-p 80:80/tcp  \
 	-v /home/user/workspace/informaticup/data:/informaticup/data \
 	superperturbator-cuda
