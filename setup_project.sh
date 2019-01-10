@@ -1,7 +1,13 @@
 # script to run setup important project files and run the docker container
+# WARNING: do not execute this as-is outside the container!
 DATA_ROOT=data
 CSS_BASEDIR=static/css
 JS_BASEDIR=static/js
+
+pip install --upgrade pip
+pip install -r pip_requirements.txt
+
+python manage.py migrate
 
 # create DATA_ROOT
 if [ ! -d $DATA_ROOT/GTSRB ]; then
