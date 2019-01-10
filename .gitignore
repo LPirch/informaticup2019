@@ -13,8 +13,9 @@ man
 .vscode
 .idea
 
-# data
-data
+# data (excluded gtsrb.pkl)
+data/*
+!data/gtsrb.pkl
 
 # temporary directories
 .cache
