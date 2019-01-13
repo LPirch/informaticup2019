@@ -35,6 +35,20 @@ By feeding the GTSRB dataset to the remote model, we can collect the classificat
 A more sophisticated method is the Jacobian based dataset augmentation where the decision boundary is extracted by selectively querying the oracle along the gradient \cite{papernot2017practical}.
 \end{enumerate}
 
+Regarding the reference dataset GTSRB, we chose to crawl each image of the dataset once and cache the predictions in a python pickle file.
+We then analyzed the results and recognized that there are seven classes of GTSRB that never occur in the classification output of the remote model:
+\begin{enumerate}
+	\item einseitig (rechts) verengte Fahrbahn
+	\item Lichtzeichenanlage
+	\item Kinder
+	\item Schnee- oder Eisglätte
+	\item Ausschließlich links
+	\item vorgeschriebene Fahrtrichtung (geradeaus und rechts)
+	\item vorgeschriebene Fahrtrichtung (geradeaus und links)
+\end{enumerate}
+Concluding that it would be not sensible to target these classes, we excluded them from all further considerations.
+Also, the cached dataset predictions are the basis for a map which translates the class numbers and names of the local dataset to the ones returned by the remote model.
+
 \subsection{Carlini \& Wagner}\label{subsec:cwl2}
 In the following, the Carlini and Wagner $L_2$ attack is going to be recapitulated, following the ideas and notation of the original paper \cite{carlini2017towards}.
 The attack has been designed with the intention of evaluating a DNN classifier's robustness by proving its upper bound.
