@@ -162,9 +162,8 @@ This is important to prevent zombie processes because these would remain as \enq
 Since we don't want to restart the web server because a sub-process has finished, we applied this double fork technique.
 The advantage of this setup is that we leverage existing operating system mechanisms and don't have to re-implement this ourselves which might not cover all edge cases.
 
-
 \subsection{Python Back-End}\label{subsec:backend}
-The python back end is realized as a set of standalone scripts for the main tasks, some auxiliary scripts and a small configuration file which defines common variables like the path to the cache directory.
+The python back end represents our business logic and is realized as a set of standalone scripts for the main tasks, some auxiliary scripts and a small configuration file which defines common variables like the path to the cache directory.
 Considering the standalone scripts, each of them realizes a high level function like starting a training, an attack or crawling the remote predictions for a dataset.
 They expose all internal parameters as command line arguments such that they can be either called by hand or by the above described sub-processing mechanism.
 Whenever there are commonly used functions between these scripts, an auxiliary script has been created to avoid code duplication which implements the DRY\footnote{DRY = \enquote{don't repeat yourself}} software developing principle.
@@ -173,4 +172,35 @@ An example for an auxiliary script is \enquote{gtsrb.py}, which collects all pro
 This encapsulates all information and functions belonging together into a single script and provides them over an interface.
 If we were to manipulate data on a different reference dataset in the future, we would only have substitute this file with a similar one containing the information for the new dataset.
 As a consequence, many of the internal scripts are interchangeable which greatly improves the maintainability and extensibility of our program.
-%TODO
+
+Regarding the choice of programming language, there have been three main factors which emphasized why python would be the best choice in our case:
+\begin{description}
+	\item[Scripting Language] This type of language allows for writing very expressive and succinct code, which helps at implementing features fast while avoiding boiler plate code. 
+	A shorter source code is easier to maintain and fewer lines of code are also likely to contain fewer bugs~\cite{jain2017clairvoyant}. 
+	Considering the small time frame of the competition, this outweighs possible drawbacks like the missing error checking at compile time.
+	\item[Packet Management System] The python package management system \enquote{pip} incorporates all required dependencies in the default sources and allows for easily maintaining them on a project level using virtual environments. 
+	Utilizing widely used  and mature packets like Django or CleverHans, we are confident that these dependencies impose only a small risk of introducing bugs.
+	\item[Developer Experience] Developers write better code in languages they are highly familiar with.
+	Since this is the case for both team members, we preferred this choice over other equally good solutions.
+\end{description}
+
+\subsection{Docker Setup}
+Docker is a commonly used containerization and virtualization engine.
+It provides the opportunity to bundle a program and all its dependencies into a single container which then may be run on different operating systems.
+The result is an easy to install software with the only requirement using the same kernel.
+Also, completely uninstalling a program with all its dependencies becomes an easy task with docker containers.
+This technology therefore greatly simplifies distributing software and avoiding situations in which it works on a developer's machine but not on the user's.
+For the final submission, we choose to offer two options.
+First, we provide a \enquote{Dockerfile} and the git repository, which the user may use to create a docker image herself and instantiate a container.
+Second, we also distribute a ready-to-run docker container incorporating a copy of the repository.
+
+Having a closer look on the container, one might recognize that it is distributed without the reference dataset (GTSRB) and external dependencies (pip packages, twitter bootstrap etc.).
+We decided to reduce the size of the container and separate the code from the data as much as possible.
+Subsequently, there exists a setup shell script which will download all required data and put it in a so called \enquote{DATA\_ROOT} on startup of the container.
+This data root is a directory that can be mounted into the docker container such that, on a potential software update, the user would only need to replace the docker container and can then immediately continue working as before.
+A further benefit of this is that all relevant information concerning the program's state is also saved there which implies that the user could update the software without data loss.
+Considering that training models and fetching predictions is a very time-consuming task, we wanted to ensure that the user has to perform these tasks not more than once.
+
+Finally, the virtualization aspect of docker enables us to leverage operating system features like system calls and allowing a web application to write files without the risk of harming the host environment.
+For example, docker employs strict policies preventing containers from accidentally (or intentionally) modifying host files with the exception of mounted directories (like the data root).
+From a security perspective, it is also valuable to only expose a single port to the host network which is the one used to serve the website.
