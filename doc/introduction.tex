@@ -1,4 +1,27 @@
 \section{Introduction}
+In the recent years, Machine Learning algorithms have received much attention due to their efficiency in solving otherwise difficult classification tasks.
+Amongst others, there are applications in spam filtering \cite{ruan2010three, clark2003neural}, malware detection \cite{dahl2013large}, natural language processing \cite{collobert2008unified} and image classification \cite{simonyan2014very, he2016deep}.
+In the latter domain, deep neural networks (DNNs) and especially convolutional neural networks (CNNs) have become very popular.
+However, previous research has also shown that these ML algorithms are vulnerable to crafting malicious inputs, called \enquote{adversarial examples}.
+These inputs are created by an attacker with the intention of tricking the machine learning system into misclassifying.
+\citeauthor{szegedy2013intriguing} were the first to explore this kind of evasion attack aiming at finding unnoticeable modifications to a valid input sample such that it is misclassified by the DNN but still looks the same to a human observer~\cite{szegedy2013intriguing}.
+
+This year's InformatiCup challenge revolves around a related topic: The task is to generate images which do not look like traffic signs but are classified as such by a remote model with a high confidence (>90\%).
+Having in mind that image classification is used for self-driving cars which automatically detect and classify traffic signs, this topic is equally topical and relevant.
+It is an essential goal to prevent self-driving cars from being mislead by these adversarial examples since this would endanger human lives.
+Considering a situation in which someone places a sticker on the back of a lorry which looks benign to humans but is classified as a yield sign by a car, the criticality of this topic becomes very clear.
+This motivates exploring different kinds of attacks against ML algorithms in order to better understand the vulnerabilities, paving the way for setting up effective defenses.
+Adversarial Examples themselves are an active research direction and though there exist a plethora of attacks, it's neither clearly established why adversarial examples exist nor how to effectively defend against them.
+One of the most prominent projects for benchmarking defenses is the CleverHans project where a lot of state-of-the-art attacks are included \cite{papernot2016cleverhans}.
+
+On a more detailed level, the scenario of this challenge is as described by \citeauthor{szegedy2015explaining} in the appendix \enquote{rubbish class examples}\cite{szegedy2015explaining}, which deals with images that a human would not assign any of the given classes.
+In addition, the remote DNN is only provided as a black box meaning that the architecture, the weights and the training hyperparameters are unknown.
+This relates to the scenario in an article of \citeauthor{papernot2017practical} in which they discuss model stealing in a black-box context~\cite{papernot2017practical}.
+Therefore, the challenge of this task lies in combining the insights of both articles and applying them in a real-world situation rather than an artificial experiment.
+
+The remainder of this paper is organized as follows:
+%TODO
+
 
 \begin{enumerate}
 \item Thema motivieren
@@ -33,9 +56,7 @@ which reports the top five most-likely classes and their confidences for a given
 Additionally, we are given the information that the remote model has been trained on the GTSRB dataset.
 This equates to Oracle access ($X \rightarrow Y$) and Training data ($T$) knowledge \cite{papernot2016limitations}.
 
-Adversarial Examples are an active research direction and though there exist a plethora of attacks,
-it's neither clearly established why adversarial examples exist nor how to effectively defend against them.
-One of the most prominent projects for benchmarking defenses is the CleverHans project where a lot of state-of-the-art attacks are included \cite{papernot2016cleverhans}.
+
 
 % Damn it I had something for this
 % Something something Source-Target misclassifcation 
