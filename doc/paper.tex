@@ -3,9 +3,12 @@
 \usepackage[english]{babel}
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}    
+\usepackage{csquotes}
 
 \usepackage{color}
 \usepackage{subcaption}
+
+\usepackage{hyperref}
 
 \usepackage{amssymb}
 \usepackage{amsmath}
@@ -61,9 +64,9 @@
 \email{l.pirch@tu-braunschweig.de}
 
 \maketitle
-
 \input{introduction}
 \input{background}
+\input{threatmodel}
 \input{methodology}
 \input{architecture}
 
@@ -75,7 +78,9 @@
 \input{extensibility}
 
 %\bibliographystyle{IEEEtran}
+%TODO find source of szegedy2013 other than arXiv
 \bibliographystyle{plainnat}
 \bibliography{bib} %name of bib file
 
+\input{appendix}
 \end{document}
