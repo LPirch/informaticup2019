@@ -1,7 +1,7 @@
 %!TEX root = paper.tex
 
 % Software architecture, not CNN-architecture
-\section{Architecture}
+\section{Architecture}\label{sec:arch}
 
 This section describes the general architecture of our software solution and reasoning for choosing specific tools.
 We begin by describing the website front end which is visible to the user.
@@ -9,36 +9,86 @@ From there on we move to the server's back end and finally into our business log
 
 We chose python as our main programming language, because of its extensive usage and support in machine learning -- especially the TensorFlow framework.
 We decided to build a website as our main user interface and subsequently chose the Django Framework to easily integrate our python programs into the server back end.
-By using a website, our user interface is largely platform independent and nicely separated from our back end, which we provide via a REST API.
+Considering the attack algorithms, we selected the CleverHans library because it provides a unified interface to a variety of attacks.
+By using a website as the front end, our user interface is largely platform independent and nicely separated from our back end, which we provide via a REST API.
+Also, the web context allows us to use existing techniques to provide a visually appealing and responsive design.
 
-Currently our website is a local single user system, which we distribute as a docker container.
-This decision was mainly influenced by the competition's setup and further drawbacks of hosting a public server.
-If we had hosted our server publicly, we had to place additional emphasis on security evaluation, multi-user accessibility and server configuration.
-We therefore decided on a local container deployment.
+Currently, our website is a local single user system, which we distribute as a docker container.	
+We leave the thorough security evaluation and multi-user management to future extensions and focus more on generating strong adversarial examples.
+Though, using docker containers and a clear separation of the front end, the HTTP request management as well as our business logic, our architecture makes these extensions feasible.
+This separation has been strictly implemented which furthermore allows experienced users to connect to the docker container's TTY and use the python script back end directly without starting the web server.
 
-\subsection{Front end}
+% TODO: Jonas, was meinst du? Ich würde das einfach weglassen. Das klingt nach einer Rechtfertigung.
+%This decision was mainly influenced by the competition's setup and further drawbacks of %hosting a public server.
+%If we had hosted our server publicly, we had to place additional emphasis on security %evaluation, multi-user accessibility and server configuration.
+%We therefore decided on a local container deployment.
+%
+\subsection{Front End}\label{subsec:frontend}
 
-The front end is divided into two categories: 'Models' (model creation) and 'Attack'. In the former category the user is able train, steal, upload and generally manage models. The latter is then used to configure and start attacks on a model.
+The front end is divided into two categories: \enquote{Models} (model creation) and \enquote{Attack}.
+In the former category, the user is able train, steal, upload and generally manage models. The latter is then used to configure and start attacks on a model.
+All information in this subsection relates to the client-side part of our application: HTML documents, CSS stylesheets, JavaScript files and other static content.
 
-\subsubsection{Models}
+\subsubsection{Design Principles}
+The main goal for the front end is a visually appealing and responsive design.
+This includes the scalability of the website across different screen sizes and even device types.
+Therefore, all DOM object properties are defined using relative sizes, i.e. \enquote{em} for the size relative to the parent element or \enquote{vh} for the size relative to the view port size.
+We also leverage the twitter bootstrap framework for a scalable base design\footnote{\url{https://getbootstrap.com/}} as well as a bootstrap wrapper theme\footnote{\url{https://bootswatch.com/darkly/}} which we found suitable for a hacking-related competition.
 
-As discussed in Section \ref{sec:methodology} for an attack to be possible, we need to train a local substitute model, which we can access in a white-box manner.
-Due to the transferability property we can later transfer the adversarial examples, which we generated for our substitute model, to the remote model.
+A second requirement is a user-friendly flow.
+This includes a unified layout across multiple subdomains and expressive icons for which we used the free icons from fontawesome\footnote{\url{https://fontawesome.com/}}.
+Moreover, this design goal implies low latencies after clicking a button and an immediate visual feedback, which is solved by our REST API and asynchronous requesting(see~\ref{subsec:webserver}).
+The user's orientation on the page is further supported by hovering effects in potentially large tables.
+Finally, a user-friendly design also means preventing the user from taking possibly inadvertent actions like deleting a trained model which took multiple hours to train.
+We thoroughly implemented these design goals in all the below described parts of the website.
 
-The model creation category is organized in three tabs:
+The HTML documents are dynamically generated using the Django template system.
+This allows for having a static templates which are filled according to a given context: For example, the table of available models is dynamically created with respect to the prevalent models in the docker container.
+Also, this drastically decreases code duplications: The templates support inheritance which allowed us to define a base layout in a root template which is inherited from by each other template.
+As a consequence, a change in e.g. the navigation bar would only affect a single file, which reduces the risk of code inconsistencies.
 
-\begin{enumerate}
-\item[1.] \textbf{Overview}
-On this page all available models -- as well as their meta-data (name, size, last modified, architecture) -- are shown to the user. The user can choose to attack one of the models and is redirected to the attacking section. Furthermore, the user is able to upload own models on this page.
-\item[2.] \textbf{Training}
-This page enables the user to configure and start a new training phase of a substitute model. Currently, only one training process can run at the same time.
-\item[3.] \textbf{Details}
+\subsubsection{Welcome Page}
+The welcome page is intended to show an inviting and motivating starting page with a quick navigation to the two main parts of the front end.
+It explains in simple words what to expect there and employs a minimal design.
+
+\subsubsection{Models -- Overview}
+As discussed in Section \ref{sec:methodology}, for an attack to be possible, we need to train a local substitute model.
+The model overview tab contains all available models as well as their meta-data (name, size, date of last modification, architecture).
+Clicking on the info icon shows a modal containing a detailed overview about the model's layers.
+The user can choose to attack one of the trained models and is redirected to the attacking section accordingly. 
+Furthermore, the user is able to upload own models on this page.
+The trash icon triggers deleting a model.
+Referring to the above described design principles, the website prompts for a second approval before actually performing the request to prevent deleting a model by accident.
+
+\subsubsection{Models -- Training}
+This page enables the user to configure and start a new training phase of a substitute model. 
+Since training a model is very resource intensive, we prevent multiple simultaneous training processes.
+The page itself consists of a form which collects all training parameters.
+We chose to provide default values which yielded the best results in our experiments, effectively supporting a potentially less-experienced user.
+
+\subsubsection{Models -- Details}
 This page displays the details of the current training process and enables a user to abort the running training phase.
-\end{enumerate}
+To show the live console output, a script is polling the internal state of the respective standard output (stdout) file descriptor via our REST API. 
+If there is no process in progress, an appropriate message is shown.
 
-\subsubsection{Attack}
 
-The Attack category is structured similarly to the 'Models' category, so the user recognizes known concepts. In this section the user is able to start arbitrary attacks against the available models.
+\subsubsection{Attack -- Overview}
+Similar to the model overview, this page contains a table to manage the different attacks.
+The shown entities in this context are the performed runs: Each started attack is identifiable by its process ID (PID) and the console output can be reviewed live or in retrospective.
+If an attack run is not needed anymore, it can be removed from the table using the trash icon.
+
+\subsubsection{Attack -- Attack}
+This tab offers starting a new attack on a source image.
+The form fields update according to the selected attack algorithm because not all approaches use the same set of parameters.
+Also, the user is prompted to upload an image which is then taken to attack the selected model.
+Starting multiple attacks simultaneously is supported here since these are less resource intensive.
+An error alert may show up if any invalid form data had been passed.
+For example, loading a source image which is not 64 by 64 pixels in size results in such an error.
+
+\subsubsection{Attack -- Details}
+This tab works almost exactly like the model details except for that it additionally shows the classification result of the source and generated images.
+Thus, it enables the user to evaluate her attack after it has finished.
+Also, the generated images are shown on this page which enables the user to download them by right-clicking and saving them.
 
 Attack:
 \begin{enumerate}
@@ -81,3 +131,46 @@ Model:
 \item Pipeline-artig
 \item Durch Weboberfläche konfigurierbar
 \end{enumerate}
+
+\subsection{Django Server}\label{subsec:webserver}
+The Django server acts as a blend of web and application server.
+It serves static content like style sheets and HTML documents and responds to HTTP requests.
+We leveraged Django's middleware capabilities to automatically serve the static content and dispatch HTTP requests.
+As a result, we only had to implement the responses to the HTTP GET and POST requests.
+In general, we decided to implement a REST API in which GET requests are used to ask for the state of certain resources which are identified by an URI.
+These requests are idempotent, meaning that successive identical GET requests yield the same server responses (as demanded by RFC 7231\cite{rfc7231}).
+All state-changing actions are implemented as POST requests, for which an CSRF protection token is sent along with the generated HTML page.
+
+The request handling code does not contain any further logic except for parsing the requests and some basic input validation which is used to display the respective error message in case of invalid request data.
+We decided for a design with server-side input validation which would be a critical security requirement in future extensions supporting hosting the website over a network.
+These handlers issue other python scripts, which also work in a standalone mode.
+This is the manifestation of the previously described strict separation of duties.
+
+Regarding the code separation, each main component is realized as a separate \enquote{Django App}: This is Django's mechanism for grouping sub-components.
+We identified three main components in our software which are implemented as separate Django Apps: welcome, models and attack.
+This grouping is reflected in the HTML templates, JS scripts and CSS files, which increases the interchangeability of components and the enforcement to use clear interfaces.
+
+For actions that require a lot of processing like training or attacking a model, we employed a special mechanism for handling asynchronous sub-processes.
+In order to organize these, we leverage the existing operating system process management.
+An overview about the information flow is presented in Appendix~\ref{app:doublefork}.
+When the user issues a start command (either training or attack), a new process is spawned and the website receives an immediate response whether starting the process has been successful.
+Then, a JavaScript \enquote{setInterval} function periodically polls the state of the process.
+To test whether a process is still running, the Django middleware emits a KILL(0) system call which is successful if there exists a running process with the specified PID and errors otherwise.
+However, we need to apply a small trick to be able to use this mechanism which is known as \enquote{double fork}: To spawn an asynchronous worker process, we first fork an intermediate process that again forks the target process, returns its PID to the parent (Django handler) and then exits.
+Due to the behavior of the operating system, the worker process is now a child of the init process (PID 0), which takes care of terminating the process after completion automatically.
+This is important to prevent zombie processes because these would remain as \enquote{defunct} processes in the process table of the operating system, until the parent process (Django) exits.
+Since we don't want to restart the web server because a sub-process has finished, we applied this double fork technique.
+The advantage of this setup is that we leverage existing operating system mechanisms and don't have to re-implement this ourselves which might not cover all edge cases.
+
+
+\subsection{Python Back-End}\label{subsec:backend}
+The python back end is realized as a set of standalone scripts for the main tasks, some auxiliary scripts and a small configuration file which defines common variables like the path to the cache directory.
+Considering the standalone scripts, each of them realizes a high level function like starting a training, an attack or crawling the remote predictions for a dataset.
+They expose all internal parameters as command line arguments such that they can be either called by hand or by the above described sub-processing mechanism.
+Whenever there are commonly used functions between these scripts, an auxiliary script has been created to avoid code duplication which implements the DRY\footnote{DRY = \enquote{don't repeat yourself}} software developing principle.
+
+An example for an auxiliary script is \enquote{gtsrb.py}, which collects all properties of the reference dataset and provides functions to retrieve the data as well as plotting distributions over the different classes.
+This encapsulates all information and functions belonging together into a single script and provides them over an interface.
+If we were to manipulate data on a different reference dataset in the future, we would only have substitute this file with a similar one containing the information for the new dataset.
+As a consequence, many of the internal scripts are interchangeable which greatly improves the maintainability and extensibility of our program.
+%TODO
