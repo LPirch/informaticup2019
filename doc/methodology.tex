@@ -1,38 +1,32 @@
 %!TEX root = paper.tex
 
-\section{Methodology}
-\label{sec:methodology}
+\section{Methodology}\label{sec:methodology}
 
-In this section we present our approach to attacking the remote model.
-First, we describe how we turn the black-box oracle into a white-box model.
-Afterwards we introduce the attacks for generating adversarial examples.
+In this section, we present our theoretical approach to attacking the remote model and our practical methodology for developing a suitable software.
+The general idea is to train a local model which approximates the behavior of the remote model.
+Thus, we describe first how we turn the remote black-box oracle into a local white-box model in subsection~\ref{subsec:modelstealing}.
+Afterwards, we attack the local model and expect the generated image to also fool the remote model, depending on our approximation quality.
+Therefore, we introduce the attacks for generating adversarial examples in the subsequent parts of this section.
+Finally, we present our software developing methodology in subsection~\ref{subsec:sw_development}.
 
-\subsection{Model stealing}
+\subsection{Model stealing}\label{subsec:modelstealing}
 
-The attacks, which are introduced later in this section, assume white-box access to a model under attack
-(i.e. the entire architecture including amount of layers and neurons, the learned weights and the activation functions need to be known).
+The attacks, which are introduced later in this section, assume white-box access to a model under attack (i.e. the entire architecture including amount of layers and neurons, the learned weights and the activation functions need to be known).
 Because we are limited to a black-box access and the knowledge of the training data, we need to turn this into a white-box model.
 
-The following discussion is based on the transferability property of adversarial examples;
-this describes the observation that an adversarial example which is misclassified on one model,
-may be misclassified by another similar model.
-The transferability spans across different machine learning methods
-(e.g. between neural networks and support vector machines)
-and even works on disjoint datasets from the same underlying distribution. \cite{papernot2016transferability,goodfellow6572explaining, szegedy2013intriguing}
+The following discussion is based on the transferability property of adversarial examples; this describes the observation that an adversarial example which is misclassified on one model may be misclassified by another similar model.
+The transferability spans across different machine learning methods (e.g. between neural networks and support vector machines) and even works on disjoint datasets from the same underlying distribution. \cite{papernot2016transferability,goodfellow6572explaining, szegedy2013intriguing}
 
 We can leverage the transferability property to receive white-box access to a model.
-Because adversarial samples transfer between different machine learning methods,
-we do not need to know the exact architecture of the remote model,
-but instead can choose our own local white-box architecture.
-By training multiple neural networks with different layers,
-we can approximate the optimal architecture.
-To extract the information from the remote model, we can take further advantage of the transferability property:
+Because adversarial samples transfer between different machine learning methods, we do not need to know the exact architecture of the remote model but instead can choose our own local white-box architecture.
+By training multiple neural networks with different layers, we can approximate the optimal architecture.
+To extract the information from the remote model, we can take further take advantage of the transferability property:
 
 \begin{enumerate}
 \item[1.] \textbf{Rebuilding}
 
-We train a substitute model on the GTSRB dataset which we will refer to as GTSRB model.
-This exploits the fact, that adversarial examples transfer between models which have been trained on the same underlying distribution.
+We train a local model on the GTSRB dataset which we will refer to as GTSRB model.
+This exploits the fact that adversarial examples transfer between models which have been trained on the same underlying distribution.
 
 \item[2.] \textbf{Stealing}
 
@@ -41,23 +35,33 @@ By feeding the GTSRB dataset to the remote model, we can collect the classificat
 A more sophisticated method is the Jacobian based dataset augmentation where the decision boundary is extracted by selectively querying the oracle along the gradient \cite{papernot2017practical}.
 \end{enumerate}
 
-\subsection{Carlini \& Wagner}
+\subsection{Carlini \& Wagner}\label{subsec:cwl2}
+In the following, the Carlini and Wagner $L_2$ attack is going to be recapitulated, following the ideas and notation of the original paper \cite{carlini2017towards}.
+The attack has been designed with the intention of evaluating a DNN classifier's robustness by proving its upper bound.
+In their paper, \citeauthor{carlini2017towards} refer to the commonly used $L_0$, $L_2$ and $L_\infty$ norms and construct an attack for each of them.
+The second one of these attacks produces the least noticeable adversarial examples, which is why we chose it in this work.
+As shown in Equation~\ref{eq:cwl2_min}, the attack algorithm solves an optimization problem which minimizes the distance between the original and the perturbed image while ensuring a certain target class as the output~\cite{carlini2017towards}.
+Furthermore, they compute the distance in the tanh space to automatically scale the possible outputs to the range of valid pixel values as shown in Equation~\ref{eq:delta_tanh}.
 
-\citet{carlini2017towards}
-
-\begin{equation}
+\begin{equation}\label{eq:cwl2_min}
 \min ||\delta||^2_2 + c \cdot f(x + \delta)
 \end{equation}
 
-\begin{equation}
+\begin{equation}\label{eq:delta_tanh}
 \delta = \frac{1}{2}(\tanh(w)+1) - x
 \end{equation}
 
-\begin{equation}
+\begin{equation}\label{eq:cwl2_min_final}
 \min ||\frac{1}{2}(\tanh(w)+1)-x||^2_2 + c \cdot f(\frac{1}{2}(\tanh(w)+1)
 \end{equation}
 
-\subsection{Modified Carlini \& Wagner}
+Because the minimization is hard to compute directly for the highly non-linear functional dependency of a model, \citeauthor{carlini2017towards} substitute this by an objective function $f$ which is to be solved instead.
+It ensures that the classification of the adversarial example is the target class if and only if the objective function $f$ is less than or equal to zero.
+In other words, minimizing $f$ benefits the adversarial goal of a targeted misclassification.
+Therefore, the optimization problem can be reformulated such that its solution is easier to compute, as depicted in the final formulation by \citeauthor{carlini2017towards} in Equation~\ref{eq:cwl2_min_final}.
+They conclude that for a suitable $c > 0$, the optimal solution of the latter formulation matches the optimal solution of the former.
+
+\subsection{Modified Carlini \& Wagner}\label{subsec:cwl2_mod}
 
 Modification of \cite{carlini2017towards} inspired by \cite{eykholt2018robust}
 
@@ -65,10 +69,10 @@ Modification of \cite{carlini2017towards} inspired by \cite{eykholt2018robust}
 \min ||\delta||^2_2 + \frac{c}{|T|} \cdot \sum_{T_i \in T} f(T_i(x + \delta))
 \end{equation}
 
-The modification OF the Carlini \& Wagner attack is motivated by the context of the competition:
+The modification of the Carlini \& Wagner attack is motivated by the context of the competition:
 
-In a real world scenario the classification of traffic signs is done under various environmental influences;
-these include but are not limited to distance and angle to the object, lighting, weather or vandalism of the sign.
+In a real world scenario the classification of traffic signs is done under various environmental influences.
+These include but are not limited to distance and angle to the object, lighting, weather or vandalism of the sign.
 Often, a small change of these factors overshadows the adversarial perturbation. % TODO citation needed
 For an adversarial example to be successful, one often has to stay at the exact same position for which the sample was generated. 
 
@@ -76,15 +80,14 @@ For an adversarial example to be successful, one often has to stay at the exact 
 Amongst other methods they apply multiple transformations $T_i \in T$ to their source image,
 thus optimizing the perturbation to simultaneously work on multiple variations of the source image.
 
-For our modification of the Carlini \& Wagner attack we use four different transformations,
+For our modification of the Carlini \& Wagner attack, we use four different transformations,
 which mimic the classification from multiple angles: Left, slightly left, slightly right and Right.
 These transformations are inspired by the InformatiCup's introductory example:
 An autonomous car is driving behind a lorry, on which an adversarial sticker is placed.
 This image has to fool the classifier from multiple angles to successfully yield misbehavior of the self-driving car.
-While these image transformations are not sufficient enough to protect against other environmental influences,
-they nevertheless increase the robustness of the adversarial attacks and simulate a real-world usage.
+While these image transformations are not sufficient enough to protect against other environmental influences, they nevertheless increase the robustness of the adversarial attacks and simulate a real-world usage.
 
-\subsection{Robust Physical Perturbations}
+\subsection{Robust Physical Perturbations}\label{subsec:robustphysical}
 
 The Robust Physical Perturbation (RP$_2$) was introduced by \citet{eykholt2018robust}.
 \footnote{The corresponding GitHub repository can be found in \cite{rp2repo}}
@@ -95,11 +98,10 @@ The Robust Physical Perturbation (RP$_2$) was introduced by \citet{eykholt2018ro
 
 The original method contains a few additional operations such as a Non-Printability Score (NPS) and calculating the mean over multiple transformations -- like we adapted for our Modified Carlini \& Wagner attack.
 However, we did not receive favorable results with these additional terms and subsequently removed them from the optimization.
-Thus, we focused on the most important aspect of this attack,
-which is the ability to define a masking on the image.
+Thus, we focused on the most important aspect of this attack, which is the ability to define a masking on the image.
 This enables an attacker to define a graffiti-like perturbation.
 
-In the original paper this was used to reliably cause a neural network into misclassifying physical stop signs.
+In the original paper, this was used to reliably cause a neural network into misclassifying physical stop signs.
 The InformatiCup explicitly excluded the misclassification of traffic sign images from the competition.
 Yet we think this is a realistic and dangerous threat to autonomous driving as attacks can be hidden in graffiti-like perturbations as shown in Figure \ref{fig:stopsign}.
 
@@ -107,7 +109,8 @@ Yet we think this is a realistic and dangerous threat to autonomous driving as a
 \centering
 \begin{subfigure}{.19\linewidth}
   \centering
-  \includegraphics[width=0.7\linewidth]{imgs/stopp_to_70}
+  %TODO here was previously imgs/stopp_to_7
+  \includegraphics[width=0.7\linewidth]{imgs/7}
 \end{subfigure}
 \begin{subfigure}{.19\linewidth}
   \centering
@@ -116,3 +119,45 @@ Yet we think this is a realistic and dangerous threat to autonomous driving as a
 \caption{Stop-sign (left) which is misclassified as 'Zulässige Höchstgeschwindigkeit (70)': 99.10\%; true class image (right) for comparison}
 \label{fig:stopsign}
 \end{figure}
+
+\subsection{Software Development}\label{subsec:sw_development}
+The development velocity, code quality and maintainability of a program are heavily dependent on applying software development techniques properly.
+But also, these techniques serve the developer and not vice versa which is why we chose an appropriate degree of sticking to given techniques versus being unrestrictedly productive.
+Though, given the overall situation of having too little time for too many possible features, we had to plan a suitable architecture and preselect a set of features we would like to implement on the system level.
+We identified trying to implement too many features as the greatest risk for our project, which may result in a lack of focus and an overall mediocre software quality.
+Since on the other hand planning everything in advance is hardly possible, we decided to employ a flexible software design and pursue a more agile approach for the integration and component level.
+Employing a clear separation between the main components, we were able to focus on each system component separately and to achieve the primary goal of a successful misclassification first and to then re-evaluate which exact feature set is still realizable in the remaining time.
+The final set of functional system requirements is as follows, being sorted from most to least important:
+\begin{enumerate}
+	\item[1.] \textbf{Misclassification}
+	The software shall be able to reproducibly generate adversarial examples that are classified as traffic signs by the remote model.
+	\item[2.] \textbf{CleverHans Integration}
+	The software shall incorporate an interface to the CleverHans library and shall use it for attacking a model. Custom attack modifications shall be implemented using the same interface.
+	\item[3.] \textbf{Website}
+	The software shall provide a user-friendly front end in the form of a website.
+	\item[4.] \textbf{Docker}
+	The software shall be distributed using docker.
+\end{enumerate}
+
+This methodology ensured a fully functional business logic before spending time on optional tasks.
+Due to the small team size of two people, we refrained from creating time-consuming documents like a formal specification and decided to meet up at least once a week to reason about the current state and which steps to take next.
+
+When working with multiple developers on the same code base, there must be a defined flow for how to implement new features and integrate them into the code base.
+We decided to use git as a source code management system and to follow the \enquote{git flow}~\footnote{This concept has been initially presented in a blog post \cite{gitflow} but has found broad application under practitioners since then.}.
+A basic concept of this flow is to employ a master branch for releases, an integration branch for merging new features and short-living topic branches for the actual feature implementation.
+We refined this by a custom merging strategy which is further detailed in the next subsection.
+
+\subsection{Software Testing}\label{subsec:sw_testing}
+Software testing defines a set of techniques to ensure code quality and the coherence of specification and implementation.
+Applying meaningful tests reduces the technical debt in the software's life cycle and therefore decreases the time spent on fixing errors as well as the amount of unknown software bugs.
+Which exact techniques to apply must be decided for each project individually and depends on multiple factors like whether there are stakeholders interested in the outcome of a test and the benefit cost ratio.
+For example, setting up an extensive framework for regression testing is not sensible in our context because there is only a single release version, after which the won't be any further releases requiring a regression.
+Even unit tests do not fit our project very well because of the constantly changing code base which would incur the cost of permanently adjusting the test cases and re-evaluating if they are still meaningful.
+Also, having no clearly defined requirements, it is not possible to derive a test plan and specification, rendering most testing approaches ineffective.
+We therefore restricted ourselves to the following three testing techniques which we found appropriate in our context:
+\begin{description}
+	\item[Informal Code Review] This is a form of static testing which we applied before merging new features. To maintain a high development velocity, we chose the following flow: For a finished feature, the code author notifies the reviewer who then checks out the feature branch, reviews the changes and executes the code. The reviewer accepts or rejects the changes depending on potential open issues. On acceptance, the branch is merged and sent back for re-iteration on rejection. The reviewer also has the opportunity to ask for a peer review if there are many open questions or if the amount of changes is too large.
+	\item[Peer Review] For bigger sets of changes, we held dedicated sessions in which the reviewer examined each change, pointing out discrepancies and asking questions. The code author then provided an explanation or noted this aspect as an open issue. After solving all issues and implementing the fixes, the reviewer checked it again before merging in an informal review.
+	\item[Scenario-based Testing] This testing technique applies to the system level and defines scenarios to be tested. We identified this as vital to ensure that all components are well-integrated and that there are no unforeseen errors at the end. Testing scenarios helps ensuring a good user experience which is our main non-functional requirement in the context of this competition. 
+\end{description}
+Enforcing this testing strategy, we were able to develop with a high developing velocity\footnote{We performed a total of ca. 170 commits and an average of $1.1$ commits per day and team member (metrics taken from our git repository over the whole span of the project).} while maintaining a reasonable code quality.
