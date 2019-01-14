@@ -7,7 +7,7 @@ PROCESS_DIR = os.path.join(DATA_ROOT, '.process')
 LOG_DIR = os.path.join(DATA_ROOT, 'logs')
 
 API_KEY_LOCATION = 'api_key'
-IMG_TMP_DIR = os.path.join("static", "img")
+IMG_TMP_DIR = os.path.join(DATA_ROOT, "static_img")
 
 TRAINING_PREFIX = "train"
 ATTACK_PREFIX = "attack"

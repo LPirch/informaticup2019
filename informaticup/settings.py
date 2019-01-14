@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from project_conf import IMG_TMP_DIR
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -118,5 +119,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 STATICFILES_DIRS = (
 	os.path.join(BASE_DIR, "static"),
+	os.path.join(BASE_DIR, IMG_TMP_DIR)
 )
 STATIC_URL = '/static/'
