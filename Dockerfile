@@ -13,7 +13,7 @@ RUN python get-pip.py && rm get-pip.py
 COPY . /informaticup
 
 WORKDIR informaticup
-RUN mkdir .cache .process logs data
+RUN data
 
 # force docker CMD instruction to use /bin/bash to support sourcing
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
