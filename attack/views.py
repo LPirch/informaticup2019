@@ -1,4 +1,5 @@
 from project_conf import PROCESS_DIR, IMG_TMP_DIR, ATTACK_PREFIX
+from informaticup.settings import BASE_DIR
 
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -71,7 +72,7 @@ def details(request):
 			token = get_token_from_pid(pid)
 			context.update({
 				'pid': str(pid),
-				'img_path': os.path.join(IMG_TMP_DIR, token)
+				'img_path': os.path.join('static', token)
 			})
 		else:
 			context['error_none_selected'] =  True
