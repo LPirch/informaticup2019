@@ -24,9 +24,9 @@ conf & 15, 20
 \label{tab:cli_params}
 \end{table}
 
+\begin{minipage}{\linewidth}
 An adversarial example is generated using the command line call:
 
-\begin{minipage}{\linewidth}
 \vspace{2ex}
 \texttt{python3 attack\_model.py ----target [target]}
 
@@ -44,13 +44,57 @@ An adversarial example is generated using the command line call:
 \vspace{2ex}
 \end{minipage}
 
-Arguments which are embraced by parentheses are taken from Table \ref{tab:cli_params}. If the Carlini \& Wagner attack (cwl2) was chosen as the attack technique, this attempts to create one adversarial example. Otherwise, if our modified Carlini \& Wagner attack (robust\_cwl2) is used, five adversarial examples are generated. We omitted the Robust Physical Perturbation attack (RP$_2$) from our evaluation, because the success of the attack heavily depends on the masking image which might skew the results.
+Arguments which are embraced by parentheses are taken from Table \ref{tab:cli_params}. If the Carlini \& Wagner attack (cwl2) is chosen as the attack technique, this attempts to create one adversarial example. Otherwise, if our modified Carlini \& Wagner attack (robust\_cwl2) is used, five adversarial examples are generated.\footnote{Please note, that the 'modified Carlini \& Wagner' attack from Section \ref{subsec:cwl2_mod} is internally referred to as robust\_cwl2} We omitted the Robust Physical Perturbation attack (RP$_2$) from our evaluation, because the success of the attack heavily depends on the masking image which might skew the results.
 
-The attack\_model script only returns \emph{successful} adversarial examples, otherwise no image is generated. For the Carlini \& Wagner attack an adversarial example is successful, if the local model classifies it as the target class. The modified Carlini \& Wagner attack only returns an adversarial example if the center image (where no perspective transformation is applied) is classified as the target class.
+The attack\_model script only returns \emph{successful} adversarial examples, otherwise no image is generated. For the Carlini \& Wagner attack an adversarial example is successful, if the local model classifies it as the target class. The modified Carlini \& Wagner attack only returns a adversarial examples if the center image (where no perspective transformation is applied) is classified as the target class.
 
 For our evaluation we chose ten random labels as our target class to keep the computation at a moderate level while still receiving meaningful results. The models under attack were created using the techniques from Section \ref{subsec:modelstealing}: \emph{Rebuilding} was used for the gtsrb model and \emph{Stealing} with Jacobian based dataset augmentation was used for the jbda model. 
 
-\subsection{Robust CWL2}
+The results of the attacks are displayed in Table \ref{tab:cwl2_result} and Table \ref{tab:robust_result}. Each cell shows the number of adversarial examples in the respective category. To illustrate this for the modified Carlini \& Wagner attack results (Table \ref{tab:robust_result}): 37 adversarial examples of the 'abbey' image (which were generated with a confidence parameter of 20 against the gtsrb model) were classified with a confidence higher than 90\% by the remote model for the target class. On the other hand, four adversarial examples did not transfer and received a target-score lower than 90\%. Recall, that the modified C\&W attack is able to produce five adversarial example in one run. Therefore, the attack is potentially able to create 50 adversarial examples for the ten given targets. Thus, 43 of the potential 50 adversarial examples were successfully created on the local model.
+
+In the following we use the notation:
+
+\begin{itemize}
+\item[-] $P(C)$ = Probability of an adversarial example being successfully \textbf{created} on a local model
+\item[-] $P(T)$ = Probability of an adversarial example \textbf{transferring} to the remote model (i.e. classification $\geq90\%$)
+\item[-] $P(G)$ = Probability that the adversarial example was generated on the local \textbf{gtsrb model}
+\item[-] $P(J)$ = Probability that the adversarial example was generated on the local \textbf{jbda model}
+\end{itemize}
+
+\subsection{Carlini \& Wagner}
+
+\begin{align}
+P(C) = \frac{93}{120} &= 0.775\\[1ex]
+P(C \mid G) = \frac{54}{60} &= 0.9\\[1ex]
+P(C \mid J) = \frac{39}{60} &= 0.65\\[1ex]
+P(T \mid G \& C) = \frac{47}{54} &\approx 0.87\\[1ex]
+P(T \mid J \& C) = \frac{28}{39} &\approx 0.72\\[1ex]
+\end{align}
+
+\begin{table}
+\begin{tabular}{l l | r r | r r | r r}
+& & abbey & & gi & & octo & \\[1ex]
+& & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ \\[1ex]
+\hline
+gtsrb & 15 & 8 & 2 & 7 & 2 & 7 & 0 \\[1ex]
+& 20 & 10 & 0 & 8 & 1 & 7 & 2 \\[1ex]
+\hline
+jbda & 15 & 6 & 3 & 1 & 3 & 6 & 1 \\[1ex]
+& 20 & 7 & 0 & 2 & 3 & 6 & 1
+\end{tabular}
+\caption{Results for the Carlini \& Wagner attack}
+\label{tab:cwl2_result}
+\end{table}
+
+\subsection{Modified Carlini \& Wagner}
+
+\begin{align}
+P(C) = \frac{381}{600} = 0.635\\[1ex]
+P(C \mid G) = \frac{232}{300} \approx 0.77\\[1ex]
+P(C \mid J) = \frac{149}{300} \approx 0.50\\[1ex]
+P(T \mid G \& C) = \frac{205}{232} \approx 0.88\\[1ex]
+P(T \mid J \& C) = \frac{128}{149} \approx 0.86\\[1ex]
+\end{align}
 
 \begin{table}
 \begin{tabular}{l l | r r | r r | r r}
@@ -65,27 +109,6 @@ jbda & 15 & 30 & 7 & 12 & 3 & 26 & 8
 \\[1ex]
   & 20 & 23 & 1 & 14 & 1 & 23 & 1\\[1ex]
 \end{tabular}
-\caption{Robust CWL2 Results}
+\caption{Results for the \textit{modified} Carlini \& Wagner attack}
 \label{tab:robust_result}
 \end{table}
-
-Table \ref{tab:robust_result} 
-
-\subsection{CWL2}
-
-\begin{table}
-\begin{tabular}{l l | r r | r r | r r}
-& & abbey & & gi & & octo & \\[1ex]
-& & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ \\[1ex]
-\hline
-gtsrb & 15 & 8 & 2 & 7 & 2 & 7 & 0 \\[1ex]
-& 20 & 10 & 0 & 8 & 1 & 7 & 2 \\[1ex]
-\hline
-jbda & 15 & 6 & 3 & 1 & 3 & 6 & 1 \\[1ex]
-& 20 & 7 & 0 & 2 & 3 & 6 & 1
-\end{tabular}
-\caption{CWL2 Results}
-\label{tab:cwl2_result}
-\end{table}
-
-Table \ref{tab:cwl2_result} 
