@@ -3,7 +3,7 @@ from project_conf import PROCESS_DIR, IMG_TMP_DIR, ATTACK_PREFIX
 from django.shortcuts import render
 from django.http import HttpResponse
 
-from utils_proc import is_pid_running, get_token_from_pid
+from utils_proc import is_pid_running, get_token_from_pid, get_running_procs
 
 import os
 import os.path
