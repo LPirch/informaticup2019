@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
-from utils_proc import is_pid_running, get_token_from_pid, kill_proc, write_pid
+from utils_proc import is_pid_running, get_token_from_pid, kill_proc, write_pid, gen_token
 from attack.handler import CWL2AttackHandler, RobustCWL2AttackHandler, PhysicalAttackHandler
 
 from PIL import Image
