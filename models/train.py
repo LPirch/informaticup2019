@@ -25,7 +25,7 @@ from cleverhans.train import train
 
 from gtsrb import GTSRB
 from models.model_specs import cnn_model, dense_model
-from preprocess.crawler import fetch_single_prediction
+from crawler import fetch_single_prediction
 from label_map import remote_map
 
 MODEL_TYPES = {
@@ -100,9 +100,6 @@ def train_rebuild(random_seed=42, modelname='testmodel', modeltype='cnn_model',
 					ModelCheckpoint(modelpath, save_best_only=True)
 				]
 			)
-
-	model.save(os.path.join(modeldir, 'last-'+modelname+'.h5'))
-
 	K.clear_session()
 
 

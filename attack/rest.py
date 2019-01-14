@@ -1,11 +1,11 @@
-from project_conf import PROCESS_DIR, IMG_TMP_DIR, CACHE_DIR, API_KEY_LOCATION, REMOTE_URL
+from project_conf import PROCESS_DIR, IMG_TMP_DIR, CACHE_DIR, API_KEY_LOCATION, REMOTE_URL, ATTACK_PREFIX
 
 from django.shortcuts import redirect
 from django.http import HttpResponse, JsonResponse
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
-from utils_proc import is_pid_running, get_token_from_pid, kill_proc, write_pid
+from utils_proc import is_pid_running, get_token_from_pid, kill_proc, write_pid, gen_token
 from attack.handler import CWL2AttackHandler, RobustCWL2AttackHandler, PhysicalAttackHandler
 
 from PIL import Image
@@ -134,7 +134,7 @@ def start_attack(request, attack):
 	if not os.path.exists(PROCESS_DIR):
 		os.makedirs(PROCESS_DIR)
 
-	token = str(random.random())
+	token = gen_token(prefix=ATTACK_PREFIX)
 	process_dir = os.path.join(PROCESS_DIR, token)
 
 	try:

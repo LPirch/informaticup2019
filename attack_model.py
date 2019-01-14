@@ -1,4 +1,3 @@
-from project_conf import GTSRB_PKL_PATH
 from label_map import remote_map
 
 import keras.backend as K
@@ -54,11 +53,6 @@ def model_logits(sess, x, predictions, samples, feed=None):
 
 
 def main():
-	with open(GTSRB_PKL_PATH, "rb") as f:
-		gtsrb = pickle.load(f)
-
-	print("Loaded pickle file")
-
 	dataset = GTSRB(FLAGS.random_seed)
 	set_log_level(logging.DEBUG)
 

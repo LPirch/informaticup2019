@@ -24,7 +24,7 @@ function pollConsole() {
 				}
 			}
 		}
-		xhttp.open("GET", "models/proc_info", true);
+		xhttp.open("GET", "/models/proc_info", true);
 		xhttp.send();
 	}
 }

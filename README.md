@@ -1,50 +1,51 @@
 # InformatiCup
 
 This repo contains our work on the InformatiCup.
+The project name is SuperPerturbator.
 
 # Setup
 
 To get started, perform the following commands:
 
 ```sh
-workspace=/path/to/your/workspace
+# we assume your working dir to be the following (adjust this to your path)
+# /home/user/workspace
 
 # clone repository
-cd $workspace
+cd /home/user/workspace
 git clone git@gitlab.com:LPirch/informaticup.git
-
-# setup python environment
 cd informaticup
-virtualenv .
-source bin/activate
-pip install -r pip_requirements.txt
-
-# get data set
-mkdir data && \
-wget -O train.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Training_Images.zip" && \
-wget -O test.zip "http://benchmark.ini.rub.de/Dataset/GTSRB_Final_Test_Images.zip" && \
-unzip train.zip -d data && \
-unzip test.zip -d data && \
-rm train.zip test.zip
-
-# fetch css files
-wget -O static/css/bootstrap.min.css https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css  && \
-wget -O static/css/bootswatch.min.css https://stackpath.bootstrapcdn.com/bootswatch/4.1.3/darkly/bootstrap.min.css
-
-# fetch fontawesome icons
-wget -O static/css/fontawesome.zip https://use.fontawesome.com/releases/v5.5.0/fontawesome-free-5.5.0-web.zip  && \
-unzip static/css/fontawesome.zip -d static/css && \
-mv static/css/fontawesome-free-5.5.0-web static/css/fontawesome
-
-# fetch JS libs
-wget -O static/js/bootstrap.min.js https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js  && \
-wget -O static/js/bootstrap-confirmation.min.js https://cdn.jsdelivr.net/npm/bootstrap-confirmation2/dist/bootstrap-confirmation.min.js  && \
-wget -O static/js/jquery.min.js https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js  && \
-wget -O static/js/popper.min.js https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js
-
 
 # build image
-sudo docker build -t informaticup .
-# start container and bind a TCP port to host
-sudo docker run -d -p 80:80/tcp  -v $workspace/informaticup:/informaticup informaticup
+sudo docker build -t superperturbator .
+
+# make data dir (adjust the path as you like)
+mkdir /home/user/workspace/informaticup/data
+
+# start container and bind a TCP port to host, optionally mount the data dir into the container
+# use -d option (instead of -it) to run in background (deamon)
+sudo docker run -it --rm \
+	-p 80:80/tcp  \
+	-v /home/user/workspace/informaticup/data:/informaticup/data \
+	superperturbator
+
+
+# to setup and run a docker container supporting nvidia cuda, execute following commands:
+sudo docker built -t superperturbator-cuda -f cuda_dockerfile
+sudo docker run -it --rm \
+	--runtime=nvidia \
+	-p 80:80/tcp  \
+	-v /home/user/workspace/informaticup/data:/informaticup/data \
+	superperturbator-cuda
 ```
+## Important Notes
+  - the data root directory is purely optional (it is used for caching)
+  - it should however NOT be under the root of the repository directory (it will be ignored by docker)
+  - the first startup will take some time since we need to fetch the training and test datasets
+  - always provide fully qualified paths; it is not guaranteed to work otherwise
+  - for cuda-docker, you need to be able to execute nvidia-docker. if you want to do that, please read the instructions according to your distro on [the official page](https://github.com/NVIDIA/nvidia-docker)
+
+
+# Additional Information
+
+For the caching of pip packages in the data directory to work, it must be owned by the root user (or the )

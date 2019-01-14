@@ -1,17 +1,20 @@
-FROM python:3.5-slim
+FROM phusion/baseimage
 LABEL maintainer="l.pirch@tu-bs.de"
 
-RUN apt update 
-RUN apt install -y wget unzip
+RUN apt update && apt upgrade -y
+RUN apt install -y wget unzip python3.5
+RUN ln -s /usr/bin/python3.5 /usr/bin/python
+
+# install python pip
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN python get-pip.py && rm get-pip.py
 
 # copy complete repo
 COPY . /informaticup
-RUN pip install --upgrade pip
-RUN pip install -r informaticup/pip_requirements.txt
 
-EXPOSE 8080
-EXPOSE 6006
 WORKDIR informaticup
 RUN mkdir .cache .process logs data
-RUN python manage.py migrate
-CMD /bin/sh setup_project.sh && python manage.py runserver 0.0.0.0:80
+
+# force docker CMD instruction to use /bin/bash to support sourcing
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+CMD source /informaticup/setup_project.sh && python /informaticup/manage.py runserver 0.0.0.0:80

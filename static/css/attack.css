@@ -9,12 +9,6 @@
 	cursor: pointer;
 }
 
-.badge {
-	margin-bottom: 1em;
-	margin-left: 0.5em;
-	font-size: 0.65em;
-}
-
 .flex-container {
 	display: flex;
 	justify-content: flex-start;
