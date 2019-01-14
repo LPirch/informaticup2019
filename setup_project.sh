@@ -7,9 +7,12 @@ PIP_CACHE=$DATA_ROOT/pip_packages
 CSS_BASEDIR=$PROJECT_DIR/static/css
 JS_BASEDIR=$PROJECT_DIR/static/js
 
-if [ ! -d $PIP_CACHE ]; then
-	mkdir $PIP_CACHE
-fi
+for dir in .cache .process logs pip_packages static_img
+do
+	if [ ! -d $DATA_ROOT/$dir ]; then
+		mkdir -p $DATA_ROOT/$dir
+	fi
+done
 
 export PYTHONPATH=$PIP_CACHE
 # pip install -r options doesn't work here (reinstalls the packages even if cached)
