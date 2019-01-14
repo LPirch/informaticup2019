@@ -100,9 +100,6 @@ def train_rebuild(random_seed=42, modelname='testmodel', modeltype='cnn_model',
 					ModelCheckpoint(modelpath, save_best_only=True)
 				]
 			)
-
-	model.save(os.path.join(modeldir, 'last-'+modelname+'.h5'))
-
 	K.clear_session()
 
 
