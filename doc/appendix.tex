@@ -6,7 +6,7 @@
 	\centering
 	\begin{subfigure}{1.2\linewidth}
 		\centering
-		\includegraphics[width=1.2\linewidth]{figs/process_sequence}
+		\includegraphics[width=1.5\linewidth]{figs/process_sequence}
 	\end{subfigure}
 	\caption{The sequence of internal requests to start a process and poll its status.}
 \end{figure}
@@ -16,7 +16,7 @@
 This appendix contains the test script for the scenario-based test cases as well as the reported results.
 The below test cases reflect the flow from a user perspective starting from project setup and ending at the generated adversarial example.
 Each test step defines a four-tuple of an action, an expected reaction, the actual reaction and whether the test is passed.
-The software version under test is the commit on the master branch with the hash %TODO
+The software version under test is the commit on the master branch with the hash %TODO provide commit hash
 
 \subsection{Test Case 1: Project Setup}
 \begin{description}
@@ -140,7 +140,7 @@ The software version under test is the commit on the master branch with the hash
 			\item [-] go back to the details page and reside there until the training has finished
 			\item [-] the console window shows the output of the successful training; the abort training button disappears and is replaced by another button to clear the output
 			\item [-] after ca. 3.5 minutes, the training has finished (with 79.98\% validation accuracy) which is shown in the console; the abort training button disappears and is replaced by another button to clear the output
-			\item [-] FAILED: clear and return not shown %TODO
+			\item [-] PASSED
 		\end{itemize}
 		\item
 		\begin{itemize}
@@ -236,6 +236,34 @@ The software version under test is the commit on the master branch with the hash
 			\item [-] choose a valid image and submit the attack using the default parameters
 			\item [-] the browser is redirected to the details page showing the attack progress in a console window; the source image is shown at the bottom together with the remote prediction
 			\item [-] the browser is redirected to the details page showing the attack progress in a console window; the source image is shown at the bottom together with the remote prediction \enquote{Einmalige Vorfahrt}: 0.99161738
+			\item [-] PASSED
+		\end{itemize}
+		\item  
+		\begin{itemize}
+			\item [-] wait until the attack has finished
+			\item [-] the page now shows additional images including the adversarial example; there are remote predictions for each of them
+			\item [-] the original image is shown again as well as the adversarial example; the remote prediction has been correct for the source image and shows the target class for the adversarial example
+			\item [-] PASSED
+		\end{itemize}
+		\item  
+		\begin{itemize}
+			\item [-] navigate to attack overview
+			\item [-] the overview includes an entry with a PID and some icons
+			\item [-] the overview includes an entry with PID 198, \enquote{finished} badge and a trash icon
+			\item [-] PASSED
+		\end{itemize}
+		\item
+		\begin{itemize}
+			\item [-] click on the PID
+			\item [-] the same page like in step 5 is shown
+			\item [-] the same page like in step 5 is shown
+			\item [-] PASSED
+		\end{itemize}
+		\item
+		\begin{itemize}
+			\item [-] navigate back to attack overview; click on the trash icon
+			\item [-] the table entry disappears; a message indicating that there are no attack processes appears
+			\item [-] the table entry disappears and a message appears: \enquote{There are no attack processes to show at the moment.}
 			\item [-] PASSED
 		\end{itemize}
 	\end{enumerate}
