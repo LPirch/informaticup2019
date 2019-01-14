@@ -12,4 +12,4 @@ RUN mkdir .cache .process logs data
 
 # force docker CMD instruction to use /bin/bash to support sourcing
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
-CMD /bin/sh -c "source /informaticup/setup_project.sh && python /informaticup/manage.py runserver 0.0.0.0:80"
+CMD set -e && source /informaticup/setup_project.sh && python /informaticup/manage.py runserver 0.0.0.0:80
