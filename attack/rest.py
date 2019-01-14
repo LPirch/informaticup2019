@@ -1,4 +1,4 @@
-from project_conf import PROCESS_DIR, IMG_TMP_DIR, CACHE_DIR, API_KEY_LOCATION, REMOTE_URL
+from project_conf import PROCESS_DIR, IMG_TMP_DIR, CACHE_DIR, API_KEY_LOCATION, REMOTE_URL, ATTACK_PREFIX
 
 from django.shortcuts import redirect
 from django.http import HttpResponse, JsonResponse
@@ -134,7 +134,7 @@ def start_attack(request, attack):
 	if not os.path.exists(PROCESS_DIR):
 		os.makedirs(PROCESS_DIR)
 
-	token = str(random.random())
+	token = gen_token(prefix=ATTACK_PREFIX)
 	process_dir = os.path.join(PROCESS_DIR, token)
 
 	try:

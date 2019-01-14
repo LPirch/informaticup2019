@@ -7,5 +7,4 @@ def welcome(request):
 	context = {}
 	if not os.path.exists(API_KEY_LOCATION):
 		context['apikey_missing'] = True
-	print("welcome context: ", context)
 	return render(request, 'welcome.html', context)
