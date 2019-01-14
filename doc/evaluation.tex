@@ -1,11 +1,91 @@
 %!TEX root = paper.tex"`
 
 \section{Evaluation}
-Lokale Klassifikation (90\%-100\%) -> Transferwahrscheinlichkeit (0\%-100\%)
 
-Zusammenfassung:
-\begin{enumerate}
-\item Bilder erzeugen ist einfach
-\item CWL2: Bei zu hoher Konfidenz schimmern die Targetklassen durch
-\item Transferability schwierigste Stelle. Selbst 100\% auf lokalem Model können komplett verschieden klassifziert werden.
-\end{enumerate}
+To evaluate the quality of the attacks, we generated multiple adversarial examples with different configurations and classified them using the \textbf{remote} model. In the following we briefly discuss our setup and the selection of the attack parameters. Afterwards, we present and discuss the attack results.
+
+\subsection{Setup}
+
+\begin{table}
+\begin{tabular}{l | l}
+\textbf{Parameter} & \textbf{Values} \\\hline
+
+target & 0,2,3,5,11,12,16,27,31,33 \\\hline
+
+model & gtsrb\_model, jbda3\\\hline
+
+attack & cwl2, robust\_cwl2\\\hline
+
+image & abbey, gi, octocat\\\hline
+
+conf & 15, 20
+\end{tabular}
+\caption{Attack Configuration}
+\label{tab:cli_params}
+\end{table}
+
+An adversarial example is generated using the command line call:
+
+\begin{minipage}{\linewidth}
+\vspace{2ex}
+\texttt{python3 attack\_model.py ----target [target]}
+
+\hspace{4cm}\texttt{----model [model]}
+
+\hspace{4cm}\texttt{----attack [attack]}
+
+\hspace{4cm}\texttt{----image [image].png}
+
+\hspace{4cm}\texttt{----confidence [conf]}
+
+\hspace{4cm}\texttt{----max\_iterations 7500}
+
+\hspace{4cm}\texttt{----binary\_search\_steps 12}
+\vspace{2ex}
+\end{minipage}
+
+Arguments which are embraced by parentheses are taken from Table \ref{tab:cli_params}. If the Carlini \& Wagner attack (cwl2) was chosen as the attack technique, this attempts to create one adversarial example. Otherwise, if our modified Carlini \& Wagner attack (robust\_cwl2) is used, five adversarial examples are generated. We omitted the Robust Physical Perturbation attack (RP$_2$) from our evaluation, because the success of the attack heavily depends on the masking image which might skew the results.
+
+The attack\_model script only returns \emph{successful} adversarial examples, otherwise no image is generated. For the Carlini \& Wagner attack an adversarial example is successful, if the local model classifies it as the target class. The modified Carlini \& Wagner attack only returns an adversarial example if the center image (where no perspective transformation is applied) is classified as the target class.
+
+For our evaluation we chose ten random labels as our target class to keep the computation at a moderate level while still receiving meaningful results. The models under attack were created using the techniques from Section \ref{subsec:modelstealing}: \emph{Rebuilding} was used for the gtsrb model and \emph{Stealing} with Jacobian based dataset augmentation was used for the jbda model. 
+
+\subsection{Robust CWL2}
+
+\begin{table}
+\begin{tabular}{l l | r r | r r | r r}
+& & abbey & & gi & & octo & \\[1ex]
+& & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ \\[1ex]
+\hline
+gtsrb & 15 & 36 & 7 & 30 & 2 & 34 & 5
+\\[1ex]
+ & 20 & 37 & 4 & 30 & 4 & 38 & 5\\[1ex]
+\hline
+jbda & 15 & 30 & 7 & 12 & 3 & 26 & 8
+\\[1ex]
+  & 20 & 23 & 1 & 14 & 1 & 23 & 1\\[1ex]
+\end{tabular}
+\caption{Robust CWL2 Results}
+\label{tab:robust_result}
+\end{table}
+
+Table \ref{tab:robust_result} 
+
+\subsection{CWL2}
+
+\begin{table}
+\begin{tabular}{l l | r r | r r | r r}
+& & abbey & & gi & & octo & \\[1ex]
+& & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ & \footnotesize$\geq90\%$ & \footnotesize$<90\%$ \\[1ex]
+\hline
+gtsrb & 15 & 8 & 2 & 7 & 2 & 7 & 0 \\[1ex]
+& 20 & 10 & 0 & 8 & 1 & 7 & 2 \\[1ex]
+\hline
+jbda & 15 & 6 & 3 & 1 & 3 & 6 & 1 \\[1ex]
+& 20 & 7 & 0 & 2 & 3 & 6 & 1
+\end{tabular}
+\caption{CWL2 Results}
+\label{tab:cwl2_result}
+\end{table}
+
+Table \ref{tab:cwl2_result} 

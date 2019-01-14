@@ -26,6 +26,8 @@
   \centering
   \includegraphics[width=0.7\linewidth]{imgs/die_???}
 \end{subfigure}
+\caption{Source images (octocat, darkside, gi, abbey, die\_???)}
+\label{fig:source_images}
 \end{figure}
 
 \subsection{Submitted images}
@@ -74,7 +76,7 @@
   \includegraphics[width=0.7\linewidth]{imgs/20_real}
 \end{subfigure}
 \caption{Submitted images}
-\label{fig:test}
+\label{fig:submitted}
 \end{figure}
 
 \begin{enumerate}
@@ -172,6 +174,26 @@ Nevertheless, the adversarial example does not resemble the target class (nor an
 
 \item
 \textbf{Vorfahrt: 99.99\%}
+
+\begin{figure}[!h]
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/die_???}
+  \caption{Source}
+\end{subfigure}
+\hspace{0.05\linewidth}
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/inv_???mask}
+  \caption{Mask}
+\end{subfigure}
+\hspace{0.05\linewidth}
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/20}
+  \caption{Result}
+\end{subfigure}
+\end{figure}
 
 The last image was created by the robust physical attack (RP$_2$) applied to the GTSRB-model.
 It was generated from the logo of the three investigators (Die Drei Fragezeichen) where the question marks have been masked (i.e. they remain unperturbed).
