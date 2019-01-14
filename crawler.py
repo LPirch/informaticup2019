@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from project_conf import API_KEY_LOCATION, DATA_ROOT, LOG_DIR, REMOTE_URL, GTSRB_PKL_PATH
+from project_conf import API_KEY_LOCATION, DATA_ROOT, LOG_DIR, REMOTE_URL
 import os
 import json
 import time
@@ -36,43 +36,6 @@ def test_connection(api_key):
 	
 	return -1
 
-def remote_evaluation(directory, target_ext=".png"):
-	for root, _, files in os.walk(directory):
-		files = [name for name in files if name.endswith(".zip")]
-		for filename in files:
-			with zipfile.ZipFile(os.path.join(root, filename)) as z:
-				namelist = [name for name in z.namelist() if name.endswith(target_ext)]
-				for img_name in namelist:
-					with z.open(img_name) as img_file:
-						fetch_oracle_response(img_name, img_file, delay=1)
-
-
-def fetch_oracle_response(img_name, img, delay=None):
-	api_key = load_api_key()
-	assert api_key
-
-	preds = {}
-	preds_pickle = GTSRB_PKL_PATH
-	if os.path.exists(preds_pickle):
-		with open(preds_pickle, 'rb') as pkl:
-			preds = pickle.load(pkl)
-	if img_name in preds:
-		print("skipping ", img_name)
-	else:
-		print("fetching ", img_name)
-		r = requests.post(REMOTE_URL, data={'key': api_key}, files={'image': img})
-		
-		if r.status_code != 200:
-			log_http_error(r.status_code, r.text)
-
-		json_data = json.loads(r.text)
-
-		preds[img_name] = json_data
-		with open(preds_pickle, 'wb') as pkl:
-			pickle.dump(preds, pkl)
-		
-		if delay:
-			time.sleep(delay)
 
 def fetch_batch_prediction(imgs, id_map, n_classes, one_hot=False, delay=None, remote_pred_precision=3, cache=None):
 	return np.array([fetch_single_prediction(img, id_map, n_classes, one_hot=one_hot, delay=delay, remote_pred_precision=remote_pred_precision, cache=cache, key=i) for i, img in enumerate(imgs)])
@@ -123,5 +86,3 @@ def log_http_error(status, text):
 	with open(LOG_DIR+"/http_"+str(status)+".log", "a") as log:
 		log.write(text+"\n")
 	
-if __name__ == "__main__":
-	remote_evaluation(DATA_ROOT)

@@ -25,7 +25,7 @@ from cleverhans.train import train
 
 from gtsrb import GTSRB
 from models.model_specs import cnn_model, dense_model
-from preprocess.crawler import fetch_single_prediction
+from crawler import fetch_single_prediction
 from label_map import remote_map
 
 MODEL_TYPES = {

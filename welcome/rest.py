@@ -4,7 +4,7 @@ import os
 from django.shortcuts import redirect
 from django.http import HttpResponse
 
-from preprocess.crawler import test_connection
+from crawler import test_connection
 from project_conf import API_KEY_LOCATION
 
 def handle_save_api_key(request):

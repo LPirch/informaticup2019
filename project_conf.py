@@ -11,4 +11,3 @@ API_KEY_LOCATION = 'api_key'
 LOG_DIR = "logs"
 
 REMOTE_URL = "https://phinau.de/trasi"
-GTSRB_PKL_PATH = os.path.join(DATA_ROOT, 'gtsrb.pkl')
