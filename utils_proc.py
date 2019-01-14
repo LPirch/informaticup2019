@@ -1,7 +1,6 @@
 from project_conf import PROCESS_DIR, IMG_TMP_DIR
 
 import os
-import os.path
 import subprocess
 import random
 

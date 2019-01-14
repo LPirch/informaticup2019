@@ -14,6 +14,7 @@ if __name__ == '__main__':
 
 	proc_dir = args.pop(0)
 
+	os.setsid()
 	with open(os.path.join(proc_dir, 'stdout'), 'wb') as f:
 		p = subprocess.Popen(args, stdout=f, stderr=f, bufsize=1, universal_newlines=True)
 	
