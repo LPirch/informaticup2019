@@ -78,41 +78,65 @@ We analyzed the results and recognized that there are seven classes of the GTSRB
 
 Because it would not be sensible to target these classes, we excluded them from all further considerations.
 
+\subsection{Adversarial Examples}
+
+Neural networks are vulnerable to adversarial samples: Given an image $x$ of class $s$ and a target class $t$ it is possible to calculate a visually indistinguishable image $x'$ of class $t$. Generally, finding an adversarial example in a targeted attack may be formalized as:
+
+\begin{equation}
+\label{eq:general_opt}
+\optimize{\minimize}{}{d(x, x+\delta)}{C(x + \delta) = t}
+\end{equation}
+
+where $d$ is a distance metric, $x$ is an input image of class $s \neq t$ and $\delta$ is the perturbation applied to the input image.
+
 \subsection{Carlini \& Wagner}\label{subsec:cwl2}
-In the following, the Carlini and Wagner $L_2$ attack is going to be recapitulated, following the ideas and notation of the original paper \cite{carlini2017towards}.
+In the following, the Carlini and Wagner $L_2$ attack is going to be briefly summarized, following the ideas and notation of the original paper \cite{carlini2017towards}.
 The attack has been designed with the intention of evaluating a DNN classifier's robustness by proving its upper bound.
 In their paper, \citeauthor{carlini2017towards} refer to the commonly used $L_0$, $L_2$ and $L_\infty$ norms and construct an attack for each of them.
 The second one of these attacks produces the least noticeable adversarial examples, which is why we chose it in this work.
-As shown in Equation~\ref{eq:cwl2_min}, the attack algorithm solves an optimization problem which minimizes the distance between the original and the perturbed image while ensuring a certain target class as the output~\cite{carlini2017towards}.
-Furthermore, they compute the distance in the tanh space to automatically scale the possible outputs to the range of valid pixel values as shown in Equation~\ref{eq:delta_tanh}.
 
-\begin{equation}\label{eq:cwl2_min}
+On a high level the attack algorithm solves an optimization problem which minimizes the distance between the original and the perturbed image while ensuring a certain target class as the output. The concrete formulation is:
+
+\begin{equation}\label{eq:cw_general}
 \min ||\delta||^2_2 + c \cdot f(x + \delta)
+\vspace{1ex}
 \end{equation}
+
+where the distance metric $d$ from Equation \ref{eq:general_opt} is realized as the squared $L_2$ norm $||\cdot||^2_2$, $f$ is an objective function which is discussed in the following and $c$ is a constant which balances the minimization of both terms.
+
+This formulation was chosen, because the general minimization problem is hard to compute directly for the highly non-linear functional dependency of a model. Therefore \citeauthor{carlini2017towards} reformulated the general optimization problem by introducing the objective function $f$.
+It ensures that the classification of the adversarial example is the target class if and only if the objective function $f$ is less than or equal to zero.
+
+\begin{equation*}
+C(\myvec{x'}) = t \Leftrightarrow f(\myvec{x'}) \leq 0
+\vspace{1ex}
+\end{equation*}
+
+In other words, minimizing $f$ benefits the adversarial goal of a targeted misclassification.
+
+Their objective function operates on the logits $Z$ of the neural network and incorporates the confidence parameter $\kappa$; higher values for $\kappa$ result in adversarial samples with larger classification-confidence.
+
+\begin{equation*}
+f(\myvec{x}) = \max(\underset{i\neq t}{\max}(Z(\myvec{x})_i) - Z(\myvec{x})_t, -\kappa)
+\end{equation*}
+
+Because of the dependence on the logits white-box access to the model is needed as discussed in Section \ref{subsec:modelstealing}.
+
+Furthermore, they use a change of variable to compute the distance in the tanh space to automatically scale the possible outputs to the range of valid pixel values
 
 \begin{equation}\label{eq:delta_tanh}
 \delta = \frac{1}{2}(\tanh(w)+1) - x
 \end{equation}
 
+Combining Equation \ref{eq:cw_general} and \ref{eq:delta_tanh} results in the final formulation:
+
 \begin{equation}\label{eq:cwl2_min_final}
 \min ||\frac{1}{2}(\tanh(w)+1)-x||^2_2 + c \cdot f(\frac{1}{2}(\tanh(w)+1)
 \end{equation}
 
-Because the minimization is hard to compute directly for the highly non-linear functional dependency of a model, \citeauthor{carlini2017towards} substitute this by an objective function $f$ which is to be solved instead.
-It ensures that the classification of the adversarial example is the target class if and only if the objective function $f$ is less than or equal to zero.
-In other words, minimizing $f$ benefits the adversarial goal of a targeted misclassification.
-Therefore, the optimization problem can be reformulated such that its solution is easier to compute, as depicted in the final formulation by \citeauthor{carlini2017towards} in Equation~\ref{eq:cwl2_min_final}.
-They conclude that for a suitable $c > 0$, the optimal solution of the latter formulation matches the optimal solution of the former.
-
 \subsection{Modified Carlini \& Wagner}\label{subsec:cwl2_mod}
 
-Modification of \cite{carlini2017towards} inspired by \cite{eykholt2018robust}
-
-\begin{equation}
-\min ||\delta||^2_2 + \frac{c}{|T|} \cdot \sum_{T_i \in T} f(T_i(x + \delta))
-\end{equation}
-
-The modification of the Carlini \& Wagner attack is motivated by the context of the competition:
+We found it necessary to further modify the original C\&W formulation because of the context this year's informatiCup is placed in:
 
 In a real world scenario the classification of traffic signs is done under various environmental influences.
 These include but are not limited to distance and angle to the object, lighting, weather or vandalism of the sign.
@@ -123,32 +147,70 @@ For an adversarial example to be successful, one often has to stay at the exact 
 Amongst other methods they apply multiple transformations $T_i \in T$ to their source image,
 thus optimizing the perturbation to simultaneously work on multiple variations of the source image.
 
+We adapted this idea for the C\&W attack to make it more resilient in the competition's real world context. By calculating the average of the objective function $f$ for multiple transformations $T_i \in T$ we achieve the same effect as \cite{eykholt2018robust}.
+
+\begin{equation}
+\min ||\delta||^2_2 + \frac{c}{|T|} \cdot \sum_{T_i \in T} f(T_i(x + \delta))
+\end{equation}
+
 For our modification of the Carlini \& Wagner attack, we use four different transformations,
-which mimic the classification from multiple angles: Left, slightly left, slightly right and Right.
+which mimic the classification from multiple angles as shown in Figure \ref{fig:truck_perspectives}: Left, slightly left, slightly right and Right.
 These transformations are inspired by the InformatiCup's introductory example:
 An autonomous car is driving behind a lorry, on which an adversarial sticker is placed.
 This image has to fool the classifier from multiple angles to successfully yield misbehavior of the self-driving car.
+
+\begin{figure}
+\centering
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/truck_example/truck_rr}
+\end{subfigure}
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/truck_example/truck_r}
+\end{subfigure}
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/truck_example/truck_c}
+\end{subfigure}
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/truck_example/truck_l}
+\end{subfigure}
+\begin{subfigure}{.19\linewidth}
+  \centering
+  \includegraphics[width=0.7\linewidth]{imgs/truck_example/truck_ll}
+\end{subfigure}
+\caption{A truck from multiple synthetic perspectives}
+\label{fig:truck_perspectives}
+\end{figure}
+
 While these image transformations are not sufficient enough to protect against other environmental influences, they nevertheless increase the robustness of the adversarial attacks and simulate a real-world usage.
 
 \subsection{Robust Physical Perturbations}\label{subsec:robustphysical}
 
-The Robust Physical Perturbation (RP$_2$) was introduced by \citet{eykholt2018robust}.
+The Robust Physical Perturbation (RP$_2$) was introduced by \citet{eykholt2018robust} and defines the following minimization problem:
 \footnote{The corresponding GitHub repository can be found in \cite{rp2repo}}
 
 \begin{equation}
-\argmin_\delta \lambda ||M_x \cdot \delta||_2 + J(F(x_i + M_x \cdot \delta), y)
+\argmin_\delta ||M \cdot \delta||_2 + J(F(x + M \cdot \delta), t)
 \end{equation}
 
-The original method contains a few additional operations such as a Non-Printability Score (NPS) and calculating the mean over multiple transformations -- like we adapted for our Modified Carlini \& Wagner attack.
+where $x$ is the input image and $\delta$ is the perturbation. Instead of using the logits, the output $F$ of the classifier is utilized and then passed to the loss function $J$ along with the target $t$. Although this is not quite as sophisticated as the Carlini and Wagner attack in Equation \ref{eq:cw_general}, conceptually both formulations are quite similar.
+
+What differentiates this attack -- and what made us include it in our solution -- is the notion of a mask image $M$. 
+This is a black-white image used to limit the perturbation to a specific area of the source image: White areas are modifiable in the source image, black areas are left unchanged.
+
+The original method contains a few additional operations such as a Non-Printability Score (NPS) and calculating the mean over multiple transformations -- like we adapted for our modified Carlini \& Wagner attack.
 However, we did not receive favorable results with these additional terms and subsequently removed them from the optimization.
 Thus, we focused on the most important aspect of this attack, which is the ability to define a masking on the image.
 This enables an attacker to define a graffiti-like perturbation.
 
 In the original paper, this was used to reliably cause a neural network into misclassifying physical stop signs.
 The InformatiCup explicitly excluded the misclassification of traffic sign images from the competition.
-Yet we think this is a realistic and dangerous threat to autonomous driving as attacks can be hidden in graffiti-like perturbations as shown in Figure \ref{fig:stopsign}.
+Yet we think this is a dangerous threat to autonomous driving, and worth mentioning, as attacks can be hidden in graffiti-like perturbations as shown in Figure \ref{fig:stopsign}.
 
-\begin{figure}[h]
+\begin{figure}
 \centering
 \begin{subfigure}{.19\linewidth}
   \centering
@@ -156,9 +218,13 @@ Yet we think this is a realistic and dangerous threat to autonomous driving as a
 \end{subfigure}
 \begin{subfigure}{.19\linewidth}
   \centering
+  \includegraphics[width=0.7\linewidth]{imgs/stop_abstract}
+\end{subfigure}
+\begin{subfigure}{.19\linewidth}
+  \centering
   \includegraphics[width=0.7\linewidth]{imgs/7_real}
 \end{subfigure}
-\caption{Stop-sign (left) which is misclassified as 'Zulässige Höchstgeschwindigkeit (70)': 99.10\%; true class image (right) for comparison}
+\caption{Stop-sign (left) which is misclassified as 'Zulässige Höchstgeschwindigkeit (70)': 99.10\%, mask image (center) and true class image (right) for comparison}
 \label{fig:stopsign}
 \end{figure}
 
