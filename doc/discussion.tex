@@ -1,0 +1,31 @@
+%!TEX root = paper.tex
+
+\section{Discussion}\label{sec:discussion}
+In the following, the overall quality of our solution to the InformatiCup challenge is discussed.
+Without recapitulating all previously mentioned information, we point out three highlights of our work as well as aspects which leave room for further improvement.
+
+In general, we find our solution to be sound across the whole concept from the theoretical approach up to the implementation in software.
+State-of-the-art insights from current literature have been combined and systematically adjusted to our use case.
+We therefore consider this work to be of scientific value, acting as a reference case study for a real-world setting.
+
+A second highlight is in our opinion the user-friendly and visually appealing front end.
+Though this has not been a formal requirement, the challenge explicitly states that creative extensions of requirements are welcome.
+We considered it as most valuable to open up the potential user base of our program from command line experts to everyone who is able to install a docker container and open a web browser.
+This significantly increases the potential relevance of the program while improving the overall user experience.
+
+Third, we would like to emphasize the value of the custom extensions to training and attack algorithms in our solution.
+They build on scientifically founded ideas and extend them to better fit the given context.
+For example, by implementing the modified CWL2 attack, we extended the scope of the original challenge to a real-world scenario in which our perturbations could actually be applied.
+Also, the robust CWL2 attack modification allows for graffiti-like perturbations which cover the use case of limiting the adversarial modifications to a certain shape, which again is useful for printing them as stickers.
+
+Due to the limited time frame of the competition, there also some parts of the project which can be further improved in the future.
+As an example, we were both familiar with each other's coding style and implicitly followed the same conventions without formalizing them.
+Though the resulting software is still consistent, there are only source code comments where we considered them to be sensible.
+We tried to write very expressive code but are aware that a third developer later working on our code base might disagree on this as it is a highly subjective perception.
+
+Considering the front end, we optimized the user experience along the natural flow of entering the API key, training a model and attacking it.
+However, it is for example currently possible to skip the API key dialog by triggering the respective JavaScript function by hand in the browser's developer tools or by manually entering a different subdomain.
+Additionally, we did not consider these types of actions from a security perspective because the user would only harm herself in our single-user application.
+We prevent all actions a user might unintentionally trigger like deleting models by clicking on a wrong button but we generally assume a benevolent user.
+This might become a drawback when extending this application to the multi-user case.
+Though our architecture naturally supports this, the actual implementation would impose some additional effort.
