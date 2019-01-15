@@ -7,7 +7,7 @@ In the following, we briefly discuss our setup and the selection of the attack p
 
 \subsection{Setup}
 
-\begin{table}
+\begin{table}[!h]
 \begin{tabular}{l | l}
 \textbf{Parameter} & \textbf{Values} \\\hline
 
@@ -45,8 +45,8 @@ An adversarial example is generated using the command line call:
 \vspace{2ex}
 \end{minipage}
 
-Arguments which are embraced by parentheses are taken from Table \ref{tab:cli_params}. 
-If the Carlini \& Wagner attack (cwl2) is chosen as the attack technique, this attempts to create one adversarial example. 
+Arguments which are embraced by parentheses are taken from Table \ref{tab:cli_params}; the confidence parameter sets the C\&W confidence value $\kappa$, which is discussed in Section \ref{subsec:cwl2}.
+If the Carlini \& Wagner attack (cwl2) is chosen as the attack technique, this attempts to create one adversarial example.
 Otherwise, if our modified Carlini \& Wagner attack (robust\_cwl2) is used, five adversarial examples are generated.\footnote{Please note, that the 'modified Carlini \& Wagner' attack from Section \ref{subsec:cwl2_mod} is internally referred to as robust\_cwl2} We omitted the Robust Physical Perturbation attack (RP$_2$) from our evaluation, because the success of the attack heavily depends on the masking image which might skew the results.
 
 The attack\_model script only returns \emph{successful} adversarial examples, otherwise generating no image. 
