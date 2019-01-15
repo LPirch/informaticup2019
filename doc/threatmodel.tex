@@ -1,0 +1,22 @@
+%!TEX root = paper.tex
+
+\section{Threat Model}
+\label{sec:threatmodel}
+In the following, the adversarial threat model is identified.
+This is an important step to systematically explore suitable attack techniques and to recognize which scientific insights apply to this use case.
+The threat model is determined in accordance with the definition provided by \citet{papernot2016limitations} which is organized by the complexity of the attack and the knowledge of the attacker.
+The former can be separated into four adversarial goals which increase in complexity:
+\begin{description}
+	\item [Confidence Reduction.] The output confidence is reduced.
+	\item [Misclassification.] The classification is changed to any other class than the original one.
+	\item [Targeted Misclassification.] Starting from any (or even an empty) input, perturbations are generated such that the output is a certain class.
+	\item [Source/Target Misclassification] The classification output is forced to be a specific class, starting from a given input. For example, this corresponds to altering an otherwise correctly classified image in a way that makes it be classified as a certain different class.
+\end{description}
+In the case at hand, the adversarial modifications take place after the model has been trained and the malicious samples are crafted with the intention of provoking a misclassification.
+Formally, any attack that corresponds to a lower category in this list also fits an upper one since categories are sorted by adversarial strength increasing from the top to the bottom.
+The minimal requirement of this challenge is a misclassification where the generated image is classified as a traffic sign, but is not recognizable as a traffic sign to a human observer.
+
+The attacker's knowledge corresponds to an almost pure black-box setting in which the target model can only be accessed as an oracle $X \rightarrow Y$ where $X$ is an input and $Y$ is a label.
+Fetching a prediction returns the confidences of the top five predicted classes and is restricted to one request per second.
+Thus, the remote oracle imposes some adversarial cost in the form of time which has to be considered while performing attacks.
+Additionally, the dataset which was used for the training phase is given and that the utilized ML algorithm is a neural network.
