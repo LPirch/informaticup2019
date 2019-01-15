@@ -64,15 +64,6 @@ In the following we use the notation:
 \subsection{Carlini \& Wagner}
 
 
-
-\begin{align}
-P(C) = \frac{93}{120} &= 0.775\\[1ex]
-P(C \mid G) = \frac{54}{60} &= 0.9\\[1ex]
-P(C \mid J) = \frac{39}{60} &= 0.65\\[1ex]
-P(T \mid G \wedge C) = \frac{47}{54} &\approx 0.87\\[1ex]
-P(T \mid J \wedge C) = \frac{28}{39} &\approx 0.72\\[1ex]
-\end{align}
-
 \begin{table}
 \begin{tabular}{l l | r r | r r | r r}
 & & abbey & & gi & & octo & \\[1ex]
@@ -88,15 +79,34 @@ jbda & 15 & 6 & 3 & 1 & 3 & 6 & 1 \\[1ex]
 \label{tab:cwl2_result}
 \end{table}
 
-\subsection{Modified Carlini \& Wagner}
+The Carlini \& Wagner attack is fairly successful with a general probability of creating an adversarial example for the local model of
 
-\begin{align}
-P(C) = \frac{381}{600} = 0.635\\[1ex]
-P(C \mid G) = \frac{232}{300} \approx 0.77\\[1ex]
-P(C \mid J) = \frac{149}{300} \approx 0.50\\[1ex]
-P(T \mid G \wedge C) = \frac{205}{232} \approx 0.88\\[1ex]
-P(T \mid J \wedge C) = \frac{128}{149} \approx 0.86\\[1ex]
-\end{align}
+\begin{align*}
+P(C) = \frac{93}{120} = 0.775
+\end{align*}
+
+Creating an adversarial image on the gtsrb model is far more likely than on the jbda model.
+
+\begin{align*}
+P(C \mid G) = \frac{54}{60} &= 0.9\\[1ex]
+P(C \mid J) = \frac{39}{60} &= 0.65
+\end{align*}
+
+Additionally, it is more probable that the adversarial example transfers from the local model to the remote model, if it has been created on the gtsrb model:
+
+\begin{align*}
+P(T \mid G \wedge C) = \frac{47}{54} &\approx 0.87\\[1ex]
+P(T \mid J \wedge C) = \frac{28}{39} &\approx 0.72
+\end{align*}
+
+Overall, it is far more likely to create a transferable image on the gtsrb model than on the jbda model. 
+
+\begin{align*}
+P(T \mid G) = \frac{47}{60} &\approx 0.78 \\[1ex]
+P(T \mid J) = \frac{28}{60} &\approx 0.47
+\end{align*}
+
+\subsection{Modified Carlini \& Wagner}
 
 \begin{table}
 \begin{tabular}{l l | r r | r r | r r}
@@ -114,3 +124,32 @@ jbda & 15 & 30 & 7 & 12 & 3 & 26 & 8
 \caption{Results for the \textit{modified} Carlini \& Wagner attack}
 \label{tab:robust_result}
 \end{table}
+
+The modified Carlini \& Wagner perturbs five transformations of the source image at the same time, which places additional constraints on the generation. This is visible in the overall reduced creation success of adversarial examples on the local model in comparison to the C\&W attack:
+
+\begin{align*}
+P(C) = \frac{381}{600} = 0.635
+\end{align*}
+
+Although the attack is still more likely to create adversarial examples on the gtsrb model than on the jbda model, its probability is noticeably reduced:
+
+\begin{align*}
+P(C \mid G) = \frac{232}{300} &\approx 0.77\\[1ex]
+P(C \mid J) = \frac{149}{300} &\approx 0.50
+\end{align*}
+
+However, the transferability of adversarial examples, which have been successfully created on a local model, increased for the jbda model and are unchanged for the gtsrb model. Thus, images created on either model have approximately the same probability of transferring to the remote model:
+
+\begin{align*}
+P(T \mid G \wedge C) = \frac{205}{232} &\approx 0.88\\[1ex]
+P(T \mid J \wedge C) = \frac{128}{149} &\approx 0.86
+\end{align*}
+
+Overall, the gtsrb model is preferable over the jbda model for creating transferable adversarial examples in both attacks. 
+
+\begin{align*}
+P(T \mid G) = \frac{205}{300} &\approx 0.68\\[1ex]
+P(T \mid J) = \frac{128}{300} &\approx 0.43
+\end{align*}
+
+To us this is quite surprising, because the jbda model used the Jacobian-based dataset augmentation for training, which is a far more sophisticated technique than the simple dataset training of the gtsrb model. This is especially remarkable as multiple classes are missing from the remote model's predictions -- as we discussed in Section \ref{subsec:modelstealing} -- and we had assumed, that this would hinder a favorable rebuilding of the remote model's decision boundary.
