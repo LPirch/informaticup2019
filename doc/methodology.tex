@@ -9,12 +9,13 @@ Afterwards, we attack the local model and expect the generated image to also foo
 Therefore, we introduce the attacks for generating adversarial examples in the subsequent parts of this section.
 Finally, we present our software developing methodology in subsection~\ref{subsec:sw_development}.
 
-\subsection{Model stealing}\label{subsec:modelstealing}
+\subsection{Model Stealing}\label{subsec:modelstealing}
 
-The attacks, which are introduced later in this section, assume white-box access to a model under attack (i.e. the entire architecture including amount of layers and neurons, the learned weights and the activation functions need to be known).
+The attacks which are introduced later in this section assume white-box access to a target model (i.e. the entire architecture including amount of layers and neurons, the learned weights and the activation functions need to be known).
 Because we are limited to a black-box access and the knowledge of the training data, we need to turn this into a white-box model.
 
-The following discussion is based on the transferability property of adversarial examples; this describes the observation that an adversarial example which is misclassified on one model may be misclassified by another similar model.
+The following discussion is based on the transferability property of adversarial examples.
+It describes the observation that an adversarial example which is misclassified on one model may be misclassified by another similar model.
 The transferability spans across different machine learning methods (e.g. between neural networks and support vector machines) and even works on disjoint datasets from the same underlying distribution. \cite{papernot2016transferability,goodfellow6572explaining, szegedy2013intriguing}
 
 We can leverage the transferability property to receive white-box access to a model.
@@ -28,14 +29,49 @@ To extract the information from the remote model, we can take further take advan
 We train a local model on the GTSRB dataset which we will refer to as GTSRB model.
 This exploits the fact that adversarial examples transfer between models which have been trained on the same underlying distribution.
 
-\item[2.] \textbf{Stealing}
+\item[2.] \textbf{Training a Substitute}
 
 By feeding the GTSRB dataset to the remote model, we can collect the classification results, which can be used to train a substitute model \cite{tramer2016stealing}.
 
-A more sophisticated method is the Jacobian based dataset augmentation where the decision boundary is extracted by selectively querying the oracle along the gradient \cite{papernot2017practical}.
+A more sophisticated method is the Jacobian-based dataset augmentation where the decision boundary is extracted by selectively querying the oracle along the gradient \cite{papernot2017practical}.
 \end{enumerate}
 
-Regarding the reference dataset GTSRB, we chose to crawl each image of the dataset once and cache the predictions in a python pickle file.
+With reference to existing literature, the substitute training combined with a Jacobian-based dataset augmentation appeared to be the most promising~\cite{papernot2017practical}, since \citeauthor{papernot2016cleverhans} use the same threat model with a pure black-box access.
+The general idea is to replicate the remote decision boundary by following the gradient of the prediction, thus finding regions in the feature space where the remote model returns low confidences.
+
+\begin{figure}
+	\input{figs/jbda}
+	\caption{\textbf{Basic flow of the Jacobian-based Dataset Augmentation.} \cite{papernot2017practical}}
+	\label{fig:jbda}
+\end{figure}
+
+More precisely, the Jacobian-based dataset augmentation involves multiple training iterations, as shown in Figure~\ref{fig:jbda}.
+Starting from an initial dataset $S_0$ and a selected architecture $F$, the labels of the initial iteration $\rho = 0$ are gathered.
+Then, a substitute DNN $F$ is trained which is then augmented according to its Jacobian which is the gradient with respect to each input dimension.
+In subsequent iterations, this dataset is further augmented until the maximum number of iterations is reached.
+The substitute model which has been trained in the last iteration is the final output.
+
+After initial experiments, we quickly noticed that the original algorithm does not produce acceptable results as-is and that it needs some refinement in our context.
+Thus, we created a custom extension to this algorithm which we expect yield a better approximation of the remote decision boundary.
+As previously described, the original Jacobian-based dataset augmentation takes a single image per class, fetches the remote labels, trains an intermediate model on this data and computes new synthetic data points along the gradient of the local model.
+We found it problematic that firstly, this does not handle low-confidence source samples very well: The intermediate model can be hardly trained on these inputs.
+Secondly, the original algorithm starts at an unknown confidence and generates new data in both the positive and negative gradient direction.
+It is parameterized by a number of iterations $\rho$ and a step size $\lambda$ which are fixed for all classes.
+Obviously the combination of an unknown starting point and a fixed step size in both directions is counter productive, since this can easily lead to generated images which are off the manifold and there is no way to control how many of these samples are generated.
+
+To cope with these flaws, we modified the algorithm such that it starts with a specified number of input samples per class, which are guaranteed to be classified with a higher confidence than a certain threshold.
+After that, our modified version only generates synthetic data along the negative gradient.
+This reflects starting at the peak for each class and systematically exploring the path towards the minimum confidence of the model.
+We also noticed that some classes never result in high confidence predictions which is why we introduced a third variable limiting the number of tries to fetch high confidence samples.
+The modified algorithm always keeps track of the best samples fetched so far which are taken if the maximum number of tries has been reached.
+This limit is important due to the enforced request delay of one second between each prediction.
+The number of samples per class, the confidence threshold as well as the maximum number of tries per class and sample are configurable parameters in our algorithm.
+Notably, by parameterizing the number of starting images per class, we improved the initial intermediate model's training results. 
+Facing 43 classes (or 36 in the reduced dataset as discussed below), the training on single images per class hardly ever converged.
+Moreover, we wanted to prevent overfitting on certain source images and their synthetic derivatives by this measure, since there are also different angles and lighting settings in the reference dataset.
+
+Given the fact that the remote model has been trained on the GTSRB dataset, we had the hypothesis that it should be able to predict all occurring classes.
+Since this assumption needed validation, we chose to crawl each image of the dataset once and cache the predictions in a python pickle file.
 We then analyzed the results and recognized that there are seven classes of GTSRB that never occur in the classification output of the remote model:
 \begin{enumerate}
 	\item einseitig (rechts) verengte Fahrbahn
@@ -47,7 +83,19 @@ We then analyzed the results and recognized that there are seven classes of GTSR
 	\item vorgeschriebene Fahrtrichtung (geradeaus und links)
 \end{enumerate}
 Concluding that it would be not sensible to target these classes, we excluded them from all further considerations.
-Also, the cached dataset predictions are the basis for a map which translates the class numbers and names of the local dataset to the ones returned by the remote model.
+Also, the cached dataset predictions are the basis for a static map which translates the class numbers and names of the local dataset to the ones returned by the remote model.
+
+\begin{figure}
+	\includegraphics[width=1.1\linewidth]{figs/class_distr}
+	\caption{The class ditribution of the GTSRB dataset.}
+	\label{fig:class_distr}
+\end{figure}
+
+During the training set analysis, we identified an additional potential issue: the unequal number of training samples per class.
+This relates to the first model stealing approach in which we rebuild a model based on the same reference dataset.
+As shown in Figure~\ref{fig:class_distr}, the number of samples per class varies by order of magnitude.
+We therefore also consider dataset augmentation by rotating, zooming, shearing and shifting images which are simple transformations that are guaranteed to produce valid images (if the parameters are kept in a sensible range).
+As will be later discussed in subsection~\ref{subsec:backend}, we provide this optional augmentation, enhancing the reference dataset to be more balanced.
 
 \subsection{Carlini \& Wagner}\label{subsec:cwl2}
 In the following, the Carlini and Wagner $L_2$ attack is going to be recapitulated, following the ideas and notation of the original paper \cite{carlini2017towards}.
