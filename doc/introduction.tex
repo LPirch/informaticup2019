@@ -7,15 +7,15 @@ However, recent research has also shown that these ML algorithms are vulnerable 
 These inputs are created by an attacker with the intention of tricking the machine learning system into misclassifying.
 \citet{szegedy2013intriguing} were the first to explore this kind of evasion attack aimed at finding unnoticeable modifications to a valid input sample such that it is misclassified by the DNN but still looks the same to a human observer.
 
-This year's InformatiCup challenge revolves around a related topic: The task is to generate images which do not look like traffic signs but are classified as such by a remote model with a high confidence (>90\%).
-Because image classification is used for self-driving cars which automatically detect and classify traffic signs, this topic is equally topical and relevant.
+This year's InformatiCup challenge revolves around a related topic: The task is to generate images which do not look like traffic signs but are classified as such by a remote model with a high confidence (90\%).
+Because image classification is used for self-driving cars which automatically detect and classify traffic signs, this issue is equally topical and relevant.
 It is an essential goal to prevent self-driving cars from being mislead by these adversarial examples since this could potentially endanger human lives.
 Considering a situation in which someone places a sticker on the back of a lorry which looks benign to humans but is classified as a yield sign by a car, the criticality of this topic becomes very clear.
 This motivates exploring different kinds of attacks against ML algorithms in order to better understand the vulnerabilities, paving the way for setting up effective defenses.
 Adversarial Examples themselves are an active research direction and though there exist a plethora of attacks, it's neither clearly established why adversarial examples exist nor how to effectively defend against them.
-One of the most prominent projects for benchmarking defenses is the CleverHans project where a lot of state-of-the-art attacks are included \cite{papernot2016cleverhans}.
+One of the most prominent projects for benchmarking defenses is the CleverHans project in which a lot of state-of-the-art attacks are included \cite{papernot2016cleverhans}.
 
-On a more detailed level, the scenario of this challenge is similar to the \enquote{rubbish class examples} described by \citet{szegedy2015explaining} in the appendix, which are images that a human would not assign any of the given classes.
+On a more detailed level, the scenario of this challenge is similar to the \enquote{rubbish class examples} described by \citet{szegedy2015explaining}, which are images that a human would not assign any of the given classes.
 
 An obstacle in the competition is the access to the remote model, which is only accessible via a web interface,
 which reports the top five most-likely classes and their confidences for a given image.
@@ -64,11 +64,11 @@ Therefore, the challenge of this task lies in combining multiple insights of adv
   \centering
   \includegraphics[width=0.7\linewidth]{imgs/10_real}
 \end{subfigure}
-\caption{Excerpt from our results}
+\caption{Excerpt from our results: Each row contains from left to right an input image, an adversarial example and a typical target class image.}
 \label{fig:eyecatcher}
 \end{figure}
 
-An excerpt of our results is shown in Figure \ref{fig:eyecatcher}. Each row contains the source image on the left, the result from the attack in the center and an image of the falsely classified label by the remote model on the right.
-
-The remainder of this paper is organized as follows:
-%TODO
+An excerpt of our results is shown in Figure \ref{fig:eyecatcher}. 
+Each row contains the source image on the left, the result from the attack in the center and an image of the falsely classified label by the remote model on the right.
+A thorough explanation of how these example have been created as well as a discussion about the result quality can be read in the remainder of this paper, which is organized as follows:
+\todo{Write this at the end.}

@@ -8,7 +8,9 @@ A reader familiar with the domain of adversarial machine learning is suggested t
 
 \subsection{Deep Neural Networks}\label{subsec:dnn}
 Deep neural networks (DNNs) are a form of machine learning algorithm based on a concept loosely analogous to the human brain.
-A neural network represents a non-linear, non-convex function $F(x) = y$ transforming some input $x \in \mathbb{R}^n$ to an output $y \in \mathbb{R}^m$; this model $F$ is based upon a model parameter $\theta$, which includes the entire architecture as well as the learned weights of the neural network. The function $F$ is a composition of functions:
+A neural network represents a non-linear, non-convex function $F(x) = y$ transforming some input $x \in \mathbb{R}^n$ to an output $y \in \mathbb{R}^m$.
+This model $F$ is based upon a model parameter $\theta$, which includes the entire architecture as well as the learned weights of the neural network. 
+The function $F$ is a composition of functions:
 
 \begin{equation*}
 F = \softmax \circ\; F_k \circ F_{k-1} \circ ... \circ F_1
@@ -120,7 +122,8 @@ The outputs of the last hidden layer $Z(x) = F_k(x)$ are called the \emph{logits
 
 We use the same notations as \citet{carlini2017towards} and \citet{papernot2016distillation}. A visualization of a neural network including the notations used throughout this paper is shown in Figure \ref{fig:neuralnetwork}.
 
-The quality of a DNN's classification is determined by a loss function (usually cross entropy in multi class settings), which indicates the distance of a given output from the optimal solution.
+The quality of a DNN's classification is determined by a loss function, which indicates the distance of a given output from the optimal solution.
+Usually, the cross entropy is used in multi class settings as it represents a metric for the dissimilarity of such distributions.
 
 Before a network can be used, it needs to be trained.
 The training phase includes repeatedly feeding given input-output pairs through the network, evaluating the output using the loss function and adjusting the weights.
@@ -131,7 +134,7 @@ Furthermore, there are parameters that are not directly related to the learned m
 These are referred to as \enquote{hyperparameters}.
 Two examples for such a hyperparameter are the learning rate and the selected optimizer.
 
-Additionally, Convolutional Neural Networks (CNNs) are going to be examined in the course of this project.
+Additionally, Convolutional Neural Networks (CNNs) are going to be examined in the course of this competition.
 They are an extension of regular DNNs and have proven to work well in the domain of image classification \cite{matsugu2003subject, krizhevsky2012imagenet}.
 The key difference here is that there are additional types of layers.
 Convolution layers perform a special operation taking a spatial sliding window (called \enquote{receptive field} or \enquote{filter}) and returning its activation.

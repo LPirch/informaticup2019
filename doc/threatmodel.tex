@@ -18,4 +18,5 @@ The minimal requirement of this challenge is a misclassification where the gener
 
 The attacker's knowledge corresponds to an almost pure black-box setting in which the target model can only be accessed as an oracle $X \rightarrow Y$ where $X$ is an input and $Y$ is a label.
 Fetching a prediction returns the confidences of the top five predicted classes and is restricted to one request per second.
+Thus, the remote oracle imposes some adversarial cost in the form of time which has to be considered while performing attacks.
 Additionally, the dataset which was used for the training phase is given and that the utilized ML algorithm is a neural network.
