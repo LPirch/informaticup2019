@@ -2,7 +2,8 @@
 
 \section{Evaluation}
 
-To further evaluate the quality of the attacks, we generated multiple adversarial examples with different configurations and classified them using the \textbf{remote} model. In the following we briefly discuss our setup and the selection of the attack parameters. Afterwards, we present and discuss the attack results.
+To further evaluate the quality of the attacks, we generated multiple adversarial examples with different configurations and classified them using the \textbf{remote} model. 
+In the following, we briefly discuss our setup and the selection of the attack parameters. Afterwards, we present and discuss the attack results.
 
 \subsection{Setup}
 
@@ -44,15 +45,26 @@ An adversarial example is generated using the command line call:
 \vspace{2ex}
 \end{minipage}
 
-Arguments which are embraced by parentheses are taken from Table \ref{tab:cli_params}. If the Carlini \& Wagner attack (cwl2) is chosen as the attack technique, this attempts to create one adversarial example. Otherwise, if our modified Carlini \& Wagner attack (robust\_cwl2) is used, five adversarial examples are generated.\footnote{Please note, that the 'modified Carlini \& Wagner' attack from Section \ref{subsec:cwl2_mod} is internally referred to as robust\_cwl2} We omitted the Robust Physical Perturbation attack (RP$_2$) from our evaluation, because the success of the attack heavily depends on the masking image which might skew the results.
+Arguments which are embraced by parentheses are taken from Table \ref{tab:cli_params}. 
+If the Carlini \& Wagner attack (cwl2) is chosen as the attack technique, this attempts to create one adversarial example. 
+Otherwise, if our modified Carlini \& Wagner attack (robust\_cwl2) is used, five adversarial examples are generated.\footnote{Please note, that the 'modified Carlini \& Wagner' attack from Section \ref{subsec:cwl2_mod} is internally referred to as robust\_cwl2} We omitted the Robust Physical Perturbation attack (RP$_2$) from our evaluation, because the success of the attack heavily depends on the masking image which might skew the results.
 
-The attack\_model script only returns \emph{successful} adversarial examples, otherwise no image is generated. For the Carlini \& Wagner attack an adversarial example is successful, if the local model classifies it as the target class. The modified Carlini \& Wagner attack only returns a adversarial examples if the center image (where no perspective transformation is applied) is classified as the target class.
+The attack\_model script only returns \emph{successful} adversarial examples, otherwise generating no image. 
+For the Carlini \& Wagner attack, an adversarial example is successful if the local model classifies it as the target class. 
+The modified Carlini \& Wagner attack only returns adversarial examples if the center image (where no perspective transformation is applied) is classified as the target class.
 
-For our evaluation we chose ten random labels as our target class to keep the computation at a moderate level while still receiving meaningful results. The models under attack were created using the techniques from Section \ref{subsec:modelstealing}: \emph{Rebuilding} was used for the gtsrb model and \emph{Stealing} with Jacobian based dataset augmentation was used for the jbda model. 
+For our evaluation, we chose ten random labels as our target classes to keep the computation at a moderate level while still receiving meaningful results. 
+The models under attack were created using the techniques from Section \ref{subsec:modelstealing}: \emph{Rebuilding} was used for the gtsrb model and \emph{Stealing} with Jacobian based dataset augmentation was used for the jbda model. 
 
-The results of the attacks are displayed in Table \ref{tab:cwl2_result} and Table \ref{tab:robust_result}. Each cell shows the number of adversarial examples in the respective category. To illustrate this for the modified Carlini \& Wagner attack results (Table \ref{tab:robust_result}): 37 adversarial examples of the 'abbey' image (which were generated with a confidence parameter of 20 against the gtsrb model) were classified with a confidence higher than 90\% by the remote model for the target class. On the other hand, four adversarial examples did not transfer and received a target-score lower than 90\%. Recall, that the modified C\&W attack is able to produce five adversarial example in one run. Therefore, the attack is potentially able to create 50 adversarial examples for the ten given targets. Thus, 43 of the potential 50 adversarial examples were successfully created on the local model.
+The results of the attacks are displayed in Table \ref{tab:cwl2_result} and Table \ref{tab:robust_result}. 
+Each cell shows the number of adversarial examples in the respective category. 
+To illustrate this for the modified Carlini \& Wagner attack results (Table \ref{tab:robust_result}): 37 adversarial examples of the \enquote{abbey} image (which were generated with a confidence parameter of 20 against the gtsrb model) were classified with a confidence higher than 90\% by the remote model for the target class. 
+On the other hand, four adversarial examples did not transfer and received a target-score lower than 90\%. 
+Recall, that the modified C\&W attack is able to produce five adversarial example in one run. 
+Therefore, the attack is potentially able to create 50 adversarial examples for the ten given targets. 
+Thus, 43 of the potential 50 adversarial examples were successfully created on the local model.
 
-In the following we use the notation:
+In the following, we use the notation:
 
 \begin{itemize}
 \item[-] $P(C)$ = Probability of an adversarial example being successfully \textbf{created} on a local model
@@ -152,4 +164,6 @@ P(T \mid G) = \frac{205}{300} &\approx 0.68\\[1ex]
 P(T \mid J) = \frac{128}{300} &\approx 0.43
 \end{align*}
 
-To us this is quite surprising, because the jbda model used the Jacobian-based dataset augmentation for training, which is a far more sophisticated technique than the simple dataset training of the gtsrb model. This is especially remarkable as multiple classes are missing from the remote model's predictions -- as we discussed in Section \ref{subsec:modelstealing} -- and we had assumed, that this would hinder a favorable rebuilding of the remote model's decision boundary.
+To us this is quite surprising, because the jbda model used the Jacobian-based dataset augmentation for training, which is a far more sophisticated technique than the simple dataset training of the gtsrb model. 
+Although the Jacobian-based dataset augmentation did not work perfectly well (it achieved a top validation accuracy of about 86\% on the remotely fetched labels), we would have expected it to better approximate the remote model.
+That a more simple approach however performs better is especially remarkable as multiple classes are missing from the remote model's predictions -- as we discussed in Section \ref{subsec:modelstealing} -- and we had assumed, that this would hinder a favorable rebuilding of the remote model's decision boundary.
