@@ -1,82 +1,88 @@
-#!/usr/bin/python3
-
+#!/usr/bin/python
+from project_conf import API_KEY_LOCATION, DATA_ROOT, LOG_DIR, REMOTE_URL
 import os
 import json
 import time
 import pickle
+import zipfile
 import requests
 from PIL import Image
+from io import BytesIO
+from skimage import io
+import numpy as np
 
 # the api key is obviously not put into the repo
 API_KEY = None
-IMG_SHAPE = (64, 64)
-URL = "https://phinau.de/trasi"
-ENCODING_TYPE = "multipart/form-data"
-PREDS_PICKLE = "./data/gtsrb.pickle"
-DATA_DIR = "./data"
 
-def load_api_key(loc="./api_key"):
-	with open(loc, 'r') as f:
+
+def load_api_key():
+	with open(API_KEY_LOCATION, 'r') as f:
 		key = f.read().strip()
 	return key
 
-def apply_on_images(directory, fun, fun_args=[], fun_kwargs={}, filter_ext=None):
-	for root, _, files in os.walk(directory):
-		for file in files:
-			# optionally filter files by substring
-			if not filter_ext or file.endswith(filter_ext):
-				file = os.path.join(root, file)
-				fun(file, *fun_args, **fun_kwargs)
 
-def resize_image(filename, target_shape):
-	with Image.open(filename) as img:
-		img = img.resize(target_shape)
-		img.save(filename)
+def test_connection(api_key):
+	""" Test the connection for a given API key. 
+		Returns 1 on success, 0 for an invalid API key and -1 for any other error (e.g. connectivity problems).
+	"""
+	try:
+		r = requests.post(REMOTE_URL, data={'key': api_key}, files={'image': None})
+		if int(r.status_code) == 401:
+			return 0
+		if int(r.status_code) == 400:
+			return 1
+	except:
+		pass
+	
+	return -1
 
-def convert_img(filename, target_ext=".png"):
-	with Image.open(filename) as img:
-		core_name = ".".join(filename.split(".")[:-1])
-		img.save(core_name + target_ext)
-		os.remove(filename)
 
-def check_shape(filename):
-	with Image.open(filename) as img:
-		assert IMG_SHAPE == img.size
+def fetch_batch_prediction(imgs, id_map, n_classes, one_hot=False, delay=None, remote_pred_precision=3, cache=None):
+	return np.array([fetch_single_prediction(img, id_map, n_classes, one_hot=one_hot, delay=delay, remote_pred_precision=remote_pred_precision, cache=cache, key=i) for i, img in enumerate(imgs)])
 
-def fetch_oracle_response(filename, delay=None):
-	preds = {}
-	if os.path.exists(PREDS_PICKLE):
-		with open(PREDS_PICKLE, 'rb') as pkl:
-			preds = pickle.load(pkl)
-	if filename in preds:
-		print("skipping "+filename)
+
+def fetch_single_prediction(img, id_map, n_classes, one_hot=False, delay=None, remote_pred_precision=3, cache=None, key=None):
+	api_key = load_api_key()
+	assert api_key
+
+	if cache and key in cache:
+		json_data = cache[key]
 	else:
-		print("fetching "+filename)
-		with open(filename, 'rb') as img:
-			r = requests.post(URL, data={'key': API_KEY}, files={'image': img})
+		#  print("cache miss, crawling img", key)
+		if not os.path.exists(DATA_ROOT):
+			os.makedirs(DATA_ROOT)
+
+		img = np.rint(img * 255).astype('uint8')
+		img = Image.fromarray(img, 'RGB')
+		img.save('tmp.png')
+		with open('tmp.png', 'rb') as img_bytes:
+			r = requests.post(REMOTE_URL, data={'key': api_key}, files={'image': img_bytes})
+		os.remove('tmp.png')
 
 		if r.status_code != 200:
 			log_http_error(r.status_code, r.text)
 
+		# template: [ {'class_name_0': str, 'confidence': float}, [...], {'class_name_4': str, 'confidence': float} ]
 		json_data = json.loads(r.text)
 
-		preds[filename] = json_data
-		with open(PREDS_PICKLE, 'wb') as pkl:
-			pickle.dump(preds, pkl)
-		
+		if cache:
+			cache[key] = json_data
+
 		if delay:
 			time.sleep(delay)
 
+	prediction = np.zeros(n_classes)
+	if one_hot:
+		# use only highest confidence label
+		prediction[id_map[json_data[0]['class']]] = 1
+	else:
+		for pred in json_data:
+			prediction[id_map[pred['class']]] = pred['confidence']
+
+	return prediction.round(remote_pred_precision)
+
 
 def log_http_error(status, text):
-	with open("./logs/http_"+str(status)+".log", "a") as log:
+	with open(LOG_DIR+"/http_"+str(status)+".log", "a") as log:
 		log.write(text+"\n")
 	
-if __name__ == "__main__":
-	API_KEY = load_api_key()
-	
-	# convert ppm files to png and resize them to requested shape
-	apply_on_images(DATA_DIR, convert_img, fun_kwargs={"target_ext": ".png"}, filter_ext=".ppm")
-	apply_on_images(DATA_DIR, resize_image, fun_args=[IMG_SHAPE], filter_ext=".png")
-	apply_on_images(DATA_DIR, check_shape, filter_ext=".png")
-	#apply_on_images(DATA_DIR, fetch_oracle_response, fun_kwargs={"delay": 1}, filter_ext=".png")

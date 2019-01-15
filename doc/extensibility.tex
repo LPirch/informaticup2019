@@ -1,0 +1,31 @@
+%!TEX root = paper.tex"`
+
+\section{Extensibility}\label{sec:extensibility}
+
+In this section we discuss the extensibility of our solution by presenting interfaces where future development of our application could take place.
+
+\subsection{Attacks}
+Our solution currently supports three different attacks: Carlini \& Wagner $L_2$, modified Carlini \& Wagner $L_2$ and the Robust Physical Perturbation attack, which all share the common CleverHans-Attack interface. This allows us to easily extend our current set of attacks.
+
+To add a new attack a developer has to take the following steps:
+
+\begin{enumerate}
+\item[1.] Create a class, which satisfies the CleverHans-Attack interface and implement the new attack.
+\item[2.] Add the attack to the 'attacks'-dict in attack\_model python script and specify its parameters in the 'attack\_param'-dict; the user-definable parameters need to be added to the Tensorflow flags. This allows the user to customize the attack.
+\end{enumerate}
+
+Afterwards, the attack is already usable by calling the attack\_model python script from the command line. To further allow a user to start the attack from the website, one has to:
+
+\begin{enumerate}
+\item[3.] Define an attack-handler in attack/handler.py, which is able to parse parameters from an HTTP-request and is able to start the attack process.
+\item[4.] Add the handler to the 'attacks'-dict in attack/rest.py. Afterwards, the attack handler is reachable from the REST API and can start a new process with the given parameters.
+\item[5.] Lastly, the new attack option along with their parameters needs to be added to the webpage in templates/attack/attack.html
+\end{enumerate}
+
+\subsection{Editable mask image}
+
+The Robust Physical perturbation attack expects a masking image as one of its parameters. Currently, this masking image must be provided via uploading it in file-type form field. One extension that would improve the user experience is to let the user live-edit the mask image. This would require an image editor (which could be based on the html canvas-element) where the user can draw black and white pixels. To improve the accuracy of the user's editing a live overlay of the mask image on the source image could be shown (where the mask image is made slightly transparent).
+
+\subsection{Multi-user system}
+
+Our current implementation is designed to be used by a single user. To support multiple users -- and possibly provide the software in a service-like fashion -- we advise against rewriting the existing structures to support user management, isolated processes, multiple training phases and separate file management. A more feasible approach for multi-user support is to build a user management \emph{around} our software solution and assign each user a separate docker container. Thus, the problem of adding multiple user to the existing system is avoided and instead is changed to a container management task which is already widely done in cloud systems. 

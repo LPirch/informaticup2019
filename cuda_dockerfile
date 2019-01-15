@@ -1,0 +1,24 @@
+FROM tensorflow/tensorflow:latest-gpu-py3
+LABEL maintainer="l.pirch@tu-bs.de"
+
+RUN apt install locales
+
+RUN locale-gen en_US.UTF-8
+RUN update-locale
+
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+RUN apt update && apt upgrade -y
+RUN apt install -y wget
+
+# copy complete repo
+COPY . /informaticup
+
+WORKDIR informaticup
+RUN mkdir .cache .process logs data
+
+# force docker CMD instruction to use /bin/bash to support sourcing
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+CMD source /informaticup/setup_project.sh && python /informaticup/manage.py runserver 0.0.0.0:80

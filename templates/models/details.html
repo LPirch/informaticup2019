@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additional_css %}
+	<link rel="stylesheet" href="{% static 'css/train.css' %}">
+	<link rel="stylesheet" href="{% static 'css/console.css' %}">
+{% endblock %}
+
+{% block additional_js %}
+<script src="{% static 'js/train.js' %}"></script>
+<script src="{% static 'js/models/details.js' %}"></script>
+{% endblock %}
+
+{% block tab-nav %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+	<button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navGroupCollapse" aria-controls="navGroupCollapse" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+	
+	<div class="collapse navbar-collapse" id="navGroupCollapse">
+		<ul class="navbar-nav mr-auto">
+			<li class="nav-item"><a class="nav-link" href="overview.html">Overview</a></li>
+			<li class="nav-item"><a class="nav-link" href="training.html">Training</a></li>
+			<li class="nav-item active"><a class="nav-link" href="details.html">Details</a></li>
+		</ul>
+	</div>
+
+	<a class="navbar-brand" href="welcome.html">Superperturbator <i class="fas fa-eye-slash"></i></a>
+</nav>
+{% endblock %}
+
+{% block content %}
+{% if error_none_running %}
+<div class="text-center">
+	<div class="alert alert-secondary">
+		<strong>No training process is currently running.</strong>
+	</div>
+</div>
+{% else %}
+<div class="title flex-row">
+	<div><h3>PID: {{ pid }}</h3></div>
+	<div class="margin-left fade in" id="abort"><a class="btn btn-danger" href="javascript:abort('{{pid}}')"><i class="fas fa-ban"></i></a></div>
+</div>
+<div class="title">
+	<h3>Terminal Output</h3>
+</div>
+<div class="container">
+	<textarea id="console" readonly></textarea>
+</div>
+<div class="container fade in" id="clear">
+	<button type="button" class="btn btn-primary" onclick="abort('{{pid}}')">Clear and Return</button>
+</div>
+{% endif %}
+{% endblock %}

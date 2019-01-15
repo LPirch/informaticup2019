@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block additional_css %}
+	<link rel="stylesheet" href="{% static 'css/attack.css' %}">
+{% endblock %}
+
+{% block additional_js %}
+	<script src="{% static 'js/attack/overview.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+{% if processes|length == 0 %}
+<div class="container text-center">
+	<div class="alert alert-secondary">
+		<strong>There are no attack processes to show at the moment.</strong>
+	</div>
+
+	<a class="btn btn-primary" href="/attack/attack.html">Go to Attack</a>
+</div>
+{% else %}
+<div class="title">
+	<h3>Attack Processes</h3>
+</div>
+<div class="container">
+	<table class="table table-hover processes">
+		<tr>
+			<th>PID</th>
+			<th>Status</th>
+			<th><!--delete column--></th>
+		</tr>
+	{% for proc in processes %}
+		<tr id="tr-{{proc.id}}" class="align-bottom">
+			<td>
+				<div class="flex-container">
+					<div><a href="details.html?pid={{ proc.id }}">{{ proc.id }}</a></div>
+				</div>
+			</td>
+			<td>
+				<div class="flex-container">
+					{% if proc.running %}
+					<div><span class="badge badge-warning">In Progress</span></div>
+					{% else %}
+					<div><span class="badge badge-success">Finished</span></div>
+					{% endif %}
+				</div>
+			</td>
+			<td class="text-center" ><div class="flex-container flex-icon"><i class="fas fa-trash-alt" onclick="delete_proc('{{proc.id}}')"></i></div></td>
+		</tr>
+	{% endfor %}
+	</table>
+</div>
+{% endif %}
+{% endblock %}
