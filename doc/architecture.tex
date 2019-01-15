@@ -44,15 +44,15 @@ As an example, the navigation bar changes its appearance when the view port beco
 We also leverage the twitter bootstrap framework for a scalable base design\footnote{\url{https://getbootstrap.com/}} as well as a bootstrap wrapper theme\footnote{\url{https://bootswatch.com/darkly/}} which we found suitable for a hacking-related competition.
 
 A second requirement is a user-friendly flow.
-This includes a unified layout across multiple subdomains and expressive icons for which we used the free icons from fontawesome\footnote{\url{https://fontawesome.com/}}.
-Moreover, this design goal implies low latencies after clicking a button and an immediate visual feedback, which is solved by our REST API and asynchronous requesting(see~\ref{subsec:webserver}).
+This includes a unified layout across the web interface and expressive icons for which we used the free icons from fontawesome\footnote{\url{https://fontawesome.com/}}.
+Moreover, this design goal implies low latencies after clicking a button and an immediate visual feedback, which is solved by our REST API and asynchronous requesting (see~\ref{subsec:webserver}).
 When a time-consuming action is issued, the back end server starts an asynchronous process and allows for polling its status.
 This enables the front end to provide immediate feedback of the internal status.
 The user's orientation on each page is further supported by hovering effects in potentially large tables (amongst other things).
 Finally, a user-friendly design also means preventing the user from taking possibly inadvertent actions like deleting a trained model which took multiple hours to train.
 We thoroughly implemented these design goals in all parts of the website.
 
-As previously mentioned, the subdomains share a base layout and some other properties like included style sheets and scripts.
+As previously mentioned, the web interface shares a common base layout and some other properties like included style sheets and scripts.
 To avoid code duplicates, the HTML documents are dynamically generated using the Django template system and the provided template inheritance feature.
 This allows for having a root template which others can inherit from.
 As a consequence, a change in e.g. the navigation bar would only affect a single file, which reduces the risk of code inconsistencies.
@@ -129,7 +129,7 @@ For actions that require a lot of processing like training or attacking a model,
 In order to organize these, we leverage the existing operating system process management.
 An overview about the information flow is presented in Appendix~\ref{app:doublefork}.
 When the user issues a start command (either training or attack), a new process is spawned and the website receives an immediate response whether starting the process has been successful.
-Then, a JavaScript \enquote{setInterval} function periodically polls the state of the process.
+Then, a JavaScript function periodically polls the state of the process.
 To test whether a process is still running, the Django middleware emits a KILL(0) system call which is successful if there exists a running process with the specified PID and errors otherwise.
 However, we need to apply a small trick to be able to use this mechanism which is known as \enquote{double fork}: To spawn an asynchronous worker process, we first fork an intermediate process that again forks the target process, returns its PID to the parent (Django handler) and then exits.
 Due to the behavior of the operating system, the worker process is now a child of the init process (PID 0), which takes care of terminating the process after completion automatically.
@@ -145,7 +145,7 @@ Whenever there are commonly used functions between these scripts, an auxiliary s
 
 An example for an auxiliary script is \enquote{gtsrb.py}, which collects all properties of the reference dataset and provides functions to retrieve the data as well as plotting distributions over the different classes.
 This encapsulates all information and functions belonging together into a single script and provides them over an interface.
-If we were to manipulate data on a different reference dataset in the future, we would only have substitute this file with a similar one containing the information for the new dataset.
+If we were to manipulate data on a different reference dataset in the future, we would only have to substitute this file with a similar one containing the information for the new dataset.
 As a consequence, many of the internal scripts are interchangeable which greatly improves the maintainability and extensibility of our program.
 
 Regarding the choice of programming language, there have been three main factors which emphasized why python would be the best choice in our case:
@@ -166,7 +166,7 @@ Regarding the choice of programming language, there have been three main factors
 \subsection{Docker Setup}\label{subsec:docker}
 Docker is a commonly used containerization and virtualization engine.
 It provides the opportunity to bundle a program and all its dependencies into a single container which then may be run on different operating systems.
-The result is an easy to install software with the only requirement using the same kernel as the host.
+The result is an easy to install software with the only requirement \todo{only requirement of?} using the same kernel as the host.
 Also, completely uninstalling a program with all its dependencies becomes an easy task with docker containers.
 This technology therefore greatly simplifies distributing software and helps avoiding situations in which it works on a developer's machine but not on the user's.
 For the final submission, we choose to offer two options.

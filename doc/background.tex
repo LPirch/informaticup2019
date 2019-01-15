@@ -2,6 +2,30 @@
 
 \section{Background}\label{sec:background}
 
+This section provides the general background knowledge required to understand the remainder of this paper.
+In addition, the basic notation which is going to be used later is defined.
+A reader familiar with the domain of adversarial machine learning is suggested to continue reading at Subsection~\ref{sec:threatmodel}.
+
+\subsection{Deep Neural Networks}\label{subsec:dnn}
+Deep neural networks (DNNs) are a form of machine learning algorithm based on a concept loosely analogous to the human brain.
+A neural network represents a non-linear, non-convex function $F(x) = y$ transforming some input $x \in \mathbb{R}^n$ to an output $y \in \mathbb{R}^m$; this model $F$ is based upon a model parameter $\theta$, which includes the entire architecture as well as the learned weights of the neural network. The function $F$ is a composition of functions:
+
+\begin{equation*}
+F = \softmax \circ\; F_k \circ F_{k-1} \circ ... \circ F_1
+\end{equation*}
+
+with
+
+\begin{align*}
+\softmax(z) = \frac{exp(z_i)}{\sum_j exp(z_j)} && 1 \leq i \leq m
+\end{align*}
+
+Each $F_i$ represents a successive layer of the neural network consisting of $l_i$ neurons. A neuron with index $j \in \{1,...,l_i\}$ is connected to every neuron of the previous layer and receives a weighted input $w_j^\top x$ with usually some added bias $b_j$\footnote{Note that the input $x$ to a neuron / layer is the output of the previous layer and is \emph{not} identical to the network's input, which is also denoted as $x$}. The result is passed to a non-linear activiation function $\sigma$ (tanh \cite{tanh}, sigmoid, ReLU \cite{relu} or ELU \cite{elu}):
+
+\begin{equation*}
+N_{i,j}(x) = \sigma(w_j^\top x + b_j)
+\end{equation*}
+
 \begin{figure}
 \centering
 \begin{tikzpicture}[yscale=-1]
@@ -82,30 +106,27 @@
 \label{fig:neuralnetwork}
 \end{figure}
 
-This section provides the general background knowledge required to understand the remainder of this paper.
-In addition, the basic notation which is going to be used later is defined.
-A reader familiar with the domain of adversarial machine learning is suggested to continue reading at Subsection~\ref{sec:threatmodel}.
+These neuron-functions are used to calculate the output of a layer $F_i$:
 
-\subsection{Deep Neural Networks}\label{subsec:dnn}
-Deep neural networks (DNNs) are a form of machine learning algorithms based on a concept loosely analogous to the human brain.
-On a conceptual level, DNNs take a vector of numbers as an input and assign it a output vector which represents the probability for each class which has been considered during training.
-Thus, real-world input objects need to be transformed to a so called \enquote{feature space}, their mathematical abstraction that can be passed to the DNN.
-In the context of image recognition, this relates to taking each input pixel's color channel as an input feature.
-Having a look on the inner structure, neural networks consist of a set of nodes (\enquote{neurons}), which are organized in successive layers.
-Each neuron is represented by a mathematical function taking a weighted sum of inputs and returning the value of a previously specified activation function.
-Currently, the sigmoid function $H : x \mapsto \frac{1}{1 + e^{-x}}$ and the rectified linear unit (ReLU) function $H : x \mapsto max(0, x)$ are the most common activation functions in practice.
-In a fully connected architecture, the activation of each neuron is affected by each output of the previous layer.
-More precisely, each neuron's output is defined as the weighted sum of all previous layer's outputs, subsequently transformed by an activation function.
-The output of the final layer is transformed using a softmax function $\sigma : x \mapsto \frac{e^{x_i}}{\sum_{j=1}^{N} e^{x_j}}$ for $\forall i \in N$ with $N$ as the number of dimensions.
-Simply put, this function returns a confidence score by mapping each value to the range $(0, 1]$ and scaling the output such that the sum of all outputs is equal to one.
-This is the previously mentioned output probability assigned to a certain input.
-The quality of a DNN's classification is determined by a loss function, which indicates the distance of a given output from the optimal solution.
+\begin{equation*}
+F_i(x) = \sigma(\theta_i^\top x + \myvec{\theta_i}) = \begin{pmatrix}
+N_{i,1}(x)\\...\\N_{i,l_i}(x)
+\end{pmatrix}
+\end{equation*}
+
+where $\theta_i$ is some matrix of model-weights and $\myvec{\theta_i}$ is some vector of model-biases.
+
+The outputs of the last hidden layer $Z(x) = F_k(x)$ are called the \emph{logits}. Because the $\softmax$-function is applied to the logits, the output $y$ of the network is normalized, so that $0 \leq y_i \leq 1$ and $\sum y_i = 1$. Thus, $y$ can be interpreted as a probability distribution. To assign a label $c \in \{1,...,m\}$ to an input $x$, the most probable label is chosen: $C_F(x) = \argmax_i F(x)_i$. In the following, this function is denoted as $C$ and implicitly evaluated on the given network $F$.
+
+We use the same notations as \citet{carlini2017towards} and \citet{papernot2016distillation}. A visualization of a neural network including the notations used throughout this paper is shown in Figure \ref{fig:neuralnetwork}.
+
+The quality of a DNN's classification is determined by a loss function (usually cross entropy in multi class settings), which indicates the distance of a given output from the optimal solution.
 
 Before a network can be used, it needs to be trained.
 The training phase includes repeatedly feeding given input-output pairs through the network, evaluating the output using the loss function and adjusting the weights.
 For the latter, a backpropagation algorithm is used which decreases the weights of previous layers that contributed most to the loss, effectively increasing the relative impact of those weights contributing to a correct classification.
 At the beginning, the weights are usually random and after multiple training iterations (epochs), the network starts to infer a functional dependency from the training samples.
-The set of learned weights is referred to as a model $\theta$.
+The set of learned weights is referred to as the model parameter $\theta$.
 Furthermore, there are parameters that are not directly related to the learned model but affect the learning process.
 These are referred to as \enquote{hyperparameters}.
 Two examples for such a hyperparameter are the learning rate and the selected optimizer.
@@ -120,8 +141,8 @@ For example, the \enquote{Max Pooling} returns the maximum value in a spatial ne
 As a result, the CNN is able to recognize edges and other spatial characteristics of an image without any preprocessing.
 
 \subsection{Distance Metrics}\label{subsec:metrics}
-The definition of distances in a feature space is crucial for a successful classification.
-In the domain of image recognition, it quantifies how different two images are.
+The definition of distances in a domain is crucial for a successful classification.
+In the domain of image recognition a good distance metric should approximate how dissimilar two images appear to a human.
 Selecting an appropriate distance metric is relevant when perturbing an image because each attack algorithm is optimized under a certain metric.
 Evaluating the suitability of a given metric in this context however is not trivial, because it depends more on how humans perceive images than on how big their differences are in theory.
 An attack might yield good results according to a specific metric while a human observer would disagree on this.
@@ -136,10 +157,6 @@ For instance, the Fast-Gradient Sign Method is optimized under this distance met
 Finally, there is the $L_2$ norm which appears to be the most beneficial when creating adversarial examples.
 It computes the square root of the pixel-wise squared sum of differences of two images.
 This is equivalent to a distance in euclidean space which gives a natural sense of the dissimilarity between two images.
-
-\subsection{Notation}\label{subsec:notation}
-In the remainder of this document, different aspects related to Machine Learning are going to be analyzed and discussed.
-The utilized notation is briefly presented in this subsection.
 
 %TODO define only notation that is actually used
 % perturbed image's distance delta

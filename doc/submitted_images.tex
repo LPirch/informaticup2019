@@ -2,9 +2,11 @@
 
 \section{Results}
 
-\subsection{Source images}
+In this section we present and discuss our five submitted images. The images have been generated from the source images which are shown in Figure \ref{fig:source_images}.
 
-\begin{figure}[!h]
+Alongside each submitted image we appended a .conf file which contains the exact command line call which was used to generate the respective image. The submitted images are shown in Figure \ref{fig:submitted}. For comparison an image of the target classes is displayed beneath each of them.
+
+\begin{figure}
 \centering
 \begin{subfigure}{.19\linewidth}
   \centering
@@ -26,11 +28,9 @@
   \centering
   \includegraphics[width=0.7\linewidth]{imgs/die_???}
 \end{subfigure}
-\caption{Source images (octocat, darkside, gi, abbey, die\_???)}
+\caption{Source images}
 \label{fig:source_images}
 \end{figure}
-
-\subsection{Submitted images}
 
 \begin{figure}[!h]
 \centering
@@ -197,5 +197,6 @@ Nevertheless, the adversarial example does not resemble the target class (nor an
 
 The last image was created by the robust physical attack (RP$_2$) applied to the GTSRB-model.
 It was generated from the logo of the three investigators (Die Drei Fragezeichen) where the question marks have been masked (i.e. they remain unperturbed).
+The final image is not recognizable as a traffic sign.
 
 \end{enumerate}
