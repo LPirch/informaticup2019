@@ -15,41 +15,58 @@ Also, the web context allows us to use existing techniques to provide a visually
 
 Currently, our website is a local single user system, which we distribute as a docker container.	
 We leave the thorough security evaluation and multi-user management to future extensions and focus more on generating strong adversarial examples.
-Though, using docker containers and a clear separation of the front end, the HTTP request management as well as our business logic, our architecture makes these extensions feasible.
+Though, using docker containers and having a clear separation between the front end, the HTTP request management as well as our business logic, our architecture makes these extensions feasible.
 This separation has been strictly implemented which furthermore allows experienced users to connect to the docker container's TTY and use the python script back end directly without starting the web server.
 
-% TODO: Jonas, was meinst du? Ich würde das einfach weglassen. Das klingt nach einer Rechtfertigung.
-%This decision was mainly influenced by the competition's setup and further drawbacks of %hosting a public server.
-%If we had hosted our server publicly, we had to place additional emphasis on security %evaluation, multi-user accessibility and server configuration.
-%We therefore decided on a local container deployment.
-%
 \subsection{Front End}\label{subsec:frontend}
 
 The front end is divided into two categories: \enquote{Models} (model creation) and \enquote{Attack}.
-In the former category, the user is able train, steal, upload and generally manage models. The latter is then used to configure and start attacks on a model.
-All information in this subsection relates to the client-side part of our application: HTML documents, CSS stylesheets, JavaScript files and other static content.
+In the former category, the user is able to train, steal, upload and generally manage models. 
+The latter is then used to configure and start attacks on a model.
+All information in this subsection relates to the client-side part of our application: HTML documents, CSS style sheets, JavaScript files and other static content.
+
+The structure of the front end can be seen in Figure~\ref{fig:rest_api}.
+This also contains the available GET and POST requests provided in the back end REST interface which are triggered by the front end upon specified actions like a button click or a timeout.
+From a conceptual point of view, the front end can be seen as a pipeline: The user is guided from creating a substitute model to generating adversarial examples.
+This manifests in navigational buttons providing shortcuts and automatic redirections to the correct page on certain actions.
+For example, the user is automatically redirected to the related details page of a process after starting it (on a different page).
+
+\begin{figure}
+	\input{figs/rest_api}
+	\caption{A hierarchical overview of the provided REST interface.}\label{fig:rest_api}
+\end{figure}
 
 \subsubsection{Design Principles}
 The main goal for the front end is a visually appealing and responsive design.
 This includes the scalability of the website across different screen sizes and even device types.
-Therefore, all DOM object properties are defined using relative sizes, i.e. \enquote{em} for the size relative to the parent element or \enquote{vh} for the size relative to the view port size.
+Therefore, we utilize the flexbox model and responsive CSS classes to dynamically organize DOM elements on the screen.
+As an example, the navigation bar changes its appearance when the view port becomes too small, condensing the navigation bar items in a drop down menu.
 We also leverage the twitter bootstrap framework for a scalable base design\footnote{\url{https://getbootstrap.com/}} as well as a bootstrap wrapper theme\footnote{\url{https://bootswatch.com/darkly/}} which we found suitable for a hacking-related competition.
 
 A second requirement is a user-friendly flow.
 This includes a unified layout across multiple subdomains and expressive icons for which we used the free icons from fontawesome\footnote{\url{https://fontawesome.com/}}.
 Moreover, this design goal implies low latencies after clicking a button and an immediate visual feedback, which is solved by our REST API and asynchronous requesting(see~\ref{subsec:webserver}).
-The user's orientation on the page is further supported by hovering effects in potentially large tables.
+When a time-consuming action is issued, the back end server starts an asynchronous process and allows for polling its status.
+This enables the front end to provide immediate feedback of the internal status.
+The user's orientation on each page is further supported by hovering effects in potentially large tables (amongst other things).
 Finally, a user-friendly design also means preventing the user from taking possibly inadvertent actions like deleting a trained model which took multiple hours to train.
-We thoroughly implemented these design goals in all the below described parts of the website.
+We thoroughly implemented these design goals in all parts of the website.
 
-The HTML documents are dynamically generated using the Django template system.
-This allows for having a static templates which are filled according to a given context: For example, the table of available models is dynamically created with respect to the prevalent models in the docker container.
-Also, this drastically decreases code duplications: The templates support inheritance which allowed us to define a base layout in a root template which is inherited from by each other template.
+As previously mentioned, the subdomains share a base layout and some other properties like included style sheets and scripts.
+To avoid code duplicates, the HTML documents are dynamically generated using the Django template system and the provided template inheritance feature.
+This allows for having a root template which others can inherit from.
 As a consequence, a change in e.g. the navigation bar would only affect a single file, which reduces the risk of code inconsistencies.
+The templates themselves are filled according to a given context: For example, the table of available models is dynamically created with respect to the prevalent models in the docker container.
+To implement this, django offers a simple yet expressive domain specific language for defining variables, loops and conditions.
+Thereby, these templates also help at shortening HTML documents.
 
 \subsubsection{Welcome Page}
 The welcome page is intended to show an inviting and motivating starting page with a quick navigation to the two main parts of the front end.
 It explains in simple words what to expect there and employs a minimal design.
+On visiting this page, a background check is performed: The API key necessary for the remote predictions is validated by making a test request.
+If no API key has been provided yet, the user is asked to type it.
+Once a valid key has been submitted, the dialog disappears and the user free to navigate subsequent pages.
+This measure is an important step because many of the features of our program require a valid API key.
 
 \subsubsection{Models -- Overview}
 As discussed in Section \ref{sec:methodology}, for an attack to be possible, we need to train a local substitute model.
@@ -71,10 +88,10 @@ This page displays the details of the current training process and enables a use
 To show the live console output, a script is polling the internal state of the respective standard output (stdout) file descriptor via our REST API. 
 If there is no process in progress, an appropriate message is shown.
 
-
 \subsubsection{Attack -- Overview}
 Similar to the model overview, this page contains a table to manage the different attacks.
 The shown entities in this context are the performed runs: Each started attack is identifiable by its process ID (PID) and the console output can be reviewed live or in retrospective.
+By clicking on a PID, the respective console output is shown.
 If an attack run is not needed anymore, it can be removed from the table using the trash icon.
 
 \subsubsection{Attack -- Attack}
@@ -89,48 +106,6 @@ For example, loading a source image which is not 64 by 64 pixels in size results
 This tab works almost exactly like the model details except for that it additionally shows the classification result of the source and generated images.
 Thus, it enables the user to evaluate her attack after it has finished.
 Also, the generated images are shown on this page which enables the user to download them by right-clicking and saving them.
-
-Attack:
-\begin{enumerate}
-\item path('', views.overview, name='index'),
-\item path('index.html', views.overview),
-\item path('overview.html', views.overview),
-\item path('details.html', views.details),
-\item url('attack.html', views.attack),
-
-	%# GET
-	%url('proc_info', rest.handle_proc_info),
-	%url('list_images', rest.handle_list_images),
-	%url('classify', rest.handle_classify),
-
-	%# POST
-	%url('start_attack', rest.handle_start_attack),
-	%url('delete_proc', rest.handle_delete_proc)
-\end{enumerate}
-
-Model:
-\begin{enumerate}
-\item path('', views.overview, name='index'),
-\item path('index.html', views.overview),
-\item path('overview.html', views.overview),
-\item path('training.html', views.training),
-\item path('details.html', views.details),
-
-	%# GET
-	%url('model_info', rest.handle_model_info),
-
-	%# POST
-	%url('deletemodel', rest.handle_delete_model),
-	%url('uploadmodel', rest.handle_upload_model),
-
-	%url('start_training', rest.handle_start_training),
-	%url('abort_training', rest.handle_abort_training),
-\end{enumerate}
-
-\begin{enumerate}
-\item Pipeline-artig
-\item Durch Weboberfläche konfigurierbar
-\end{enumerate}
 
 \subsection{Django Server}\label{subsec:webserver}
 The Django server acts as a blend of web and application server.
@@ -162,7 +137,7 @@ This is important to prevent zombie processes because these would remain as \enq
 Since we don't want to restart the web server because a sub-process has finished, we applied this double fork technique.
 The advantage of this setup is that we leverage existing operating system mechanisms and don't have to re-implement this ourselves which might not cover all edge cases.
 
-\subsection{Python Back-End}\label{subsec:backend}
+\subsection{Python Back End}\label{subsec:backend}
 The python back end represents our business logic and is realized as a set of standalone scripts for the main tasks, some auxiliary scripts and a small configuration file which defines common variables like the path to the cache directory.
 Considering the standalone scripts, each of them realizes a high level function like starting a training, an attack or crawling the remote predictions for a dataset.
 They expose all internal parameters as command line arguments such that they can be either called by hand or by the above described sub-processing mechanism.
@@ -184,17 +159,21 @@ Regarding the choice of programming language, there have been three main factors
 	Since this is the case for both team members, we preferred this choice over other equally good solutions.
 \end{description}
 
-\subsection{Docker Setup}
+%TODO reference to \ref{subsec:cwl2_mod}
+%TODO mention other scripts
+%TODO write about augmentation
+
+\subsection{Docker Setup}\label{subsec:docker}
 Docker is a commonly used containerization and virtualization engine.
 It provides the opportunity to bundle a program and all its dependencies into a single container which then may be run on different operating systems.
-The result is an easy to install software with the only requirement using the same kernel.
+The result is an easy to install software with the only requirement using the same kernel as the host.
 Also, completely uninstalling a program with all its dependencies becomes an easy task with docker containers.
-This technology therefore greatly simplifies distributing software and avoiding situations in which it works on a developer's machine but not on the user's.
+This technology therefore greatly simplifies distributing software and helps avoiding situations in which it works on a developer's machine but not on the user's.
 For the final submission, we choose to offer two options.
 First, we provide a \enquote{Dockerfile} and the git repository, which the user may use to create a docker image herself and instantiate a container.
 Second, we also distribute a ready-to-run docker container incorporating a copy of the repository.
 
-Having a closer look on the container, one might recognize that it is distributed without the reference dataset (GTSRB) and external dependencies (pip packages, twitter bootstrap etc.).
+Having a closer look on the container, one might recognize that it is distributed without the reference dataset (GTSRB) and external dependencies (like pip packages and twitter bootstrap).
 We decided to reduce the size of the container and separate the code from the data as much as possible.
 Subsequently, there exists a setup shell script which will download all required data and put it in a so called \enquote{DATA\_ROOT} on startup of the container.
 This data root is a directory that can be mounted into the docker container such that, on a potential software update, the user would only need to replace the docker container and can then immediately continue working as before.
