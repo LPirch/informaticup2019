@@ -85,6 +85,17 @@ sudo docker run -it --rm \
 	-v /home/user/workspace/informaticup/data:/informaticup/data \
 	superperturbator-cuda
 ```
+
+## Opening the Program
+After starting the container, check the command line output and wait until it says:
+```
+Starting development server at http://0.0.0.0:80/
+Quit the server with CONTROL-C.
+```
+
+Now open your web browser on "localhost" or "127.0.0.1" and you should see the welcome page.
+We suggest using the chrome/chromium browser since the user experience has been optimized for it.
+
 ## Important Notes
   - the first startup will take some time since we need to fetch the training and test datasets
   - always provide fully qualified paths; it is not guaranteed to work otherwise
