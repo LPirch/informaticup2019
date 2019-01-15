@@ -2,12 +2,12 @@
 
 \section{Methodology}\label{sec:methodology}
 
-In this section, we present our theoretical approach to attacking the remote model and our practical methodology for developing a suitable software.
+In this section, we present our theoretical approach for attacking the remote model and our practical methodology for developing a suitable software.
 The general idea is to train a local model which approximates the behavior of the remote model.
-Thus, we first describe how we turn the remote black-box oracle into a local white-box model in subsection \ref{subsec:modelstealing}.
-Afterwards, we attack the local model and expect the generated image to also fool the remote model, depending on our approximation quality.
+Thus, we first describe how we turn the remote black-box oracle into a local white-box model in Subsection~\ref{subsec:modelstealing}.
+Afterwards, we attack the local model so that the generated adversarial image also transfers to the remote model, i.e., it also fools the remote model.
 Therefore, we introduce the attacks for generating adversarial examples in the subsequent parts of this section.
-Finally, we present our software developing methodology in subsection \ref{subsec:sw_development}.
+Finally, we present our software developing methodology in Subsection~\ref{subsec:sw_development}.
 
 \subsection{Model Stealing}\label{subsec:modelstealing}
 
@@ -21,7 +21,7 @@ The transferability spans across different machine learning methods (e.g. betwee
 We can leverage the transferability property to receive white-box access to a model.
 Because adversarial samples transfer between different machine learning methods, we do not need to know the exact architecture of the remote model but instead can choose our own local white-box architecture.
 By training multiple neural networks with different layers, we can approximate the optimal architecture.
-To extract the information from the remote model, we can take further take advantage of the transferability property:
+To extract the information from the remote model, we can further take advantage of the transferability property:
 
 \begin{enumerate}
 \item[1.] \textbf{Rebuilding}
@@ -52,10 +52,10 @@ In subsequent iterations, this dataset is further augmented until the maximum nu
 The substitute model which has been trained in the last iteration is the final output.
 
 After initial experiments, we quickly noticed that the original algorithm does not produce acceptable results as-is and that it needs some refinement in our context.
-Thus, we created a custom extension to this algorithm which we expect yield a better approximation of the remote decision boundary.
+Thus, we created a custom extension to this algorithm which we expect to yield a better approximation of the remote decision boundary.
 As previously described, the original Jacobian-based dataset augmentation takes a single image per class, fetches the remote labels, trains an intermediate model on this data and computes new synthetic data points along the gradient of the local model.
-We found it problematic that firstly, this does not handle low-confidence source samples very well: The intermediate model can be hardly trained on these inputs.
-Secondly, the original algorithm starts at an unknown confidence and generates new data in both the positive and negative gradient direction.
+We found it problematic that first, this does not handle low-confidence source samples very well: The intermediate model can be hardly trained on these inputs.
+Second, the original algorithm starts at an unknown confidence and generates new data in both the positive and negative gradient direction.
 It is parameterized by a number of iterations $\rho$ and a step size $\lambda$ which are fixed for all classes.
 Obviously the combination of an unknown starting point and a fixed step size in both directions is counter productive, since this can easily lead to generated images which are off the manifold and there is no way to control how many of these samples are generated.
 
@@ -98,10 +98,10 @@ Moreover, we wanted to prevent overfitting on certain source images and their sy
 
 Given the fact that the remote model has been trained on the GTSRB dataset, we hypothesized that it should be able to predict all occurring classes.
 We therefore chose to crawl each image of the dataset once and cache the predictions in a python pickle file.
-Lastly, we analyzed the results and recognized that there are seven classes of GTSRB that never occur in the classification output of the remote model as shown in Figure \ref{fig:missing}:
-
-Concluding that it would be not sensible to target these classes, we excluded them from all further considerations.
+Lastly, we analyzed the results and recognized that there are seven classes of GTSRB that never occur in the classification output of the remote model as shown in Figure \ref{fig:missing}.
 Also, the cached dataset predictions are the basis for a static map which translates the class numbers and names of the local dataset to the ones returned by the remote model.
+Concluding that it would be not sensible to target the missing classes, we excluded them from all further considerations.
+
 
 \begin{figure}
 	\includegraphics[width=1.1\linewidth]{figs/class_distr}

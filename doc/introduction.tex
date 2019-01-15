@@ -13,12 +13,17 @@ It is an essential goal to prevent self-driving cars from being mislead by these
 Considering a situation in which someone places a sticker on the back of a lorry which looks benign to humans but is classified as a yield sign by a car, the criticality of this topic becomes very clear.
 This motivates exploring different kinds of attacks against ML algorithms in order to better understand the vulnerabilities, paving the way for setting up effective defenses.
 Adversarial Examples themselves are an active research direction and though there exist a plethora of attacks, it's neither clearly established why adversarial examples exist nor how to effectively defend against them.
-One of the most prominent projects for benchmarking defenses is the CleverHans project in which a lot of state-of-the-art attacks are included \cite{papernot2016cleverhans}.
+
+One of the most prominent projects for benchmarking defenses is the CleverHans project in which several state-of-the-art attacks are included \cite{papernot2016cleverhans}.
+By leveraging these existing algorithms and creating custom extensions to them, this work contributes to a better understanding of how these adversarial examples can be generated and physically applied.
+For example, perturbations are only valid for a single image in most cases, which has been taken from a certain angle.
+In the situation of a self-driving car passing by an adversarial example, this would only trigger in a fraction of a second.
+To cover a more realistic scenario, we implemented a modified attack which makes these adversarial examples robust against being seen from different angles.
 
 On a more detailed level, the scenario of this challenge is similar to the \enquote{rubbish class examples} described by \citet{szegedy2015explaining}, which are images that a human would not assign any of the given classes.
 
 An obstacle in the competition is the access to the remote model, which is only accessible via a web interface,
-which reports the top five most-likely classes and their confidences for a given image.
+reporting the top five most-likely classes and their confidences for a given image.
 This means that the architecture, the weights and the training hyperparameters are unknown, which are critical to most attacks that generate adversarial examples.
 This impediment is overcome by \citet{papernot2017practical} which turn the limited access into a white box model.
 Therefore, the challenge of this task lies in combining multiple insights of adversarial research and applying them in a real-world situation.
@@ -68,7 +73,7 @@ Therefore, the challenge of this task lies in combining multiple insights of adv
 \label{fig:eyecatcher}
 \end{figure}
 
-An excerpt of our results is shown in Figure \ref{fig:eyecatcher}. 
+An excerpt from our results is shown in Figure \ref{fig:eyecatcher}. 
 Each row contains the source image on the left, the result from the attack in the center and an image of the falsely classified label by the remote model on the right.
 A thorough explanation of how these example have been created as well as a discussion about the result quality can be read in the remainder of this paper, which is organized as follows:
 
