@@ -30,3 +30,6 @@ __pycache__
 # ignore bootstrap css files
 *min*
 static/css/fontawesome
+
+# tex intermediate files
+*.aux
