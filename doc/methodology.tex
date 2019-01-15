@@ -3,7 +3,7 @@
 \section{Methodology}\label{sec:methodology}
 
 In this section, we present our theoretical approach for attacking the remote model and our practical methodology for developing a suitable software.
-The general idea is to train a local model which approximates the behavior of the remote model.
+The general idea is to train a local model which approximates the behavior of the remote model such that an adversarial example created for the local model also misleads the remote one.
 Thus, we first describe how we turn the remote black-box oracle into a local white-box model in Subsection~\ref{subsec:modelstealing}.
 Afterwards, we attack the local model so that the generated adversarial image also transfers to the remote model, i.e., it also fools the remote model.
 Therefore, we introduce the attacks for generating adversarial examples in the subsequent parts of this section.
@@ -11,7 +11,7 @@ Finally, we present our software developing methodology in Subsection~\ref{subse
 
 \subsection{Model Stealing}\label{subsec:modelstealing}
 
-The attacks which are introduced later in this section assume white-box access to a target model (i.e. the entire architecture including amount of layers and neurons, the learned weights and the activation functions need to be known).
+The attacks which are introduced later in this section assume white-box access to a target model (i.e. the entire architecture including the amount of layers and neurons, the learned weights and the activation functions need to be known).
 Because we are limited to a black-box access and the knowledge of the training data, we need to turn this into a white-box model.
 
 The following discussion is based on the transferability property of adversarial examples.
@@ -21,7 +21,7 @@ The transferability spans across different machine learning methods (e.g. betwee
 We can leverage the transferability property to receive white-box access to a model.
 Because adversarial samples transfer between different machine learning methods, we do not need to know the exact architecture of the remote model but instead can choose our own local white-box architecture.
 By training multiple neural networks with different layers, we can approximate the optimal architecture.
-To extract the information from the remote model, we can further take advantage of the transferability property:
+To extract the information from the remote model, we can further take advantage of the transferability property in two different ways:
 
 \begin{enumerate}
 \item[1.] \textbf{Rebuilding}
@@ -42,7 +42,7 @@ A more sophisticated method is the Jacobian-based dataset augmentation where the
 	\label{fig:jbda}
 \end{figure}
 
-With reference to existing literature, the substitute training combined with a Jacobian-based dataset augmentation appeared to be the most promising~\cite{papernot2017practical}, since \citeauthor{papernot2016cleverhans} use the same threat model with a pure black-box access.
+With reference to existing literature, the substitute training combined with a Jacobian-based dataset augmentation appear to be the most promising~\cite{papernot2017practical}, since \citeauthor{papernot2016cleverhans} use the same threat model with a pure black-box access.
 The general idea is to replicate the remote decision boundary by following the gradient of the prediction, thus finding regions in the feature space where the remote model returns low confidences.
 
 More precisely, the Jacobian-based dataset augmentation involves multiple training iterations, as shown in Figure~\ref{fig:jbda}.
@@ -129,7 +129,7 @@ Neural networks are vulnerable to adversarial samples: Given an image $x$ of cla
 where $d$ is a distance metric, $x$ is an input image of class $s \neq t$ and $\delta$ is the perturbation applied to the input image.
 
 \subsection{Carlini \& Wagner}\label{subsec:cwl2}
-In the following, the Carlini and Wagner $L_2$ attack (C\&W) is going to be briefly summarized, following the ideas and notation of the original paper \cite{carlini2017towards}.
+In the following, the Carlini and Wagner $L_2$ attack (CWL2) is going to be briefly summarized, following the ideas and notation of the original paper \cite{carlini2017towards}.
 The attack has been designed with the intention of evaluating a DNN classifier's robustness by proving its upper bound.
 In their paper, \citeauthor{carlini2017towards} refer to the commonly used $L_0$, $L_2$ and $L_\infty$ norms and construct an attack for each of them.
 The second one of these attacks produces the least noticeable adversarial examples, which is why we chose it in this work.
@@ -175,18 +175,18 @@ Combining Equation \ref{eq:cw_general} and \ref{eq:delta_tanh} results in the fi
 
 \subsection{Modified Carlini \& Wagner}\label{subsec:cwl2_mod}
 
-We found it necessary to further modify the original C\&W formulation because of the context this year's informatiCup is placed in:
+We found it necessary to further modify the original CWL2 formulation because of the context this year's InformatiCup is placed in:
 
 In a real world scenario the classification of traffic signs is done under various environmental influences.
 These include but are not limited to distance and angle to the object, lighting, weather or vandalism of the sign.
-Often, a small change of these factors overshadows the adversarial perturbation. % TODO citation needed
+Often, a small change of these factors overshadows the adversarial perturbation.
 For an adversarial example to be successful, one often has to stay at the exact same position for which the sample was generated. 
 
 \citet{eykholt2018robust} try to combat these influences with a robust physical framework for their attack.
-Amongst other methods they apply multiple transformations $T_i \in T$ to their source image,
+Amongst other methods, they apply multiple transformations $T_i \in T$ to their source image,
 thus optimizing the perturbation to simultaneously work on multiple variations of the source image.
 
-We adapted this idea for the C\&W attack to make it more resilient in the competition's real world context. By calculating the average of the objective function $f$ for multiple transformations $T_i \in T$ we achieve the same effect as \cite{eykholt2018robust}.
+We adapted this idea for the CWL2 attack to make it more resilient in the competition's real world context. By calculating the average of the objective function $f$ for multiple transformations $T_i \in T$ we achieve the same effect as \cite{eykholt2018robust}.
 
 \begin{equation}
 \min ||\delta||^2_2 + \frac{c}{|T|} \cdot \sum_{T_i \in T} f(T_i(x + \delta))
@@ -305,6 +305,6 @@ We therefore restricted ourselves to the following three testing techniques whic
 \begin{description}
 	\item[Informal Code Review] This is a form of static testing which we applied before merging new features. To maintain a high development velocity, we chose the following flow: For a finished feature, the code author notifies the reviewer who then checks out the feature branch, reviews the changes and executes the code. The reviewer accepts or rejects the changes depending on potential open issues. On acceptance, the branch is merged and sent back for re-iteration on rejection. The reviewer also has the opportunity to ask for a peer review if there are many open questions or if the amount of changes is too large.
 	\item[Peer Review] For bigger sets of changes, we held dedicated sessions in which the reviewer examined each change, pointing out discrepancies and asking questions. The code author then provided an explanation or noted this aspect as an open issue. After solving all issues and implementing the fixes, the reviewer checked it again before merging in an informal review.
-	\item[Scenario-based Testing] This testing technique applies to the system level and defines scenarios to be tested. We identified this as vital to ensure that all components are well-integrated and that there are no unforeseen errors at the end. Testing scenarios helps ensuring a good user experience which is our main non-functional requirement in the context of this competition. 
+	\item[Scenario-based Testing] This testing technique applies to the system level and defines scenarios to be tested. We identified this as vital to ensure that all components are well-integrated and that there are no unforeseen errors at the end. Testing scenarios helps ensuring a good user experience which is our main non-functional requirement in the context of this competition. The test report can be found in Appendix~\ref{app:scenariotest}.
 \end{description}
-Enforcing this testing strategy, we were able to develop with a high developing velocity\footnote{We performed a total of ca. 170 commits and an average of $1.1$ commits per day and team member (metrics taken from our git repository over the whole span of the project).} while maintaining a reasonable code quality.
+Enforcing this testing strategy, we were able to develop with a high developing velocity\footnote{We performed a total of ca. 230 commits and an average of $1.35$ commits per day and team member (metrics taken from our git repository over the whole span of the project).} while maintaining a reasonable code quality.
