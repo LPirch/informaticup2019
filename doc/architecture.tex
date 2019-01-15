@@ -159,15 +159,14 @@ Regarding the choice of programming language, there have been three main factors
 	Since this is the case for both team members, we preferred this choice over other equally good solutions.
 \end{description}
 
-%TODO reference to \ref{subsec:cwl2_mod}
-%TODO mention other scripts
-%TODO write about augmentation
+As stated in the Subsections~\ref{subsec:modelstealing} and \ref{subsec:cwl2_mod}, we created our own modifications to existing algorithms.
+The Jacobian-based dataset augmentation and robust CWL2 attack can be found in the \enquote{models/train.py} and \enquote{nn\_robust\_attacks/ l2\_attack\_robust.py} scripts in the python back end.
+Providing the same interfaces like other training or attacking methods, these implementations are easily integrable and exchangeable.
 
 \subsection{Docker Setup}\label{subsec:docker}
 Docker is a commonly used containerization and virtualization engine.
 It provides the opportunity to bundle a program and all its dependencies into a single container which then may be run on different operating systems.
-The result is an easy to install software with the only requirement \todo{only requirement of?} using the same kernel as the host.
-Also, completely uninstalling a program with all its dependencies becomes an easy task with docker containers.
+Installing or uninstalling a program with all its dependencies becomes an easy task with docker containers.
 This technology therefore greatly simplifies distributing software and helps avoiding situations in which it works on a developer's machine but not on the user's.
 For the final submission, we choose to offer two options.
 First, we provide a \enquote{Dockerfile} and the git repository, which the user may use to create a docker image herself and instantiate a container.
