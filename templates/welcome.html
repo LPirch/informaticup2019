@@ -63,6 +63,7 @@
 						<div class="invalid-feedback hidden" id="no-connection">Could not connect to the remote server. Please check the connection.</div>
 					</div>
 					<button class="btn btn-primary" onclick="save_api_key()">Submit</button>
+					{% csrf_token %}
 				</div>
 			</div>
 		</div>
