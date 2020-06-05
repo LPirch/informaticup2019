@@ -7,7 +7,7 @@ cloudpickle==0.6.1
 cycler==0.10.0
 dask==1.0.0
 decorator==4.3.0
-Django==2.1.5
+Django==2.2.13
 gast==0.2.1.post0
 grpcio==1.17.1
 h5py==2.9.0
