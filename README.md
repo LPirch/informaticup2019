@@ -7,6 +7,10 @@
 
 This repo contains our work on the InformatiCup, solving the challenge of adversarial example creation in a black-box scenario.
 
+# Deprecation Notice
+
+This repository is not maintained and many dependencies are deprecated now (esp. tensorflow). The code requires a fundamental refactoring to adapt to these changes.
+
 # Setup
 
 The software is distributed as a git repository and a ready-to-use docker container.
